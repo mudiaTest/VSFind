@@ -41,14 +41,39 @@ namespace VSFindTool
         }
 
 
-        public void TVResultSetExpandAllInLvl(ItemCollection treeItemColleaction, bool value)
+        public void SetExpandAllInLvl(ItemCollection treeItemColleaction, bool value)
         {            
             if (treeItemColleaction == null || treeItemColleaction.Count == 0)
                 return;
             foreach (TreeViewItem item in treeItemColleaction)
             {
                 item.IsExpanded = true;
-                TVResultSetExpandAllInLvl(item.Items, value);
+                SetExpandAllInLvl(item.Items, value);
+            }
+        }
+
+        public void JoinNodesWOLeafs(TreeViewItem treeItem)
+        {
+            List<TreeViewItem> list = new List<TreeViewItem>();
+            if (treeItem.Items.Count == 1)
+            {
+                TreeViewItem treeItem2 = (TreeViewItem)treeItem.Items.GetItemAt(0);
+                JoinNodesWOLeafs(treeItem2);
+                if (treeItem2.Items.Count != 0)
+                {
+                    list.Clear();
+                    treeItem.Items.RemoveAt(0);
+                    foreach (TreeViewItem treeItem3 in treeItem2.Items)
+                    {                        
+                        list.Add(treeItem3);
+                    }
+                    foreach (TreeViewItem treeItem3 in list)
+                    {
+                        treeItem2.Items.Remove(treeItem3);
+                        treeItem.Items.Add(treeItem3);
+                    }
+                    treeItem.Header += @"/" + treeItem2.Header;
+                }
             }
         }
     }

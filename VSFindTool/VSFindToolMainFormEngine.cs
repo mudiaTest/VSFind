@@ -102,7 +102,9 @@ namespace VSFindTool
                 //treeItem.Header = "stTmp";
                 //tvResult.Items.Add(treeItem);
             }
-            TVResultSetExpandAllInLvl(tvResult.Items, true);
+            foreach (TreeViewItem tmpItem in tvResult.Items)
+                JoinNodesWOLeafs(tmpItem);
+            SetExpandAllInLvl(tvResult.Items, true);
         }
 
          
