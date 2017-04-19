@@ -39,5 +39,17 @@ namespace VSFindTool
         {
             ExecSearch();
         }
+
+
+        public void TVResultSetExpandAllInLvl(ItemCollection treeItemColleaction, bool value)
+        {            
+            if (treeItemColleaction == null || treeItemColleaction.Count == 0)
+                return;
+            foreach (TreeViewItem item in treeItemColleaction)
+            {
+                item.IsExpanded = true;
+                TVResultSetExpandAllInLvl(item.Items, value);
+            }
+        }
     }
 }

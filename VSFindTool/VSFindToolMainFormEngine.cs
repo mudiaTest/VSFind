@@ -48,47 +48,79 @@ namespace VSFindTool
         {
             //TODO
 
-            TreeViewItem treeItem = null;
+            ItemCollection treeItemColleaction;
+            TreeViewItem treeItem;
+            String pathAgg;
+            String linePath;
+            String LineContent;
 
-            // North America
-            /*treeItem = new TreeViewItem();
-            treeItem.Header = "North America";
-
-            treeItem.Items.Add(new TreeViewItem() { Header = "USA" });
-            treeItem.Items.Add(new TreeViewItem() { Header = "Canada" });
-            treeItem.Items.Add(new TreeViewItem() { Header = "Mexico" });
-
-            tvMain.Items.Add(treeItem);
-
-
-            TreeViewItem mainItem = new TreeViewItem();
-            mainNode.Name = "mainNode";
-            mainNode.Text = "Main";
-            tvResult.Nodes.Add(mainNode);*/
-
-
-
-
-
-
-
-
+            tvResult.Items.Clear();
             List<string> resList = GetFindResults2Content().Replace("\n\r","\n").Split('\n').ToList<string>();
+            resList.RemoveAt(0);
             foreach(string line in resList)
             {
-                var stTmp = line.Trim();
+                treeItemColleaction = tvResult.Items;
+                treeItem = null;
+                pathAgg = "";
+
+                if (line.Trim() == "" || line.Trim().StartsWith("Matching lines:"))
+                    continue;
+                linePath = line.Substring(0, line.IndexOf(":", 10)).Trim();
+                LineContent = line.Substring(line.IndexOf(":", 10)+1).Trim();
+
+                foreach (string pathPart in linePath.Split('\\').ToList<string>())
+                {
+                    if (pathAgg == "")
+                        pathAgg = pathPart;
+                    else
+                        pathAgg = pathAgg + "\\" + pathPart;
+                    if (Directory.Exists(pathAgg))
+                    {
+                        treeItem = GetItem(treeItemColleaction, pathPart);
+                        if (treeItem == null)
+                        {
+                            treeItem = new TreeViewItem() { Header = pathPart };
+                            treeItemColleaction.Add(treeItem);                            
+                        }
+                        treeItemColleaction = treeItem.Items;
+                    }
+                    else if (File.Exists(pathAgg))
+                    {
+                        treeItemColleaction.Add(new TreeViewItem() { Header = pathPart });
+                    }
+                    else
+                    {
+                        //Assert
+                        treeItemColleaction.Add(new TreeViewItem() { Header = pathPart + '(' + LineContent + ')' });
+                        var i = 0;
+                    }
+
+                    //treeItemContainer.Items
+                }
                 //var  = Path.Get;
-                treeItem = new TreeViewItem();
-                treeItem.Header = "stTmp";
-
-               // tvResult.Items.Add()
+                //treeItem = new TreeViewItem();
+                //treeItem.Header = "stTmp";
+                //tvResult.Items.Add(treeItem);
             }
+            TVResultSetExpandAllInLvl(tvResult.Items, true);
+        }
 
+         
+
+        private TreeViewItem GetItem(ItemCollection colleation, string pathPart)
+        {
+            foreach (TreeViewItem item in colleation)
+            {
+                if (item.Header.ToString() == pathPart)
+                    return item;
+            }
+            return null;
         }
 
         public void Finish()
         {
             MoveResultToTextBox();
+            MoveResultToTreeList();
             List<string> list = tbResult.Text.Split('\n').ToList<string>();
             if (list[list.Count - 2].StartsWith("Matching lines"))
                 BringBackFindResult2Value();
