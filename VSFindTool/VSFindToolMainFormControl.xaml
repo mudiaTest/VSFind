@@ -1,0 +1,90 @@
+﻿<UserControl x:Class="VSFindTool.VSFindToolMainFormControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             Background="{DynamicResource VsBrush.Window}"
+             Foreground="{DynamicResource VsBrush.WindowText}"
+             mc:Ignorable="d"
+             d:DesignHeight="305" d:DesignWidth="225"
+             Name="VSFindToolMainForm">
+    <Grid>
+        <TabControl x:Name="tbcMain" Margin="0">
+            <TabItem Header="Search">
+                <Grid Background="#FFE5E5E5" Margin="0">
+                    <StackPanel Margin="0">
+                        <Grid Margin="0,0,0,5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition Width="30"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="tbPhrase" TextWrapping="Wrap" Text="arrLine" BorderThickness="1" Margin="0">
+                                <TextBox.BorderBrush>
+                                    <LinearGradientBrush EndPoint="0,20" MappingMode="Absolute" StartPoint="0,0">
+                                        <GradientStop Color="#FFABADB3" Offset="0.05"/>
+                                        <GradientStop Color="#FFE2E3EA" Offset="0.07"/>
+                                        <GradientStop Color="Black" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </TextBox.BorderBrush>
+                            </TextBox>
+                            <Button Content="&gt;&gt;" Click="button1_Click" x:Name="button1" RenderTransformOrigin="-0.32,7.767" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0" Grid.Column="1"/>
+                        </Grid>
+                        <Expander Header="Find options" BorderBrush="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Margin="0,0,0,5" IsExpanded="True">
+                            <Grid Margin="0,5,0,0" Height="60">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <CheckBox x:Name="chkCase" Content="Match Case"/>
+                                <CheckBox x:Name="chkWholeWord" Content="Match Whole Word" Grid.Row="1"/>
+                                <CheckBox x:Name="chkRegExp" Content="Match Regular Expressions" Grid.Row="2" IsEnabled="False"/>
+                            </Grid>
+                        </Expander>
+                        <Expander Header="Look in" BorderBrush="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" IsExpanded="True">
+                            <Grid VerticalAlignment="Top" Height="100" Margin="0,2,0,0">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <RadioButton x:Name="rbCurrDoc" Content="Current Doc." HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" IsChecked="True"/>
+                                <RadioButton x:Name="rbOpenDocs" Content="Open Docs" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="1"/>
+                                <RadioButton x:Name="rbProject" Content="Project" HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top"/>
+                                <RadioButton x:Name="rbSolution" Content="Solution" HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" Grid.Column="1"/>
+                                <RadioButton x:Name="rbPrjectExt" Content="Project+Ext" HorizontalAlignment="Left" Grid.Row="2" VerticalAlignment="Top" IsEnabled="False"/>
+                                <RadioButton x:Name="rbSolutionExt" Content="Solution+Ext" HorizontalAlignment="Left" Grid.Row="2" VerticalAlignment="Top" Grid.Column="1" IsEnabled="False"/>
+                                <RadioButton x:Name="rbSelection" Content="Selection" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="3" Grid.ColumnSpan="2" IsEnabled="False"/>
+                                <Grid Grid.Row="4" Grid.ColumnSpan="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition Width="30"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox TextWrapping="Wrap" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEnabled="False"/>
+                                    <Button Content=". . ." Grid.Column="1" Margin="0" Width="25" HorizontalAlignment="Center" IsEnabled="False"/>
+                                </Grid>
+                            </Grid>
+                        </Expander>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="tbiLastResult" Header="Last result">
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="39*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2">
+                        <TextBlock x:Name="tbResult" Text="TextBlock" RenderTransformOrigin="0.462,0.462" OpacityMask="Black"/>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>
