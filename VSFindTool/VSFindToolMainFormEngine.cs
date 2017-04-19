@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.Shell;
 using EnvDTE;
+using System.IO;
+
 namespace VSFindTool
 {
     using System.Diagnostics.CodeAnalysis;
@@ -46,6 +47,43 @@ namespace VSFindTool
         public void MoveResultToTreeList()
         {
             //TODO
+
+            TreeViewItem treeItem = null;
+
+            // North America
+            treeItem = new TreeViewItem();
+            treeItem.Header = "North America";
+
+            treeItem.Items.Add(new TreeViewItem() { Header = "USA" });
+            treeItem.Items.Add(new TreeViewItem() { Header = "Canada" });
+            treeItem.Items.Add(new TreeViewItem() { Header = "Mexico" });
+
+            tvMain.Items.Add(treeItem);
+
+
+            TreeViewItem mainItem = new TreeViewItem();
+            mainNode.Name = "mainNode";
+            mainNode.Text = "Main";
+            tvResult.Nodes.Add(mainNode);
+
+
+
+
+
+
+
+
+            List<string> resList = GetFindResults2Content().Replace("\n\r","\n").Split('\n').ToList<string>();
+            foreach(string line in resList)
+            {
+                var stTmp = line.Trim();
+                //var  = Path.Get;
+                treeItem = new TreeViewItem();
+                treeItem.Header = "stTmp";
+
+                tvResult.Items.Add()
+            }
+
         }
 
         public void Finish()

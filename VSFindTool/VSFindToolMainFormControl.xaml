@@ -84,7 +84,7 @@
                         <TextBlock x:Name="tbResult" Text="TextBlock" RenderTransformOrigin="0.462,0.462" OpacityMask="Black"/>
                     </Border>
                     <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2" Grid.Row="1">
-                        <TreeView HorizontalContentAlignment="Stretch"/>
+                        <TreeView x:Name="tvResult" HorizontalContentAlignment="Stretch"/>
                     </Border>
                 </Grid>
             </TabItem>
