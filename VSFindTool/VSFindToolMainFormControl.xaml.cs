@@ -1,27 +1,26 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="VSFindToolMainFormControl.xaml.cs" company="Company">
-//     Copyright (c) Company.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
 using Microsoft.VisualStudio.Shell;
 using EnvDTE;
+
 namespace VSFindTool
 {
-    using System.Diagnostics.CodeAnalysis;
-    using System.Windows;
-    using System.Windows.Controls;
-
     /// <summary>
-    /// Interaction logic for VSFindToolMainFormControl.
+    /// Interaction logic for VSFindToolMainFormControl.xaml
     /// </summary>
     public partial class VSFindToolMainFormControl : UserControl
     {
-        /// <summary> 
-        /// Initializes a new instance of the <see cref="VSFindToolMainFormControl"/> class.
-        /// </summary>
         public VSFindToolMainForm parentToolWindow;
         //List<string> resList;
         public EnvDTE.Window LastDocWindow;
@@ -30,17 +29,12 @@ namespace VSFindTool
 
 		public VSFindToolMainFormControl()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
         }
 
-        /// <summary>
-        /// Handles click on the button by displaying a message box.
-        /// </summary>
-        /// <param name="sender">The event sender.</param>
-        /// <param name="e">The event args.</param>
-        [SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions", Justification = "Sample code")]
-        [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Default event handler naming pattern")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions")]
+        //[SuppressMessage("StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Default event handler naming pattern")]
         private void button1_Click(object sender, RoutedEventArgs e)
         {
             ExecSearch();

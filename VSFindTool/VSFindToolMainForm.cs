@@ -1,41 +1,48 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="VSFindToolMainForm.cs" company="Company">
-//     Copyright (c) Company.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
+﻿using System;
+using System.Collections;
+using System.ComponentModel;
+using System.Drawing;
+using System.Data;
+using System.Windows;
+using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell;
 
 namespace VSFindTool
 {
-    using System;
-    using System.Runtime.InteropServices;
-    using Microsoft.VisualStudio.Shell;
-
     /// <summary>
     /// This class implements the tool window exposed by this package and hosts a user control.
-    /// </summary>
-    /// <remarks>
-    /// In Visual Studio tool windows are composed of a frame (implemented by the shell) and a pane,
+    ///
+    /// In Visual Studio tool windows are composed of a frame (implemented by the shell) and a pane, 
     /// usually implemented by the package implementer.
-    /// <para>
-    /// This class derives from the ToolWindowPane class provided from the MPF in order to use its
+    ///
+    /// This class derives from the ToolWindowPane class provided from the MPF in order to use its 
     /// implementation of the IVsUIElementPane interface.
-    /// </para>
-    /// </remarks>
-    [Guid("abcaf8fd-d4f2-47b1-8681-e317dea34c38")]
+    /// </summary>
+    [Guid("f812bf92-f6c3-47d8-b4f9-dc175924ac28")]
     public class VSFindToolMainForm : ToolWindowPane
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="VSFindToolMainForm"/> class.
+        /// Standard constructor for the tool window.
         /// </summary>
-        public VSFindToolMainForm() : base(null)
+        public VSFindToolMainForm() :
+            base(null)
         {
-            this.Caption = "VSFindToolMainForm";
+            // Set the window title reading it from the resources.
+            this.Caption = Resources.ToolWindowTitle;
+            // Set the image that will appear on the tab of the window frame
+            // when docked with an other window
+            // The resource ID correspond to the one defined in the resx file
+            // while the Index is the offset in the bitmap strip. Each image in
+            // the strip being 16x16.
+            this.BitmapResourceID = 301;
+            this.BitmapIndex = 1;
 
             // This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,
-            // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on
+            // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on 
             // the object returned by the Content property.
-            this.Content = new VSFindToolMainFormControl();
-            ((VSFindToolMainFormControl)base.Content).parentToolWindow = this;
+            base.Content = new VSFindToolMainFormControl();
+			((VSFindToolMainFormControl)base.Content).parentToolWindow = this;
         }
     }
 }

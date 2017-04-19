@@ -51,7 +51,7 @@ namespace VSFindTool
             TreeViewItem treeItem = null;
 
             // North America
-            treeItem = new TreeViewItem();
+            /*treeItem = new TreeViewItem();
             treeItem.Header = "North America";
 
             treeItem.Items.Add(new TreeViewItem() { Header = "USA" });
@@ -64,7 +64,7 @@ namespace VSFindTool
             TreeViewItem mainItem = new TreeViewItem();
             mainNode.Name = "mainNode";
             mainNode.Text = "Main";
-            tvResult.Nodes.Add(mainNode);
+            tvResult.Nodes.Add(mainNode);*/
 
 
 
@@ -81,7 +81,7 @@ namespace VSFindTool
                 treeItem = new TreeViewItem();
                 treeItem.Header = "stTmp";
 
-                tvResult.Items.Add()
+               // tvResult.Items.Add()
             }
 
         }
