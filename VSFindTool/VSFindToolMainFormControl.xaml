@@ -77,14 +77,13 @@
             <TabItem x:Name="tbiLastResult" Header="Last result">
                 <Grid Background="#FFE5E5E5">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="50"/>
+                        <RowDefinition/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
-                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2">
-                        <TextBlock x:Name="tbResult" Text="TextBlock" RenderTransformOrigin="0.462,0.462" OpacityMask="Black"/>
-                    </Border>
+                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2" Grid.Row="0"/>
+                        <TreeView x:Name="tvResultFlatTree" HorizontalContentAlignment="Stretch"/>
                     <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2" Grid.Row="1">
-                        <TreeView x:Name="tvResult" HorizontalContentAlignment="Stretch"/>
+                        <TreeView x:Name="tvResultTree" HorizontalContentAlignment="Stretch"/>
                     </Border>
                 </Grid>
             </TabItem>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
 using System.IO;
+using System.Diagnostics;
 
 namespace VSFindTool
 {
@@ -41,73 +42,125 @@ namespace VSFindTool
 
         public void MoveResultToTextBox()
         {
-            tbResult.Text = GetFindResults2Content();
+            //tbResult.Text = GetFindResults2Content();
+        }
+
+        public int ParseResultLine(string resultLine, out string linePath, out List<string> linePathPartsList, out string lineContent, out int? lineInFileNumber)
+        {
+            String pathPart = "";
+            linePath = "";
+            lineContent = "";
+            linePathPartsList = null;
+            lineInFileNumber = null;
+            if (resultLine.Trim() == "" || resultLine.Trim().StartsWith("Matching lines:"))
+                return 0;
+            linePath = resultLine.Substring(0, resultLine.IndexOf(":", 10)).Trim();
+            lineContent = resultLine.Substring(resultLine.IndexOf(":", 10) + 1).Trim();
+            linePathPartsList = linePath.Split('\\').ToList<string>();
+
+            for (int i = 0; i < linePathPartsList.Count; i++)
+            {
+                pathPart = linePathPartsList[i];
+                if (i == linePathPartsList.Count - 1)
+                {
+                    lineInFileNumber = Int32.Parse(pathPart.Substring(pathPart.LastIndexOf("(") + 1, pathPart.LastIndexOf(")") - pathPart.LastIndexOf("(") - 1));
+                    linePathPartsList[i] = pathPart.Substring(0, pathPart.LastIndexOf("("));
+                    linePath = linePath.Substring(0, linePath.LastIndexOf("("));
+                }
+            }
+            return 1;
         }
 
         public void MoveResultToTreeList()
         {
-            //TODO
-
             ItemCollection treeItemColleaction;
             TreeViewItem treeItem;
-            String pathAgg;
-            String linePath;
-            String LineContent;
+            string pathAgg;
+            string linePath;
+            string LineContent;
+            List<string> linePathPartsList;
+            int? lineInFileNumber;
+            String pathPart;
 
-            tvResult.Items.Clear();
+            tvResultTree.Items.Clear();
             List<string> resList = GetFindResults2Content().Replace("\n\r","\n").Split('\n').ToList<string>();
             resList.RemoveAt(0);
             foreach(string line in resList)
             {
-                treeItemColleaction = tvResult.Items;
+
+                treeItemColleaction = tvResultTree.Items;
                 treeItem = null;
                 pathAgg = "";
 
-                if (line.Trim() == "" || line.Trim().StartsWith("Matching lines:"))
+                switch (ParseResultLine(line, out linePath, out linePathPartsList, out LineContent, out lineInFileNumber))
+                { 
+                case 0: //Line to skip
                     continue;
-                linePath = line.Substring(0, line.IndexOf(":", 10)).Trim();
-                LineContent = line.Substring(line.IndexOf(":", 10)+1).Trim();
-
-                foreach (string pathPart in linePath.Split('\\').ToList<string>())
-                {
-                    if (pathAgg == "")
-                        pathAgg = pathPart;
-                    else
-                        pathAgg = pathAgg + "\\" + pathPart;
-                    if (Directory.Exists(pathAgg))
+                case 1: //proper line
+                    for (int i = 0; i < linePathPartsList.Count; i++)
                     {
-                        treeItem = GetItem(treeItemColleaction, pathPart);
-                        if (treeItem == null)
+                        pathPart = linePathPartsList[i];
+                        if (pathAgg == "")
+                            pathAgg = pathPart;
+                        else
+                            pathAgg = pathAgg + "\\" + pathPart;
+                        if (Directory.Exists(pathAgg) || File.Exists(pathAgg))
                         {
-                            treeItem = new TreeViewItem() { Header = pathPart };
-                            treeItemColleaction.Add(treeItem);                            
+                            treeItem = GetItem(treeItemColleaction, pathPart);
+                            if (treeItem == null)
+                            {
+                                treeItem = new TreeViewItem() { Header = pathPart, FontWeight = FontWeights.ExtraBold };
+                                treeItemColleaction.Add(treeItem);
+                            }
+                            treeItemColleaction = treeItem.Items;
                         }
-                        treeItemColleaction = treeItem.Items;
+                        if (i == linePathPartsList.Count - 1)
+                            treeItemColleaction.Add(new TreeViewItem() { Header = "(" + lineInFileNumber.ToString() + ") : " + LineContent, FontWeight = FontWeights.Normal });
                     }
-                    else if (File.Exists(pathAgg))
-                    {
-                        treeItemColleaction.Add(new TreeViewItem() { Header = pathPart });
-                    }
-                    else
-                    {
-                        //Assert
-                        treeItemColleaction.Add(new TreeViewItem() { Header = pathPart + '(' + LineContent + ')' });
-                        var i = 0;
-                    }
-
-                    //treeItemContainer.Items
+                    break;
+                    default:
+                        Debug.Assert(false, "An exception has occured.");
+                    break;
                 }
-                //var  = Path.Get;
-                //treeItem = new TreeViewItem();
-                //treeItem.Header = "stTmp";
-                //tvResult.Items.Add(treeItem);
             }
-            foreach (TreeViewItem tmpItem in tvResult.Items)
+            foreach (TreeViewItem tmpItem in tvResultTree.Items)
                 JoinNodesWOLeafs(tmpItem);
-            SetExpandAllInLvl(tvResult.Items, true);
+            SetExpandAllInLvl(tvResultTree.Items, true);
         }
 
-         
+        public void MoveResultToFlatTreeList()
+        {
+            TreeViewItem treeItem;
+            string linePath;
+            string LineContent;
+            List<string> linePathPartsList;
+            int? lineInFileNumber;
+
+            tvResultFlatTree.Items.Clear();
+            List<string> resList = GetFindResults2Content().Replace("\n\r", "\n").Split('\n').ToList<string>();
+            resList.RemoveAt(0);
+            foreach (string line in resList)
+            {
+                switch (ParseResultLine(line, out linePath, out linePathPartsList, out LineContent, out lineInFileNumber))
+                {
+                    case 0: //Line to skip
+                        continue;
+                    case 1: //proper line
+                        treeItem = GetItem(tvResultFlatTree.Items, linePath);
+                        if (treeItem == null)
+                        {
+                            treeItem = new TreeViewItem() { Header = linePath, FontWeight = FontWeights.ExtraBold };
+                            tvResultFlatTree.Items.Add(treeItem);
+                        }
+                        treeItem.Items.Add(new TreeViewItem() { Header = "(" + lineInFileNumber.ToString() + ") : " + LineContent, FontWeight = FontWeights.Normal });
+                        break;
+                    default:
+                        Debug.Assert(false, "An exception has occured.");
+                        break;
+                }
+            }
+            SetExpandAllInLvl(tvResultFlatTree.Items, true);
+        } 
 
         private TreeViewItem GetItem(ItemCollection colleation, string pathPart)
         {
@@ -123,11 +176,12 @@ namespace VSFindTool
         {
             MoveResultToTextBox();
             MoveResultToTreeList();
-            List<string> list = tbResult.Text.Split('\n').ToList<string>();
+            MoveResultToFlatTreeList();
+            /*List<string> list = tbResult.Text.Split('\n').ToList<string>();
             if (list[list.Count - 2].StartsWith("Matching lines"))
                 BringBackFindResult2Value();
             else
-                HideFindResult2Window();
+                HideFindResult2Window();*/
         }
 
         public void m_findEvents_FindDone(EnvDTE.vsFindResult Result, bool Cancelled)
@@ -156,7 +210,7 @@ namespace VSFindTool
         {
             Boolean docIsSelected = true;
             LastDocWindow = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
-            tbResult.Text = "";
+            //tbResult.Text = "";
             if (dte != null)
             {
                 var m_findEvents = dte.Events.FindEvents;
@@ -193,7 +247,7 @@ namespace VSFindTool
                 }
                 else
                 {
-                    tbResult.Text = "No document is active.";
+                    //tbResult.Text = "No document is active.";
                     tbiLastResult.IsSelected = true;
                     docIsSelected = false;
                 }
