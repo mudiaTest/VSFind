@@ -6,6 +6,7 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.Globalization;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -24,7 +25,7 @@ namespace VSFindTool
         /// <summary>
         /// Command menu group (command set GUID).
         /// </summary>
-        public static readonly Guid CommandSet = new Guid("e8839967-0fd4-4075-be19-59beeaaad173");
+        public static readonly Guid CommandSet = new Guid("bd0f02b8-4e7f-466e-87d7-c970f5981465");
 
         /// <summary>
         /// VS Package that provides this command, not null.

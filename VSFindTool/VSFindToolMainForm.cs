@@ -21,7 +21,7 @@ namespace VSFindTool
     /// implementation of the IVsUIElementPane interface.
     /// </para>
     /// </remarks>
-    [Guid("abcaf8fd-d4f2-47b1-8681-e317dea34c38")]
+    [Guid("9fd31032-a22e-4231-8163-d75e9ff5d900")]
     public class VSFindToolMainForm : ToolWindowPane
     {
         /// <summary>

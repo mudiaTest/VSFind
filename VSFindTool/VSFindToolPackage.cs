@@ -5,9 +5,16 @@
 //------------------------------------------------------------------------------
 
 using System;
+using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.Win32;
 
 namespace VSFindTool
 {
@@ -39,7 +46,7 @@ namespace VSFindTool
         /// <summary>
         /// VSFindToolPackage GUID string.
         /// </summary>
-        public const string PackageGuidString = "12f7a4f9-c3ad-468f-8c37-c35b41d4ed2f";
+        public const string PackageGuidString = "c030f256-ba43-4c27-94a8-5adecafb0350";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VSFindToolPackage"/> class.

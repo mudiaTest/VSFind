@@ -64,14 +64,14 @@
 
   <Symbols>
     <!-- This is the package guid. -->
-    <GuidSymbol name="guidVSFindToolPackage" value="{12f7a4f9-c3ad-468f-8c37-c35b41d4ed2f}" />
+    <GuidSymbol name="guidVSFindToolPackage" value="{c030f256-ba43-4c27-94a8-5adecafb0350}" />
 
     <!-- This is the guid used to group the menu commands together -->
-    <GuidSymbol name="guidVSFindToolPackageCmdSet" value="{e8839967-0fd4-4075-be19-59beeaaad173}">
+    <GuidSymbol name="guidVSFindToolPackageCmdSet" value="{bd0f02b8-4e7f-466e-87d7-c970f5981465}">
       <IDSymbol name="VSFindToolMainFormCommandId" value="0x0100" />
     </GuidSymbol>
 
-    <GuidSymbol name="guidImages" value="{c199d56a-12ca-4381-aa44-dbb0cb8674c5}" >
+    <GuidSymbol name="guidImages" value="{d0e383d3-28af-46eb-abba-043ac3226e69}" >
       <IDSymbol name="bmpPic1" value="1" />
       <IDSymbol name="bmpPic2" value="2" />
       <IDSymbol name="bmpPicSearch" value="3" />

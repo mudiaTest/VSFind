@@ -19,7 +19,7 @@ namespace VSFindTool
     /// </summary>
     public partial class VSFindToolMainFormControl : UserControl
     {
-        /// <summary> 
+        /// <summary>
         /// Initializes a new instance of the <see cref="VSFindToolMainFormControl"/> class.
         /// </summary>
         public VSFindToolMainForm parentToolWindow;

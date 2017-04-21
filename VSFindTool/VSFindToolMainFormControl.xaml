@@ -7,7 +7,7 @@
              Foreground="{DynamicResource VsBrush.WindowText}"
              mc:Ignorable="d"
              d:DesignHeight="305" d:DesignWidth="225"
-             Name="VSFindToolMainForm">
+             Name="MyToolWindow">
     <Grid>
         <TabControl x:Name="tbcMain" Margin="0">
             <TabItem Header="Search">
