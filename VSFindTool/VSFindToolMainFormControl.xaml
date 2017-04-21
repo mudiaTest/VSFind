@@ -29,7 +29,7 @@
                             </TextBox>
                             <Button Content="&gt;&gt;" Click="button1_Click" x:Name="button1" RenderTransformOrigin="-0.32,7.767" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0" Grid.Column="1"/>
                         </Grid>
-                        <Expander Header="Find options" BorderBrush="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Margin="0,0,0,5" IsExpanded="True">
+                        <Expander Header="Find options2" BorderBrush="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Margin="0,0,0,5" IsExpanded="True">
                             <Grid Margin="0,5,0,0" Height="60">
                                 <Grid.RowDefinitions>
                                     <RowDefinition/>
@@ -77,14 +77,13 @@
             <TabItem x:Name="tbiLastResult" Header="Last result">
                 <Grid Background="#FFE5E5E5">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="50"/>
+                        <RowDefinition/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
-                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2">
-                        <TextBlock x:Name="tbResult" Text="TextBlock" RenderTransformOrigin="0.462,0.462" OpacityMask="Black"/>
-                    </Border>
+                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2" Grid.Row="0"/>
+                        <TreeView x:Name="tvResultFlatTree" HorizontalContentAlignment="Stretch"/>
                     <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2" Grid.Row="1">
-                        <TreeView x:Name="tvResult" HorizontalContentAlignment="Stretch"/>
+                        <TreeView x:Name="tvResultTree" HorizontalContentAlignment="Stretch"/>
                     </Border>
                 </Grid>
             </TabItem>
