@@ -71,6 +71,47 @@ namespace VSFindTool
             return 1;
         }
 
+        public void MoveResultToTreeViewModel()
+        {
+            // Get raw family tree data from a database.
+            List<ResultLine> listResultLine = new List<ResultLine>();           
+            ResultLine resultLine;
+            string linePath;
+            string lineContent;
+            List<string> linePathPartsList;
+            int? lineInFileNumber;
+
+            tvResultFlatTree.Items.Clear();
+            List<string> resList = GetFindResults2Content().Replace("\n\r", "\n").Split('\n').ToList<string>();
+            resList.RemoveAt(0);
+            foreach (string line in resList)
+            {
+                switch (ParseResultLine(line, out linePath, out linePathPartsList, out lineContent, out lineInFileNumber))
+                {
+                    case 0: //Line to skip
+                        continue;
+                    case 1: //proper line
+                        resultLine = listResultLine.Find( item => item.linePath == linePath );
+                        if (resultLine == null)
+                        {
+                            resultLine = new ResultLine() { header = linePath, linePath = linePath, linePathPartsList = linePathPartsList };
+                            listResultLine.Add(resultLine);
+                        }
+                        resultLine.subItems.Add(new ResultLine() { header = "(" + lineInFileNumber.ToString() + ") : " + lineContent, lineContent = lineContent, lineInFileNumber = lineInFileNumber });
+                        break;
+                    default:
+                        Debug.Assert(false, "An exception has occured.");
+                        break;
+                }
+            }
+            // Create UI-friendly wrappers around the 
+            // raw data objects (i.e. the view-model).
+            resultTree = new ResultTreeViewModel(listResultLine[0]);
+
+            // Let the UI bind to the view-model.
+            tvResultFlatTree.DataContext = resultTree;
+        }
+
         public void MoveResultToTreeList()
         {
             ItemCollection treeItemColleaction;
@@ -174,9 +215,11 @@ namespace VSFindTool
 
         public void Finish()
         {
-            MoveResultToTextBox();
+            //MoveResultToTextBox();
             MoveResultToTreeList();
             MoveResultToFlatTreeList();
+            //MoveResultToTreeViewModel();
+
             /*List<string> list = tbResult.Text.Split('\n').ToList<string>();
             if (list[list.Count - 2].StartsWith("Matching lines"))
                 BringBackFindResult2Value();
