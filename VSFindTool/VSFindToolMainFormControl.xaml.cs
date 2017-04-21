@@ -28,7 +28,9 @@ namespace VSFindTool
         EnvDTE.DTE dte;
         string originalFindResult2;
 
-		public VSFindToolMainFormControl()
+        ResultTreeViewModel resultTree;
+
+        public VSFindToolMainFormControl()
         {
             this.InitializeComponent();
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
@@ -82,5 +84,15 @@ namespace VSFindTool
                 }
             }
         }
+
+        //private void HandleCheck(object sender, RoutedEventArgs e)
+        //{
+        //    text2.Text = "Button is Checked";
+        //}
+
+        //private void HandleUnchecked(object sender, RoutedEventArgs e)
+        //{
+        //    text2.Text = "Button is unchecked.";
+        //}
     }
 }
