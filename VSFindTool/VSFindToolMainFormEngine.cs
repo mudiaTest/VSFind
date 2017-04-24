@@ -16,6 +16,8 @@ namespace VSFindTool
     /// </summary>
     public partial class VSFindToolMainFormControl : UserControl
     {
+        FindSettings last_searchSettings = new FindSettings();
+
         public string GetFindResults2Content()
         {
             var findWindow = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
@@ -45,7 +47,12 @@ namespace VSFindTool
             //tbResult.Text = GetFindResults2Content();
         }
 
-        public int ParseResultLine(string resultLine, out string linePath, out List<string> linePathPartsList, out string lineContent, out int? lineInFileNumber)
+        public int ParseResultLine(
+            string resultLine, 
+            out string linePath, 
+            out List<string> linePathPartsList,
+            out string lineContent, 
+            out int? lineInFileNumber)
         {
             String pathPart = "";
             linePath = "";
@@ -176,6 +183,7 @@ namespace VSFindTool
             string LineContent;
             List<string> linePathPartsList;
             int? lineInFileNumber;
+            string paramLine;
 
             tvResultFlatTree.Items.Clear();
             List<string> resList = GetFindResults2Content().Replace("\n\r", "\n").Split('\n').ToList<string>();
@@ -215,6 +223,7 @@ namespace VSFindTool
 
         public void Finish()
         {
+            last_InfoLabel.Content = last_searchSettings.ToLabelString();
             //MoveResultToTextBox();
             MoveResultToTreeList(last_tvResultTree);
             MoveResultToFlatTreeList(last_tvResultFlatTree);
@@ -261,7 +270,7 @@ namespace VSFindTool
 
         private void ExecSearch()
         {
-            Boolean docIsSelected = true;
+            Boolean docIsSelected = true;            
             LastDocWindow = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
             //tbResult.Text = "";
             if (dte != null)
@@ -271,25 +280,24 @@ namespace VSFindTool
             }
 
             Find find = dte.Find;
-            find.Action = vsFindAction.vsFindActionFindAll;
-            find.ResultsLocation = vsFindResultsLocation.vsFindResults2;
+            last_searchSettings.action = vsFindAction.vsFindActionFindAll;
+            last_searchSettings.location = vsFindResultsLocation.vsFindResults2;
 
             //Search phrase
-            find.FindWhat = tbPhrase.Text;
+            last_searchSettings.tbPhrase = tbPhrase.Text;
 
             //Find options
-            find.MatchWholeWord = chkWholeWord.IsChecked == true;
-            find.MatchCase = chkCase.IsChecked == true;
-            if (chkRegExp.IsChecked == true)
-                find.PatternSyntax = vsFindPatternSyntax.vsFindPatternSyntaxRegExpr;
-            else
-                find.PatternSyntax = vsFindPatternSyntax.vsFindPatternSyntaxLiteral;
+            last_searchSettings.chkWholeWord = chkWholeWord.IsChecked == true;
+            last_searchSettings.chkCase = chkCase.IsChecked == true;
 
             //Look in
+            last_searchSettings.rbCurrDoc = rbCurrDoc.IsChecked == true;
+            last_searchSettings.rbOpenDocs = rbOpenDocs.IsChecked == true;
+            last_searchSettings.rbProject = rbProject.IsChecked == true;
+            last_searchSettings.rbSolution = rbSolution.IsChecked == true;
+            //Select last active document
             if (rbCurrDoc.IsChecked == true)
             {
-                find.Target = vsFindTarget.vsFindTargetCurrentDocument;
-
                 if (dte.ActiveDocument != null && dte.ActiveDocument.ActiveWindow != null)
                 {
                     dte.ActiveDocument.ActiveWindow.Activate();
@@ -300,17 +308,10 @@ namespace VSFindTool
                 }
                 else
                 {
-                    //tbResult.Text = "No document is active.";
                     tbiLastResult.IsSelected = true;
                     docIsSelected = false;
                 }
             }
-            else if (rbOpenDocs.IsChecked == true)
-                find.Target = vsFindTarget.vsFindTargetOpenDocuments;
-            else if (rbProject.IsChecked == true)
-                find.Target = vsFindTarget.vsFindTargetCurrentProject;
-            else if (rbSolution.IsChecked == true)
-                find.Target = vsFindTarget.vsFindTargetSolution;
             /*TODO search in folder*/
             //find.SearchSubfolders = true; 
 
@@ -322,6 +323,7 @@ namespace VSFindTool
             if (docIsSelected)
             {
                 var findWindow = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
+                last_searchSettings.ToFind(find);
                 vsFindResult result = find.Execute();
                 findWindow.Visible = false;
                 tbiLastResult.IsSelected = true;

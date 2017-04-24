@@ -16,6 +16,7 @@ using EnvDTE;
 using System.Windows.Media;
 namespace VSFindTool
 {
+    using System.Windows.Controls.Primitives;
     /// <summary>
     /// Interaction logic for VSFindToolMainFormControl.xaml
     /// </summary>
@@ -26,6 +27,7 @@ namespace VSFindTool
         public EnvDTE.Window LastDocWindow;
         EnvDTE.DTE dte;
         string originalFindResult2;
+        Dictionary<string, FindSettings> findSettings = new Dictionary<string, FindSettings>();
 
         ResultTreeViewModel resultTree;
 
@@ -83,12 +85,16 @@ namespace VSFindTool
         {
             last_rowTree.Height = new GridLength(1, GridUnitType.Star);
             last_rowFlat.Height = new GridLength(0);
+            last_tb.Content = "Tree";
+            last_tbBorder.BorderBrush = Brushes.Red;
         }
 
         private void tb_Unchecked(object sender, RoutedEventArgs e)
         {
             last_rowTree.Height = new GridLength(0);
             last_rowFlat.Height = new GridLength(1, GridUnitType.Star);
+            last_tb.Content = "Flat";
+            last_tbBorder.BorderBrush = Brushes.DarkGray;
         }
 
         private void CopyItems(ItemCollection src, ItemCollection dst)
@@ -126,53 +132,124 @@ namespace VSFindTool
             //add main grid in tab and row definitions
             Grid grid = new Grid() {
                 Background = this.FindResource(SystemColors.ControlLightBrushKey) as Brush };
-            grid.RowDefinitions.Add(new RowDefinition() {
-                Height = new GridLength(30, GridUnitType.Pixel) });
-            grid.RowDefinitions.Add(new RowDefinition() {
+            grid.RowDefinitions.Add(new RowDefinition()
+            {
+                Height = new GridLength(18, GridUnitType.Pixel)
+            });
+            grid.RowDefinitions.Add(new RowDefinition()
+            {
+                Height = new GridLength(30, GridUnitType.Pixel)
+            });
+            RowDefinition rowFlat = new RowDefinition()
+            {
                 Name = snapshotTag + "_rowFlat",
-                Height = new GridLength(1, GridUnitType.Star) });
-            grid.RowDefinitions.Add(new RowDefinition() {
+                Height = new GridLength(1, GridUnitType.Star)
+            };
+            grid.RowDefinitions.Add(rowFlat);
+
+            RowDefinition rowTree = new RowDefinition()
+            {
                 Name = snapshotTag + "_rowTree",
-                Height = new GridLength(0, GridUnitType.Pixel) });
+                Height = new GridLength(0, GridUnitType.Pixel)
+            };
+            grid.RowDefinitions.Add(rowTree);
+
+            grid.RowDefinitions.Add(new RowDefinition()
+            {
+                Name = snapshotTag + "_preview",
+                Height = new GridLength(60, GridUnitType.Pixel)
+            });
             //add grid as the main element in tab
             newTab.Content = grid;
             //Set snapshot tab as selected
             //tbcMain.SelectedItem = newTab;
 
-            //upper menu wrap panel
-            WrapPanel upperMenyWrapPanel = new WrapPanel() {
-                Orientation = Orientation.Horizontal,
+            //Info label
+            Label infoLabel = new Label()
+            {
                 HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Top };           
-            Grid.SetRow(upperMenyWrapPanel, 0);
+                VerticalAlignment = VerticalAlignment.Top,
+                Padding = new Thickness(5, 0, 5, 5),
+                Content = last_searchSettings.ToLabelString()
+            };
+            grid.Children.Add(infoLabel);
+            Grid.SetRow(infoLabel, 0);
+
+            //upper menu wrap panel
+            WrapPanel upperMenuWrapPanel = new WrapPanel()
+            {
+                Orientation = Orientation.Horizontal,
+            };
+            grid.Children.Add(upperMenuWrapPanel);
+            Grid.SetRow(upperMenuWrapPanel, 1);
+
+                //toggle button Flat/Tree
+                Border borderTb = new Border(){
+                    BorderBrush = Brushes.DarkGray,
+                    BorderThickness = new Thickness(1),
+                    Margin = new Thickness(5, 2, 0, 0),
+                    RenderTransformOrigin = new Point(0.5, 0.5)
+                };  
+                    ToggleButton tbFlatTree = new ToggleButton(){
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Padding = new Thickness(3, 1, 3, 1),
+                        Width = 32,
+                        BorderBrush = this.FindResource(SystemColors.ControlDarkBrushKey) as Brush,
+                        Height = 21,
+                        Content = "Flat"
+                    };
+                    borderTb.Child = tbFlatTree;       
+            upperMenuWrapPanel.Children.Add(borderTb);
+                //Button remove snapshot              
+                Button btnRemoveSnapshot = new Button(){
+                    Content = "X",
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    FontWeight = FontWeights.Bold,
+                    Margin = new Thickness(5, 3, 0, 0),
+                    Height = 21,
+                };
+                btnRemoveSnapshot.Click += (o, e) =>
+                { 
+                    tbcMain.Items.Remove(newTab);
+                    findSettings.Remove(snapshotTag);                    
+                };
+            upperMenuWrapPanel.Children.Add(btnRemoveSnapshot);
+
 
             //add border and treeview for Flat view
-            Border borderFlat = new Border() {
+            Border borderFlat = new Border()
+            {
                 BorderBrush = Brushes.Black,
                 BorderThickness = new Thickness(1),
                 Margin = new Thickness(0),
-                RenderTransformOrigin = new Point(0.5, 0.5) };
+                RenderTransformOrigin = new Point(0.5, 0.5)
+            };
             grid.Children.Add(borderFlat);
-            Grid.SetRow(borderFlat, 1);
+            Grid.SetRow(borderFlat, 2);
             Grid.SetColumnSpan(borderFlat, 1);
-            TreeView flattv = new TreeView() {
+            TreeView flattv = new TreeView()
+            {
                 Name = snapshotTag + "_tvResultFlatTree",
                 HorizontalContentAlignment = HorizontalAlignment.Stretch
             };
             borderFlat.Child = flattv;
 
             //add border and treeview for Tree view
-            Border borderTree = new Border() {
+            Border borderTree = new Border()
+            {
                 BorderBrush = Brushes.Black,
                 BorderThickness = new Thickness(1),
                 Margin = new Thickness(0),
-                RenderTransformOrigin = new Point(0.5, 0.5) };
+                RenderTransformOrigin = new Point(0.5, 0.5)
+            };
             grid.Children.Add(borderTree);
-            Grid.SetRow(borderTree, 2);
+            Grid.SetRow(borderTree, 3);
             Grid.SetColumnSpan(borderTree, 2);
-            TreeView treetv = new TreeView() {
+            TreeView treetv = new TreeView()
+            {
                 Name = snapshotTag + "_tvResultFlatTree",
-                HorizontalContentAlignment = HorizontalAlignment.Stretch };
+                HorizontalContentAlignment = HorizontalAlignment.Stretch
+            };
             borderTree.Child = treetv;
 
             //Populate new TreeViews from "last"
@@ -180,6 +257,30 @@ namespace VSFindTool
             //Expand new views
             SetExpandAllInLvl(flattv.Items, true);
             SetExpandAllInLvl(treetv.Items, true);
+
+            findSettings.Add(snapshotTag ,last_searchSettings.GetCopy());
+
+
+            tbFlatTree.Click += (o, e) =>
+            {
+                ToggleButton tb = o as ToggleButton;
+                if (tb.IsChecked == false)
+                {
+                    rowFlat.Height = new GridLength(1, GridUnitType.Star);
+                    rowTree.Height = new GridLength(0, GridUnitType.Pixel);
+                    tb.Content = "Flat";
+                    tb.ClearValue(ToggleButton.BackgroundProperty);
+                    borderTb.BorderBrush = grid.Background;
+                }
+                else
+                {
+                    rowFlat.Height = new GridLength(0, GridUnitType.Pixel);
+                    rowTree.Height = new GridLength(1, GridUnitType.Star); 
+                    tb.Content = "Tree";
+                    tb.Background = this.FindResource(SystemColors.ControlDarkBrushKey) as Brush;
+                    borderTb.BorderBrush = Brushes.Red;
+                }
+            };
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -188,6 +289,7 @@ namespace VSFindTool
             //Todo - dodać nową zakładkę o nazwie odebranej od uzytkowniak
             //TODO dodać na zakładkę nowe obiekty
             //todo dodać navigatora
+            //to do dodać FILL setting from settings
             //Todo podłaczyć do obiektów eventy
             //todo dodać skrót wlaczający tool na pierwszą zakładkę
         }

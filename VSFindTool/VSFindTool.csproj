@@ -125,6 +125,7 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FindSettings.cs" />
     <Compile Include="ResultLine.cs" />
     <Compile Include="VSFindToolMainFormControl.xaml.cs">
       <DependentUpon>VSFindToolMainFormControl.xaml</DependentUpon>

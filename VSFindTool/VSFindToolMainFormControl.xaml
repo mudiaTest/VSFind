@@ -77,75 +77,28 @@
             <TabItem x:Name="tbiLastResult" Header="Last result">
                 <Grid Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="18"/>
                         <RowDefinition Height="30"/>
                         <RowDefinition x:Name="last_rowFlat"/>
                         <RowDefinition x:Name="last_rowTree" Height="0"/>
-                        <!--
-                        <RowDefinition/>
-                        -->
+                        <RowDefinition x:Name="last_preview" Height="60"/>
                     </Grid.RowDefinitions>
 
-                    <WrapPanel Orientation="Vertical" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top">
-                        <ToggleButton HorizontalAlignment = "Center" Margin="5,3,0,0" Padding="3,1" Width="29" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Checked="tb_Checked" Unchecked="tb_Unchecked" Height="21" >
-                            <ToggleButton.Style>
-                                <Style TargetType="{x:Type ToggleButton}">
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="ToggleButton">
-                                                <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" Background="{TemplateBinding Background}">
-                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                    <Setter Property="Content" Value="Flat"/>
-                                    <!--necessary to being able to chane in trigger below-->
-                                    <Style.Triggers>
-                                        <Trigger Property="IsChecked" Value="true">
-                                            <Setter Property="Content" Value="Tree" />
-                                            <Setter Property="ToggleButton.Background"  Value="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"/>
-                                            <Setter Property="ToggleButton.Content" Value="Tree"/>
-                                            <Setter Property="ToggleButton.BorderBrush" Value="Red"/>
-                                        </Trigger>
-                                    </Style.Triggers>
+                    <Label Content="wwwwwww" Name="last_InfoLabel" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Grid.Row="0" Padding="5,0,5,5" Height="20"/>
 
-                                </Style>
-                            </ToggleButton.Style>
-                        </ToggleButton>
-                        <Button Content="Snapshot" HorizontalAlignment="Center" Margin="5,3,0,0" Width="70" Padding="3,1,3,0" IsCancel="True" Click="Button_Click">
-                        </Button>
+                    <WrapPanel Orientation="Vertical" Grid.Row="1">
+                        <Border Name="last_tbBorder" BorderBrush="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" Margin="5,2,0,0" BorderThickness="1" RenderTransformOrigin="0.5,0.5" Grid.Row="2" Height="21">
+                            <ToggleButton x:Name="last_tb" Content = "Flat" HorizontalAlignment = "Center" Padding="3,1" Width="32" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Checked="tb_Checked" Unchecked="tb_Unchecked" />
+                        </Border>
+                        <Button Content="Snapshot" Margin="5,3,0,0" Width="70" Padding="3,1,3,0" IsCancel="True" Click="Button_Click"/>
                     </WrapPanel>
 
-                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.Row="1">
+                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.Row="2">
                         <TreeView x:Name="last_tvResultFlatTree" HorizontalContentAlignment="Stretch"/>
                     </Border>
-                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.Row="2">
+                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.Row="3">
                         <TreeView x:Name="last_tvResultTree" HorizontalContentAlignment="Stretch"/>
-                    </Border>
-                    
-                    <!--
-                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2" Grid.Row="3">
-                        <TreeView ItemsSource="{Binding rootCollection}">
-                            <TreeView.ItemContainerStyle>
-                                <Style TargetType="{x:Type TreeViewItem}">
-                                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-                                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
-                                    <Setter Property="FontWeight" Value="Normal" />
-                                    <Style.Triggers>
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter Property="FontWeight" Value="Bold" />
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TreeView.ItemContainerStyle>
-                            <TreeView.ItemTemplate>
-                                <HierarchicalDataTemplate ItemsSource="{Binding subItems}">
-                                    <TextBlock Text="{Binding header}" />
-                                </HierarchicalDataTemplate>
-                            </TreeView.ItemTemplate>
-                        </TreeView>
-                    </Border>
-                    -->
+                    </Border>                   
                 </Grid>
             </TabItem>
         </TabControl>
