@@ -63,7 +63,7 @@ namespace VSFindTool
                 return 0;
             linePath = resultLine.Substring(0, resultLine.IndexOf(":", 10)).Trim();
             lineContent = resultLine.Substring(resultLine.IndexOf(":", 10) + 1).Trim();
-            linePathPartsList = linePath.Split('\\').ToList<string>();
+            linePathPartsList = linePath.Split('/').ToList<string>();
 
             for (int i = 0; i < linePathPartsList.Count; i++)
             {
