@@ -150,7 +150,7 @@ namespace VSFindTool
                             treeItem = GetItem(treeItemColleaction, pathPart);
                             if (treeItem == null)
                             {
-                                treeItem = new TreeViewItem() { Header = pathPart, FontWeight = FontWeights.ExtraBold };
+                                treeItem = new TreeViewItem() { Header = pathPart, FontWeight = FontWeights.Bold };
                                 treeItemColleaction.Add(treeItem);
                             }
                             treeItemColleaction = treeItem.Items;
