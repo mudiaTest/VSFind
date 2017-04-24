@@ -97,6 +97,25 @@ namespace VSFindTool
             last_rowFlat.Height = new GridLength(1, GridUnitType.Star);
         }
 
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            string snapshotNumber = (tbcMain.Items.Count - 2).ToString();
+            string snapshotTag = GetSnapshotTag(snapshotNumber);
+
+            TabItem newTab = new TabItem() { Name = "tbi" + snapshotTag, 
+                                             Header = "Snap " + (tbcMain.Items.Count - 2).ToString() };
+            tbcMain.Items.Add(newTab);
+            Grid newGrid = new Grid();
+            newGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(30, GridUnitType.Pixel) });
+            newGrid.RowDefinitions.Add(new RowDefinition() { Name = snapshotTag + "_rowFlat" });
+            newGrid.RowDefinitions.Add(new RowDefinition() { Name = snapshotTag + "t_rowTree", Height = new GridLength(0, GridUnitType.Pixel) });
+            //Todo - dodać nową zakładkę o nazwie odebranej od uzytkowniak
+            //TODO dodać na zakładkę nowe obiekty
+            //todo dodać navigatora
+            //Todo podłaczyć do obiektów eventy
+            //todo dodać skrót wlaczający tool na pierwszą zakładkę
+        }
+
         //private void HandleCheck(object sender, RoutedEventArgs e)
         //{
         //    text2.Text = "Button is Checked";
