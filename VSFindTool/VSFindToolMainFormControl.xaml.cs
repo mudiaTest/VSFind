@@ -13,7 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.VisualStudio.Shell;
 using EnvDTE;
-
+using System.Windows.Media;
 namespace VSFindTool
 {
     /// <summary>
@@ -44,7 +44,7 @@ namespace VSFindTool
 
 
         public void SetExpandAllInLvl(ItemCollection treeItemColleaction, bool value)
-        {            
+        {
             if (treeItemColleaction == null || treeItemColleaction.Count == 0)
                 return;
             foreach (TreeViewItem item in treeItemColleaction)
@@ -66,7 +66,7 @@ namespace VSFindTool
                     list.Clear();
                     treeItem.Items.RemoveAt(0);
                     foreach (TreeViewItem treeItem3 in treeItem2.Items)
-                    {                        
+                    {
                         list.Add(treeItem3);
                     }
                     foreach (TreeViewItem treeItem3 in list)
@@ -91,18 +91,100 @@ namespace VSFindTool
             last_rowFlat.Height = new GridLength(1, GridUnitType.Star);
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void CopyItems(ItemCollection src, ItemCollection dst)
+        {
+            foreach (TreeViewItem item in src)
+            {
+                TreeViewItem newItem = new TreeViewItem() { Header = item.Header };
+                dst.Add(newItem);
+                newItem.FontWeight = item.FontWeight;  //FontWeights.Bold - FontWeights is a static class, so it's ok
+                CopyItems(item.Items, newItem.Items);               
+            }
+        }
+
+        private void FillSnapshotFromLast(string snapshotTag, TreeView flattv, TreeView treetv)
+        {
+            //TreeView flattv = (TreeView)this.FindName(snapshotTag + "_tvResultFlatTree");
+            //TreeView treetv = (TreeView)this.FindName(snapshotTag + "_tvResultFlatTree");
+            CopyItems(last_tvResultFlatTree.Items, flattv.Items);
+            CopyItems(last_tvResultTree.Items, treetv.Items);
+        }
+
+        private void AddSmapshotTab()
         {
             string snapshotNumber = (tbcMain.Items.Count - 2).ToString();
             string snapshotTag = GetSnapshotTag(snapshotNumber);
 
-            TabItem newTab = new TabItem() { Name = "tbi" + snapshotTag, 
-                                             Header = "Snap " + (tbcMain.Items.Count - 2).ToString() };
+            TabItem newTab = new TabItem()
+            {
+                Name = "tbi" + snapshotTag,
+                Header = "Snap " + (tbcMain.Items.Count - 2).ToString(),
+            };
+
+            //add new tab
             tbcMain.Items.Add(newTab);
-            Grid newGrid = new Grid();
-            newGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(30, GridUnitType.Pixel) });
-            newGrid.RowDefinitions.Add(new RowDefinition() { Name = snapshotTag + "_rowFlat" });
-            newGrid.RowDefinitions.Add(new RowDefinition() { Name = snapshotTag + "t_rowTree", Height = new GridLength(0, GridUnitType.Pixel) });
+            //add main grid in tab and row definitions
+            Grid grid = new Grid() {
+                Background = this.FindResource(SystemColors.ControlLightBrushKey) as Brush };
+            grid.RowDefinitions.Add(new RowDefinition() {
+                Height = new GridLength(30, GridUnitType.Pixel) });
+            grid.RowDefinitions.Add(new RowDefinition() {
+                Name = snapshotTag + "_rowFlat",
+                Height = new GridLength(1, GridUnitType.Star) });
+            grid.RowDefinitions.Add(new RowDefinition() {
+                Name = snapshotTag + "_rowTree",
+                Height = new GridLength(0, GridUnitType.Pixel) });
+            //add grid as the main element in tab
+            newTab.Content = grid;
+            //Set snapshot tab as selected
+            //tbcMain.SelectedItem = newTab;
+
+            //upper menu wrap panel
+            WrapPanel upperMenyWrapPanel = new WrapPanel() {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Top };           
+            Grid.SetRow(upperMenyWrapPanel, 0);
+
+            //add border and treeview for Flat view
+            Border borderFlat = new Border() {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                Margin = new Thickness(0),
+                RenderTransformOrigin = new Point(0.5, 0.5) };
+            grid.Children.Add(borderFlat);
+            Grid.SetRow(borderFlat, 1);
+            Grid.SetColumnSpan(borderFlat, 1);
+            TreeView flattv = new TreeView() {
+                Name = snapshotTag + "_tvResultFlatTree",
+                HorizontalContentAlignment = HorizontalAlignment.Stretch
+            };
+            borderFlat.Child = flattv;
+
+            //add border and treeview for Tree view
+            Border borderTree = new Border() {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                Margin = new Thickness(0),
+                RenderTransformOrigin = new Point(0.5, 0.5) };
+            grid.Children.Add(borderTree);
+            Grid.SetRow(borderTree, 2);
+            Grid.SetColumnSpan(borderTree, 2);
+            TreeView treetv = new TreeView() {
+                Name = snapshotTag + "_tvResultFlatTree",
+                HorizontalContentAlignment = HorizontalAlignment.Stretch };
+            borderTree.Child = treetv;
+
+            //Populate new TreeViews from "last"
+            FillSnapshotFromLast(snapshotTag, flattv, treetv);
+            //Expand new views
+            SetExpandAllInLvl(flattv.Items, true);
+            SetExpandAllInLvl(treetv.Items, true);
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            AddSmapshotTab();
             //Todo - dodać nową zakładkę o nazwie odebranej od uzytkowniak
             //TODO dodać na zakładkę nowe obiekty
             //todo dodać navigatora
