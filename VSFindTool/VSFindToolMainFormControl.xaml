@@ -77,15 +77,19 @@
             <TabItem x:Name="tbiLastResult" Header="Last result">
                 <Grid Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}">
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="18"/>
                         <RowDefinition Height="30"/>
                         <RowDefinition x:Name="last_rowFlat"/>
                         <RowDefinition x:Name="last_rowTree" Height="0"/>
+                        <RowDefinition x:Name="last_preview" Height="60"/>
                         <!--
                         <RowDefinition/>
                         -->
                     </Grid.RowDefinitions>
 
-                    <WrapPanel Orientation="Vertical" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <Label Content="wwwwwww" Name="last_InfoLabel" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Grid.Row="0" Padding="5,0,5,5" Height="20"/>
+
+                    <WrapPanel Orientation="Vertical" Grid.Row="1">
                         <ToggleButton HorizontalAlignment = "Center" Margin="5,3,0,0" Padding="3,1" Width="29" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Checked="tb_Checked" Unchecked="tb_Unchecked" Height="21" >
                             <ToggleButton.Style>
                                 <Style TargetType="{x:Type ToggleButton}">
@@ -116,10 +120,10 @@
                         </Button>
                     </WrapPanel>
 
-                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.Row="1">
+                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.Row="2">
                         <TreeView x:Name="last_tvResultFlatTree" HorizontalContentAlignment="Stretch"/>
                     </Border>
-                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.Row="2">
+                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.Row="3">
                         <TreeView x:Name="last_tvResultTree" HorizontalContentAlignment="Stretch"/>
                     </Border>
                     
