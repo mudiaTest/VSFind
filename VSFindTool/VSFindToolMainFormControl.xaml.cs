@@ -86,7 +86,7 @@ namespace VSFindTool
             last_rowTree.Height = new GridLength(1, GridUnitType.Star);
             last_rowFlat.Height = new GridLength(0);
             last_tb.Content = "Tree";
-            last_tbBorder.BorderBrush = Brushes.Red;
+            last_tb.Foreground = Brushes.Red;
         }
 
         private void tb_Unchecked(object sender, RoutedEventArgs e)
@@ -94,7 +94,7 @@ namespace VSFindTool
             last_rowTree.Height = new GridLength(0);
             last_rowFlat.Height = new GridLength(1, GridUnitType.Star);
             last_tb.Content = "Flat";
-            last_tbBorder.BorderBrush = Brushes.DarkGray;
+            last_tb.ClearValue(ToggleButton.ForegroundProperty);
         }
 
         private void CopyItems(ItemCollection src, ItemCollection dst)
@@ -184,22 +184,16 @@ namespace VSFindTool
             Grid.SetRow(upperMenuWrapPanel, 1);
 
                 //toggle button Flat/Tree
-                Border borderTb = new Border(){
-                    BorderBrush = Brushes.DarkGray,
-                    BorderThickness = new Thickness(1),
-                    Margin = new Thickness(5, 2, 0, 0),
-                    RenderTransformOrigin = new Point(0.5, 0.5)
-                };  
-                    ToggleButton tbFlatTree = new ToggleButton(){
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        Padding = new Thickness(3, 1, 3, 1),
-                        Width = 32,
-                        BorderBrush = this.FindResource(SystemColors.ControlDarkBrushKey) as Brush,
-                        Height = 21,
-                        Content = "Flat"
-                    };
-                    borderTb.Child = tbFlatTree;       
-            upperMenuWrapPanel.Children.Add(borderTb);
+                ToggleButton tbFlatTree = new ToggleButton(){
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(5, 3, 0, 0),
+                    Padding = new Thickness(3, 1, 3, 1),
+                    Width = 34,
+                    BorderBrush = this.FindResource(SystemColors.ControlDarkBrushKey) as Brush,
+                    Height = 21,
+                    Content = "Flat"
+                };
+            upperMenuWrapPanel.Children.Add(tbFlatTree);
                 //Button remove snapshot              
                 Button btnRemoveSnapshot = new Button(){
                     Content = "X",
@@ -269,16 +263,16 @@ namespace VSFindTool
                     rowFlat.Height = new GridLength(1, GridUnitType.Star);
                     rowTree.Height = new GridLength(0, GridUnitType.Pixel);
                     tb.Content = "Flat";
-                    tb.ClearValue(ToggleButton.BackgroundProperty);
-                    borderTb.BorderBrush = grid.Background;
+                    //tb.ClearValue(ToggleButton.BackgroundProperty);
+                    tb.ClearValue(ToggleButton.ForegroundProperty);
                 }
                 else
                 {
                     rowFlat.Height = new GridLength(0, GridUnitType.Pixel);
                     rowTree.Height = new GridLength(1, GridUnitType.Star); 
                     tb.Content = "Tree";
-                    tb.Background = this.FindResource(SystemColors.ControlDarkBrushKey) as Brush;
-                    borderTb.BorderBrush = Brushes.Red;
+                    //tb.Background = this.FindResource(SystemColors.ControlDarkBrushKey) as Brush;
+                    tb.Foreground = Brushes.Red;
                 }
             };
         }
