@@ -289,3 +289,4 @@ __pycache__/
 
 # WinMerge backup files
 *.bak
+*.orig
