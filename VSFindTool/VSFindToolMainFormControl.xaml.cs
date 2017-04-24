@@ -85,6 +85,18 @@ namespace VSFindTool
             }
         }
 
+        private void tb_Checked(object sender, RoutedEventArgs e)
+        {
+            last_rowTree.Height = new GridLength(1, GridUnitType.Star);
+            last_rowFlat.Height = new GridLength(0);
+        }
+
+        private void tb_Unchecked(object sender, RoutedEventArgs e)
+        {
+            last_rowTree.Height = new GridLength(0);
+            last_rowFlat.Height = new GridLength(1, GridUnitType.Star);
+        }
+
         //private void HandleCheck(object sender, RoutedEventArgs e)
         //{
         //    text2.Text = "Button is Checked";

@@ -71,7 +71,7 @@ namespace VSFindTool
             return 1;
         }
 
-        public void MoveResultToTreeViewModel()
+        public void MoveResultToTreeViewModel(TreeView tvResultFlatTree)
         {
             // Get raw family tree data from a database.
             List<ResultLine> listResultLine = new List<ResultLine>();           
@@ -112,7 +112,7 @@ namespace VSFindTool
             tvResultFlatTree.DataContext = resultTree;
         }
 
-        public void MoveResultToTreeList()
+        public void MoveResultToTreeList(TreeView tvResultTree)
         {
             ItemCollection treeItemColleaction;
             TreeViewItem treeItem;
@@ -169,7 +169,7 @@ namespace VSFindTool
             SetExpandAllInLvl(tvResultTree.Items, true);
         }
 
-        public void MoveResultToFlatTreeList()
+        public void MoveResultToFlatTreeList(TreeView tvResultFlatTree)
         {
             TreeViewItem treeItem;
             string linePath;
@@ -216,8 +216,8 @@ namespace VSFindTool
         public void Finish()
         {
             //MoveResultToTextBox();
-            MoveResultToTreeList();
-            MoveResultToFlatTreeList();
+            MoveResultToTreeList(last_tvResultTree);
+            MoveResultToFlatTreeList(last_tvResultFlatTree);
             //MoveResultToTreeViewModel();
 
             /*List<string> list = tbResult.Text.Split('\n').ToList<string>();

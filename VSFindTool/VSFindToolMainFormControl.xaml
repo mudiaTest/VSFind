@@ -78,28 +78,15 @@
                 <Grid Background="#FFE5E5E5">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="30"/>
-                        <RowDefinition/>
-                        <RowDefinition/>
+                        <RowDefinition x:Name="last_rowFlat"/>
+                        <RowDefinition x:Name="last_rowTree" Height="0"/>
                         <!--
                         <RowDefinition/>
-                        -->                        
+                        -->
                     </Grid.RowDefinitions>
-                    
-                    <!--<ToolBar Grid.Row="0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
-                        <ToolBar.ContextMenu>
-                            <ContextMenu/>
-                        </ToolBar.ContextMenu>
-                        <RadioButton Content="Flat" HorizontalAlignment="Left" Grid.Row="0" VerticalAlignment="Top"/>
-                        <RadioButton Content="Tree" VerticalAlignment="Top" HorizontalAlignment="Left" Grid.Row="0"/>
-                    </ToolBar>-->
 
-                    
-                    
                     <WrapPanel Orientation="Vertical" Grid.Row="0">
-                        <!--<RadioButton Content="Flat" HorizontalAlignment="Left" Grid.Row="0" VerticalAlignment="Top"/>
-                        <RadioButton Content="Tree" VerticalAlignment="Top" HorizontalAlignment="Left" Grid.Row="0"/>-->
-                        <RadioButton Content="Tree" VerticalAlignment="Top" HorizontalAlignment="Left" Grid.Row="0"/>
-                        <ToggleButton x:Name = "tb" Content = "Toggle" HorizontalAlignment = "Center" >
+                        <ToggleButton HorizontalAlignment = "Center" Margin="5,3,0,0" Padding="3,1" Width="29" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Checked="tb_Checked" Unchecked="tb_Unchecked" >
                             <ToggleButton.Style>
                                 <Style TargetType="{x:Type ToggleButton}">
                                     <Setter Property="Template">
@@ -111,31 +98,30 @@
                                             </ControlTemplate>
                                         </Setter.Value>
                                     </Setter>
+                                    <Setter Property="Content" Value="Flat"/>
+                                    <!--necessary to being able to chane in trigger below-->
                                     <Style.Triggers>
                                         <Trigger Property="IsChecked" Value="true">
-                                            <Setter Property="Background"  Value="Red"/>
+                                            <Setter Property="Content" Value="Tree" />
+                                            <Setter Property="ToggleButton.Background"  Value="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}"/>
+                                            <Setter Property="ToggleButton.Content" Value="Tree"/>
+                                            <Setter Property="ToggleButton.BorderBrush" Value="Red"/>
                                         </Trigger>
                                     </Style.Triggers>
 
                                 </Style>
                             </ToggleButton.Style>
                         </ToggleButton>
-
-                        <!--Checked = "HandleCheck" Unchecked = "HandleUnchecked"-->
-                        <RadioButton Content="Tree" VerticalAlignment="Top" HorizontalAlignment="Left" Grid.Row="0"/>
                     </WrapPanel>
 
-                    
-                    
-                        <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2" Grid.Row="1">
-                        <TreeView x:Name="tvResultFlatTree" HorizontalContentAlignment="Stretch">
-                            
+                    <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2" Grid.Row="1">
+                        <TreeView x:Name="last_tvResultFlatTree" HorizontalContentAlignment="Stretch">
+
                         </TreeView>
                     </Border>
                     <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2" Grid.Row="2">
-                        <TreeView x:Name="tvResultTree" HorizontalContentAlignment="Stretch"/>
+                        <TreeView x:Name="last_tvResultTree" HorizontalContentAlignment="Stretch"/>
                     </Border>
-                    <Button Content="Button" HorizontalAlignment="Left" Margin="168,23,-24,0" VerticalAlignment="Top" Width="75"/>
                     <!--
                     <Border BorderBrush="Black" BorderThickness="1" Margin="0" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="2" Grid.Row="3">
                         <TreeView ItemsSource="{Binding rootCollection}">
