@@ -94,7 +94,7 @@ namespace VSFindTool
             last_rowTree.Height = new GridLength(1, GridUnitType.Star);
             last_rowFlat.Height = new GridLength(0);
             last_tb.Content = "Tree";
-            last_tbBorder.BorderBrush = Brushes.Red;
+            last_tb.Foreground = Brushes.Red;
         }
 
         private void tb_Unchecked(object sender, RoutedEventArgs e)
@@ -102,7 +102,7 @@ namespace VSFindTool
             last_rowTree.Height = new GridLength(0);
             last_rowFlat.Height = new GridLength(1, GridUnitType.Star);
             last_tb.Content = "Flat";
-            last_tbBorder.BorderBrush = Brushes.DarkGray;
+            last_tb.ClearValue(ToggleButton.ForegroundProperty);
         }
 
         private void CopyItems(ItemCollection src, ItemCollection dst)
@@ -129,10 +129,10 @@ namespace VSFindTool
             string snapshotNumber = (tbcMain.Items.Count - 2).ToString();
             string snapshotTag = GetSnapshotTag(snapshotNumber);
 
-            TabItem newTab = new TabItem()
-            {
+            //new tab
+            TabItem newTab = new TabItem(){
                 Name = "tbi" + snapshotTag,
-                Header = "Snap " + (tbcMain.Items.Count - 2).ToString(),
+                Header = "Snap " + (tbcMain.Items.Count - 2).ToString(),                
             };
 
             //add new tab
@@ -183,48 +183,92 @@ namespace VSFindTool
             grid.Children.Add(infoLabel);
             Grid.SetRow(infoLabel, 0);
 
+            //navigator
+            Grid navGrid = new Grid(){
+                Background = this.FindResource(SystemColors.ControlLightBrushKey) as Brush,
+            };
+            navGrid.ColumnDefinitions.Add(new ColumnDefinition(){
+                Width = new GridLength(1, GridUnitType.Star)
+            });
+            navGrid.ColumnDefinitions.Add(new ColumnDefinition() { 
+                Width = new GridLength(33, GridUnitType.Pixel) 
+            });
+            grid.Children.Add(navGrid);
+            Grid.SetRow(navGrid, 1);
+
             //upper menu wrap panel
             WrapPanel upperMenuWrapPanel = new WrapPanel()
             {
                 Orientation = Orientation.Horizontal,
             };
-            grid.Children.Add(upperMenuWrapPanel);
-            Grid.SetRow(upperMenuWrapPanel, 1);
+            navGrid.Children.Add(upperMenuWrapPanel);
+            Grid.SetColumn(upperMenuWrapPanel, 0);
 
-                //toggle button Flat/Tree
-                Border borderTb = new Border(){
-                    BorderBrush = Brushes.DarkGray,
-                    BorderThickness = new Thickness(1),
-                    Margin = new Thickness(5, 2, 0, 0),
-                    RenderTransformOrigin = new Point(0.5, 0.5)
-                };  
-                    ToggleButton tbFlatTree = new ToggleButton(){
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        Padding = new Thickness(3, 1, 3, 1),
-                        Width = 32,
-                        BorderBrush = this.FindResource(SystemColors.ControlDarkBrushKey) as Brush,
-                        Height = 21,
-                        Content = "Flat"
-                    };
-                    borderTb.Child = tbFlatTree;       
-            upperMenuWrapPanel.Children.Add(borderTb);
-                //Button remove snapshot              
-                Button btnRemoveSnapshot = new Button(){
-                    Content = "X",
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    FontWeight = FontWeights.Bold,
-                    Margin = new Thickness(5, 3, 0, 0),
-                    Height = 21,
-                };
-                btnRemoveSnapshot.Click += (o, e) =>
-                { 
-                    tbcMain.Items.Remove(newTab);
-                    findSettings.Remove(snapshotTag);                    
-                };
-            upperMenuWrapPanel.Children.Add(btnRemoveSnapshot);
+            //toggle button Flat/Tree
+            ToggleButton tbFlatTree = new ToggleButton(){
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(5, 3, 0, 0),
+                Padding = new Thickness(3, 1, 3, 1),
+                Width = 34,
+                BorderBrush = this.FindResource(SystemColors.ControlDarkBrushKey) as Brush,
+                Height = 21,
+                Content = "Flat"
+            };
+            tbFlatTree.Click += (o, e) =>
+            {
+                ToggleButton tb = o as ToggleButton;
+                if (tb.IsChecked == false)
+                {
+                    rowFlat.Height = new GridLength(1, GridUnitType.Star);
+                    rowTree.Height = new GridLength(0, GridUnitType.Pixel);
+                    tb.Content = "Flat";
+                    tb.ClearValue(ToggleButton.ForegroundProperty);
+                }
+                else
+                {
+                    rowFlat.Height = new GridLength(0, GridUnitType.Pixel);
+                    rowTree.Height = new GridLength(1, GridUnitType.Star);
+                    tb.Content = "Tree";
+                    tb.Foreground = Brushes.Red;
+                }
+            };
+            upperMenuWrapPanel.Children.Add(tbFlatTree);
 
+            //Button Find again              
+            Button btnFindAgain = new Button()
+            {
+                Content = "Find again",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(5, 3, 0, 0),
+                Height = 21
+            };
+            btnFindAgain.Click += (o, e) =>
+            {
+                findSettings[snapshotTag].SetColtrols(this);
+                tbiSearch.Focus();
+            };
+            upperMenuWrapPanel.Children.Add(btnFindAgain);
 
-            //add border and treeview for Flat view
+            //Button remove snapshot              
+            Button btnRemoveSnapshot = new Button(){
+                Content = "X",
+                Foreground = Brushes.Red,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                FontWeight = FontWeights.Bold,
+                Margin = new Thickness(5, 3, 0, 0),
+                Height = 21,
+                Width = 21
+            };
+            btnRemoveSnapshot.Click += (o, e) =>
+            { 
+                tbcMain.Items.Remove(newTab);
+                findSettings.Remove(snapshotTag);                    
+            };
+            navGrid.Children.Add(btnRemoveSnapshot);
+            Grid.SetColumn(btnRemoveSnapshot, 1);
+
+            //add Flat view
             Border borderFlat = new Border()
             {
                 BorderBrush = Brushes.Black,
@@ -242,7 +286,7 @@ namespace VSFindTool
             };
             borderFlat.Child = flattv;
 
-            //add border and treeview for Tree view
+            //add Tree view
             Border borderTree = new Border()
             {
                 BorderBrush = Brushes.Black,
@@ -266,50 +310,17 @@ namespace VSFindTool
             SetExpandAllInLvl(flattv.Items, true);
             SetExpandAllInLvl(treetv.Items, true);
 
-            findSettings.Add(snapshotTag ,last_searchSettings.GetCopy());
-
-
-            tbFlatTree.Click += (o, e) =>
-            {
-                ToggleButton tb = o as ToggleButton;
-                if (tb.IsChecked == false)
-                {
-                    rowFlat.Height = new GridLength(1, GridUnitType.Star);
-                    rowTree.Height = new GridLength(0, GridUnitType.Pixel);
-                    tb.Content = "Flat";
-                    tb.ClearValue(ToggleButton.BackgroundProperty);
-                    borderTb.BorderBrush = grid.Background;
-                }
-                else
-                {
-                    rowFlat.Height = new GridLength(0, GridUnitType.Pixel);
-                    rowTree.Height = new GridLength(1, GridUnitType.Star); 
-                    tb.Content = "Tree";
-                    tb.Background = this.FindResource(SystemColors.ControlDarkBrushKey) as Brush;
-                    borderTb.BorderBrush = Brushes.Red;
-                }
-            };
+            findSettings.Add(snapshotTag ,last_searchSettings.GetCopy());            
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void btnAddSnapshot_Click(object sender, RoutedEventArgs e)
         {
             AddSmapshotTab();
-            //Todo - dodać nową zakładkę o nazwie odebranej od uzytkowniak
             //TODO dodać na zakładkę nowe obiekty
             //todo dodać navigatora
             //to do dodać FILL setting from settings
             //Todo podłaczyć do obiektów eventy
             //todo dodać skrót wlaczający tool na pierwszą zakładkę
         }
-
-        //private void HandleCheck(object sender, RoutedEventArgs e)
-        //{
-        //    text2.Text = "Button is Checked";
-        //}
-
-        //private void HandleUnchecked(object sender, RoutedEventArgs e)
-        //{
-        //    text2.Text = "Button is unchecked.";
-        //}
     }
 }
