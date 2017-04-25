@@ -33,7 +33,7 @@ namespace VSFindTool
         string originalFindResult2;
         Dictionary<string, FindSettings> findSettings = new Dictionary<string, FindSettings>();
 
-        ResultTreeViewModel resultTree;
+        //ResultTreeViewModel resultTree;
 
         public VSFindToolMainFormControl()
         {
