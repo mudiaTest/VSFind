@@ -118,7 +118,7 @@ namespace VSFindTool
 
         private Label AddLabel(string text, WrapPanel infoWrapPanel)
         {
-            Label lbl = new Label() { Content = text, Padding = new Thickness(2, 0, 1, 0) };
+            Label lbl = new Label() { Content = text, Padding = new Thickness(2, 0, 1, 0), Margin = new Thickness(0, 2, 0, 0) };
             infoWrapPanel.Children.Add(lbl);
             return lbl;
         }

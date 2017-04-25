@@ -167,7 +167,7 @@ namespace VSFindTool
                 Margin = new Thickness(5, 0, 0, 0),
                 FontWeight = FontWeights.Bold,
                 FontSize = 18,
-                Padding = new Thickness(0, -4, 0, 0)
+                Padding = new Thickness(0, -5, 0, 0)
             };
             upperMenuWrapPanel.Children.Add(btnExpAll);
 
@@ -185,7 +185,7 @@ namespace VSFindTool
                 Margin = new Thickness(5, 0, 0, 0),
                 FontWeight = FontWeights.Bold,
                 FontSize = 18,
-                Padding = new Thickness(0, -4, 0, 0)
+                Padding = new Thickness(0, -5, 0, 0)
             };
             upperMenuWrapPanel.Children.Add(btnUnExpAll);
 

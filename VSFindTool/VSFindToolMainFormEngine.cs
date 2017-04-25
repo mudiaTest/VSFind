@@ -103,7 +103,7 @@ namespace VSFindTool
             {
                 EnvDTE.Window window = dte.ItemOperations.OpenFile(resultLine.linePath);
                 //http://stackoverflow.com/questions/350323/open-a-file-in-visual-studio-at-a-specific-line-number
-                // ((EnvDTE.TextSelection)dte2.ActiveDocument.Selection).GotoLine(fileline, true);
+                ((EnvDTE.TextSelection)dte.ActiveDocument.Selection).GotoLine(resultLine.lineInFileNumbe.Value, true);
             }
             int i = 0;
         }

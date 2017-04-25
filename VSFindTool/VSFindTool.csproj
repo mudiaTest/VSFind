@@ -139,6 +139,7 @@
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="VSFindToolMainFormEngine.cs" />
+    <Compile Include="VSFindToolMainSnapshot.cs" />
     <Compile Include="VSFindToolPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PkgCmdID.cs" />

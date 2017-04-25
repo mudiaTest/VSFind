@@ -126,6 +126,7 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FindSettings.cs" />
     <Compile Include="ResultLine.cs" />
     <Compile Include="VSFindToolMainFormControl.xaml.cs">
       <DependentUpon>VSFindToolMainFormControl.xaml</DependentUpon>
@@ -245,14 +246,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="FindSettings.cs" />
-    <Compile Include="ResultLine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResultLine.cs" />
     <Compile Include="VSFindToolMainForm.cs" />
     <Compile Include="VSFindToolMainFormCommand.cs" />
     <Compile Include="VSFindToolMainFormControl.xaml.cs">
       <DependentUpon>VSFindToolMainFormControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="VSFindToolMainFormEngine.cs" />
+    <Compile Include="VSFindToolMainSnapshot.cs" />
     <Compile Include="VSFindToolPackage.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -398,5 +400,5 @@
   <Target Name="AfterBuild">
   </Target>
   -->
->>>>>>> 8616dc5... @work - przycisk flat/tree w trakcie
+>>>>>>> b438997... @work - goto
 </Project>
