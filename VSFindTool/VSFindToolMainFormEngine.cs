@@ -97,6 +97,14 @@ namespace VSFindTool
         public void OpenResultDocLine(object src, EventArgs args)
         {            
             ResultLine resultLine = dictResultLines[(TreeViewItem)src];
+            LastDocWindow = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
+            //tbResult.Text = "";
+            if (dte != null)
+            {
+                EnvDTE.Window window = dte.ItemOperations.OpenFile(resultLine.linePath);
+                //http://stackoverflow.com/questions/350323/open-a-file-in-visual-studio-at-a-specific-line-number
+                // ((EnvDTE.TextSelection)dte2.ActiveDocument.Selection).GotoLine(fileline, true);
+            }
             int i = 0;
         }
 
