@@ -164,7 +164,7 @@ namespace VSFindTool
 
             AddExtraBold(AddLabel(" | ", infoWrapPanel));
 
-            AddLabel("'" + tbPhrase + "'", infoWrapPanel);
+            AddLabel("`" + tbPhrase + "`", infoWrapPanel);
         }
     }
 }

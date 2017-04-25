@@ -20,10 +20,16 @@ namespace VSFindTool
 
         public string GetFindResults2Content()
         {
-            var findWindow = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
+            var findWindow1 = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults1);
+            var findWindow = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);            
+            findWindow.Activate();
             var selection = findWindow.Selection as EnvDTE.TextSelection;
             selection.SelectAll();
-            return selection.Text;
+            var selection1 = findWindow1.Selection as EnvDTE.TextSelection;
+            selection1.SelectAll();
+            string result1 = selection1.Text;
+            string result = selection.Text;
+            return result;
         }
 
         public void HideFindResult2Window()
@@ -59,7 +65,7 @@ namespace VSFindTool
             lineContent = "";
             linePathPartsList = null;
             lineInFileNumber = null;
-            if (resultLine.Trim() == "" || resultLine.Trim().StartsWith("Matching lines:"))
+            if (resultLine.Trim() == "" || resultLine.Trim().StartsWith("Matching lines:") || resultLine.Trim().StartsWith("Find all:"))
                 return 0;
             linePath = resultLine.Substring(0, resultLine.IndexOf(":", 10)).Trim();
             lineContent = resultLine.Substring(resultLine.IndexOf(":", 10) + 1).Trim();
@@ -319,7 +325,7 @@ namespace VSFindTool
             var x = dte.Find.FindWhat;
 
             //Remember original result
-            originalFindResult2 = GetFindResults2Content();
+            //originalFindResult2 = GetFindResults2Content();
             if (docIsSelected)
             {
                 var findWindow = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);

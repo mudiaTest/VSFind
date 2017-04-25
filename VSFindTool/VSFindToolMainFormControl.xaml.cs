@@ -59,7 +59,7 @@ namespace VSFindTool
                 return;
             foreach (TreeViewItem item in treeItemColleaction)
             {
-                item.IsExpanded = true;
+                item.IsExpanded = value;
                 SetExpandAllInLvl(item.Items, value);
             }
         }
@@ -200,7 +200,7 @@ namespace VSFindTool
             {
                 Orientation = Orientation.Horizontal,
                 Name = snapshotTag + "upperMenuWrapPanel",
-                VerticalAlignment = VerticalAlignment.Top,
+                VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Left
             };
             navGrid.Children.Add(upperMenuWrapPanel);
@@ -209,7 +209,7 @@ namespace VSFindTool
             //toggle button Flat/Tree
             ToggleButton tbFlatTree = new ToggleButton(){
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(5, 3, 0, 0),
+                Margin = new Thickness(5, 0, 0, 0),
                 Padding = new Thickness(3, 1, 3, 1),
                 Width = 34,
                 BorderBrush = this.FindResource(SystemColors.ControlDarkBrushKey) as Brush,
@@ -234,18 +234,50 @@ namespace VSFindTool
             };
             upperMenuWrapPanel.Children.Add(tbFlatTree);
 
+            //Button Expand all              
+            Button btnExpAll = new Button()
+            {
+                Name = snapshotTag + "_ExpAll",
+                Width = 21,
+                Height = 21,
+                Content = "+",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5, 0, 0, 0),
+                FontWeight = FontWeights.Bold,
+                FontSize = 18,
+                Padding = new Thickness(0, -4, 0, 0)
+            };
+            upperMenuWrapPanel.Children.Add(btnExpAll);
+
+            //Button UnExpand all           
+            Button btnUnExpAll = new Button()
+            {
+                Name = snapshotTag + "_UnExpAll",
+                Width = 21,
+                Height = 21,
+                Content = "-",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5, 0, 0, 0),
+                FontWeight = FontWeights.Bold,
+                FontSize = 18,
+                Padding = new Thickness(0, -4, 0 ,0)
+            };
+            upperMenuWrapPanel.Children.Add(btnUnExpAll);
+
             //Button Find again              
             Button btnFindAgain = new Button()
             {
                 Content = "Find again",
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(5, 3, 0, 0),
+                Margin = new Thickness(5, 0, 0, 0),
+                Padding = new Thickness(2, 0, 2, 0),
                 Height = 21
-            };
-            btnFindAgain.Click += (o, e) =>
-            {
-                findSettings[snapshotTag].SetColtrols(this);
-                tbiSearch.Focus();
             };
             upperMenuWrapPanel.Children.Add(btnFindAgain);
 
@@ -255,54 +287,60 @@ namespace VSFindTool
                 Foreground = Brushes.Red,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 HorizontalContentAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
                 FontWeight = FontWeights.Bold,
-                Margin = new Thickness(5, 3, 0, 0),
+                Margin = new Thickness(5, 0, 0, 0),
                 Height = 21,
                 Width = 21
-            };
-            btnRemoveSnapshot.Click += (o, e) =>
-            { 
-                tbcMain.Items.Remove(newTab);
-                findSettings.Remove(snapshotTag);                    
             };
             navGrid.Children.Add(btnRemoveSnapshot);
             Grid.SetColumn(btnRemoveSnapshot, 1);
 
             //add Flat view
-            Border borderFlat = new Border()
-            {
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(1),
-                Margin = new Thickness(0),
-                RenderTransformOrigin = new Point(0.5, 0.5)
-            };
-            grid.Children.Add(borderFlat);
-            Grid.SetRow(borderFlat, 2);
-            Grid.SetColumnSpan(borderFlat, 1);
             TreeView flattv = new TreeView()
             {
                 Name = snapshotTag + "_tvResultFlatTree",
                 HorizontalContentAlignment = HorizontalAlignment.Stretch
             };
-            borderFlat.Child = flattv;
+            grid.Children.Add(flattv);
+            Grid.SetRow(flattv, 2);
+            Grid.SetColumnSpan(flattv, 1);
 
             //add Tree view
-            Border borderTree = new Border()
-            {
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(1),
-                Margin = new Thickness(0),
-                RenderTransformOrigin = new Point(0.5, 0.5)
-            };
-            grid.Children.Add(borderTree);
-            Grid.SetRow(borderTree, 3);
-            Grid.SetColumnSpan(borderTree, 2);
             TreeView treetv = new TreeView()
             {
                 Name = snapshotTag + "_tvResultFlatTree",
                 HorizontalContentAlignment = HorizontalAlignment.Stretch
             };
-            borderTree.Child = treetv;
+            grid.Children.Add(treetv);
+            Grid.SetRow(treetv, 3);
+            Grid.SetColumnSpan(treetv, 2);
+
+            //Events
+            btnExpAll.Click += (o, e) =>
+            {
+                SetExpandAllInLvl(flattv.Items, true);
+                SetExpandAllInLvl(treetv.Items, true);
+            };
+
+            btnUnExpAll.Click += (o, e) =>
+            {
+                SetExpandAllInLvl(flattv.Items, false);
+                SetExpandAllInLvl(treetv.Items, false);
+            };
+
+            btnFindAgain.Click += (o, e) =>
+            {
+                findSettings[snapshotTag].SetColtrols(this);
+                tbiSearch.Focus();
+            };
+
+            btnRemoveSnapshot.Click += (o, e) =>
+            {
+                tbcMain.Items.Remove(newTab);
+                findSettings.Remove(snapshotTag);
+            };
+
 
             //Populate new TreeViews from "last"
             FillSnapshotFromLast(snapshotTag, flattv, treetv);
@@ -321,6 +359,18 @@ namespace VSFindTool
             //to do dodać FILL setting from settings
             //Todo podłaczyć do obiektów eventy
             //todo dodać skrót wlaczający tool na pierwszą zakładkę
+        }
+
+        private void last_ExpAll_Click(object sender, RoutedEventArgs e)
+        {
+            SetExpandAllInLvl(last_tvResultFlatTree.Items, true);
+            SetExpandAllInLvl(last_tvResultTree.Items, true);
+        }
+
+        private void last_UnExpAll_Click(object sender, RoutedEventArgs e)
+        {
+            SetExpandAllInLvl(last_tvResultFlatTree.Items, false);
+            SetExpandAllInLvl(last_tvResultTree.Items, false);
         }
     }
 }
