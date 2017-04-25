@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using EnvDTE;
+using System.Windows.Controls;
+using System.Windows;
 
 namespace VSFindTool
 {
@@ -112,6 +114,57 @@ namespace VSFindTool
             form.rbOpenDocs.IsChecked = rbOpenDocs;
             form.rbProject.IsChecked = rbProject;
             form.rbSolution.IsChecked = rbSolution;
+        }
+
+        private Label AddLabel(string text, WrapPanel infoWrapPanel)
+        {
+            Label lbl = new Label() { Content = text, Padding = new Thickness(2, 0, 1, 0) };
+            infoWrapPanel.Children.Add(lbl);
+            return lbl;
+        }
+
+        private Label AddBold(Label lbl)
+        {
+            lbl.FontWeight = FontWeights.Bold;
+            return lbl;
+        }
+
+        private Label AddExtraBold(Label lbl)
+        {
+            lbl.FontWeight = FontWeights.ExtraBold;
+            return lbl;
+        }
+
+        public void FillWraperPanel(WrapPanel infoWrapPanel)
+        {
+            infoWrapPanel.Children.Clear();
+            if (chkWholeWord)
+                AddExtraBold(AddLabel("W", infoWrapPanel));
+            else
+                AddLabel("w", infoWrapPanel);
+            if (chkCase)
+                AddExtraBold(AddLabel("C", infoWrapPanel));
+            else
+                AddLabel("c", infoWrapPanel);
+            if (chkRegExp)
+                AddExtraBold(AddLabel("R", infoWrapPanel));
+            else
+                AddLabel("r", infoWrapPanel);
+
+            AddExtraBold(AddLabel(" | ", infoWrapPanel));
+
+            if (rbCurrDoc)
+                AddLabel("CurDocum", infoWrapPanel);
+            else if (rbOpenDocs)
+                AddLabel("Opened", infoWrapPanel);
+            else if (rbProject)
+                AddLabel("Project", infoWrapPanel);
+            else if (rbSolution)
+                AddLabel("Solution", infoWrapPanel);
+
+            AddExtraBold(AddLabel(" | ", infoWrapPanel));
+
+            AddLabel("`" + tbPhrase + "`", infoWrapPanel);
         }
     }
 }

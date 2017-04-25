@@ -17,13 +17,20 @@ namespace VSFindTool
     public partial class VSFindToolMainFormControl : UserControl
     {
         FindSettings last_searchSettings = new FindSettings();
+        Dictionary<TreeViewItem, ResultLine> dictResultLines = new Dictionary<TreeViewItem, ResultLine>();
 
         public string GetFindResults2Content()
         {
-            var findWindow = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
+            var findWindow1 = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults1);
+            var findWindow = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);            
+            findWindow.Activate();
             var selection = findWindow.Selection as EnvDTE.TextSelection;
             selection.SelectAll();
-            return selection.Text;
+            var selection1 = findWindow1.Selection as EnvDTE.TextSelection;
+            selection1.SelectAll();
+            string result1 = selection1.Text;
+            string result = selection.Text;
+            return result;
         }
 
         public void HideFindResult2Window()
@@ -47,23 +54,25 @@ namespace VSFindTool
             //tbResult.Text = GetFindResults2Content();
         }
 
-        public int ParseResultLine(
-            string resultLine, 
+        internal int ParseResultLine(
+            string resultLineText, 
             out string linePath, 
             out List<string> linePathPartsList,
             out string lineContent, 
-            out int? lineInFileNumber)
+            out int? lineInFileNumber,
+            out ResultLine resultLine)
         {
             String pathPart = "";
             linePath = "";
             lineContent = "";
             linePathPartsList = null;
             lineInFileNumber = null;
-            if (resultLine.Trim() == "" || resultLine.Trim().StartsWith("Matching lines:"))
+            resultLine = null;
+            if (resultLineText.Trim() == "" || resultLineText.Trim().StartsWith("Matching lines:") || resultLineText.Trim().StartsWith("Find all:"))
                 return 0;
-            linePath = resultLine.Substring(0, resultLine.IndexOf(":", 10)).Trim();
-            lineContent = resultLine.Substring(resultLine.IndexOf(":", 10) + 1).Trim();
-            linePathPartsList = linePath.Split('/').ToList<string>();
+            linePath = resultLineText.Substring(0, resultLineText.IndexOf(":", 10)).Trim();
+            lineContent = resultLineText.Substring(resultLineText.IndexOf(":", 10) + 1).Trim();
+            linePathPartsList = linePath.Split('\\').ToList<string>();
 
             for (int i = 0; i < linePathPartsList.Count; i++)
             {
@@ -75,10 +84,31 @@ namespace VSFindTool
                     linePath = linePath.Substring(0, linePath.LastIndexOf("("));
                 }
             }
+            resultLine = new ResultLine(){
+                resultLineText = resultLineText,
+                linePath = linePath,
+                linePathPartsList = linePathPartsList,
+                lineContent = lineContent,
+                lineInFileNumbe = lineInFileNumber
+            };
             return 1;
         }
 
-        public void MoveResultToTreeViewModel(TreeView tvResultFlatTree)
+        public void OpenResultDocLine(object src, EventArgs args)
+        {            
+            ResultLine resultLine = dictResultLines[(TreeViewItem)src];
+            LastDocWindow = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
+            //tbResult.Text = "";
+            if (dte != null)
+            {
+                EnvDTE.Window window = dte.ItemOperations.OpenFile(resultLine.linePath);
+                //http://stackoverflow.com/questions/350323/open-a-file-in-visual-studio-at-a-specific-line-number
+                // ((EnvDTE.TextSelection)dte2.ActiveDocument.Selection).GotoLine(fileline, true);
+            }
+            int i = 0;
+        }
+
+        /*public void MoveResultToTreeViewModel(TreeView tvResultFlatTree)
         {
             // Get raw family tree data from a database.
             List<ResultLine> listResultLine = new List<ResultLine>();           
@@ -117,7 +147,7 @@ namespace VSFindTool
 
             // Let the UI bind to the view-model.
             tvResultFlatTree.DataContext = resultTree;
-        }
+        }*/
 
         public void MoveResultToTreeList(TreeView tvResultTree)
         {
@@ -129,6 +159,8 @@ namespace VSFindTool
             List<string> linePathPartsList;
             int? lineInFileNumber;
             String pathPart;
+            ResultLine resultLine;
+            TreeViewItem leafItem;
 
             tvResultTree.Items.Clear();
             List<string> resList = GetFindResults2Content().Replace("\n\r","\n").Split('\n').ToList<string>();
@@ -140,7 +172,7 @@ namespace VSFindTool
                 treeItem = null;
                 pathAgg = "";
 
-                switch (ParseResultLine(line, out linePath, out linePathPartsList, out LineContent, out lineInFileNumber))
+                switch (ParseResultLine(line, out linePath, out linePathPartsList, out LineContent, out lineInFileNumber, out resultLine))
                 { 
                 case 0: //Line to skip
                     continue;
@@ -151,7 +183,7 @@ namespace VSFindTool
                         if (pathAgg == "")
                             pathAgg = pathPart;
                         else
-                            pathAgg = pathAgg + "\\" + pathPart;
+                            pathAgg = pathAgg + @"\" + pathPart;
                         if (Directory.Exists(pathAgg) || File.Exists(pathAgg))
                         {
                             treeItem = GetItem(treeItemColleaction, pathPart);
@@ -162,8 +194,16 @@ namespace VSFindTool
                             }
                             treeItemColleaction = treeItem.Items;
                         }
-                        if (i == linePathPartsList.Count - 1)
-                            treeItemColleaction.Add(new TreeViewItem() { Header = "(" + lineInFileNumber.ToString() + ") : " + LineContent, FontWeight = FontWeights.Normal });
+                            if (i == linePathPartsList.Count - 1)
+                            {
+                                leafItem = new TreeViewItem() {
+                                    Header = "(" + lineInFileNumber.ToString() + ") : " + LineContent,
+                                    FontWeight = FontWeights.Normal
+                                };
+                                leafItem.MouseDoubleClick += OpenResultDocLine;
+                                dictResultLines.Add(leafItem, resultLine);
+                                treeItemColleaction.Add(leafItem);
+                            }
                     }
                     break;
                     default:
@@ -184,13 +224,15 @@ namespace VSFindTool
             List<string> linePathPartsList;
             int? lineInFileNumber;
             string paramLine;
+            ResultLine resultLine;
+            TreeViewItem leafItem;
 
             tvResultFlatTree.Items.Clear();
             List<string> resList = GetFindResults2Content().Replace("\n\r", "\n").Split('\n').ToList<string>();
             resList.RemoveAt(0);
             foreach (string line in resList)
             {
-                switch (ParseResultLine(line, out linePath, out linePathPartsList, out LineContent, out lineInFileNumber))
+                switch (ParseResultLine(line, out linePath, out linePathPartsList, out LineContent, out lineInFileNumber, out resultLine))
                 {
                     case 0: //Line to skip
                         continue;
@@ -198,10 +240,17 @@ namespace VSFindTool
                         treeItem = GetItem(tvResultFlatTree.Items, linePath);
                         if (treeItem == null)
                         {
-                            treeItem = new TreeViewItem() { Header = linePath, FontWeight = FontWeights.ExtraBold };
+                            treeItem = new TreeViewItem() { Header = linePath, FontWeight = FontWeights.Bold };
                             tvResultFlatTree.Items.Add(treeItem);
                         }
-                        treeItem.Items.Add(new TreeViewItem() { Header = "(" + lineInFileNumber.ToString() + ") : " + LineContent, FontWeight = FontWeights.Normal });
+                        leafItem = new TreeViewItem()
+                        {
+                            Header = "(" + lineInFileNumber.ToString() + ") : " + LineContent,
+                            FontWeight = FontWeights.Normal
+                        };
+                        leafItem.MouseDoubleClick += OpenResultDocLine;
+                        dictResultLines.Add(leafItem, resultLine);
+                        treeItem.Items.Add(leafItem);                      
                         break;
                     default:
                         Debug.Assert(false, "An exception has occured.");
@@ -223,7 +272,7 @@ namespace VSFindTool
 
         public void Finish()
         {
-            last_InfoLabel.Content = last_searchSettings.ToLabelString();
+            last_searchSettings.FillWraperPanel(last_infoWrapPanel);
             //MoveResultToTextBox();
             MoveResultToTreeList(last_tvResultTree);
             MoveResultToFlatTreeList(last_tvResultFlatTree);
@@ -256,16 +305,6 @@ namespace VSFindTool
 
                 }
             }
-        }
-
-        private string GetSnapshotTag(int number)
-        {
-            return "snap" + number.ToString();
-        }
-
-        private string GetSnapshotTag(string number)
-        {
-            return "snap" + number;
         }
 
         private void ExecSearch()
@@ -319,7 +358,7 @@ namespace VSFindTool
             var x = dte.Find.FindWhat;
 
             //Remember original result
-            originalFindResult2 = GetFindResults2Content();
+            //originalFindResult2 = GetFindResults2Content();
             if (docIsSelected)
             {
                 var findWindow = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
