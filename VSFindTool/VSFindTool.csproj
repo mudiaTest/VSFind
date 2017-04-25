@@ -60,6 +60,7 @@
       <DependentUpon>VSFindToolMainFormControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="VSFindToolMainFormEngine.cs" />
+    <Compile Include="VSFindToolMainSnapshot.cs" />
     <Compile Include="VSFindToolPackage.cs" />
   </ItemGroup>
   <ItemGroup>

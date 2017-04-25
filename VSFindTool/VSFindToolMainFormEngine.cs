@@ -264,16 +264,6 @@ namespace VSFindTool
             }
         }
 
-        private string GetSnapshotTag(int number)
-        {
-            return "snap" + number.ToString();
-        }
-
-        private string GetSnapshotTag(string number)
-        {
-            return "snap" + number;
-        }
-
         private void ExecSearch()
         {
             Boolean docIsSelected = true;            
