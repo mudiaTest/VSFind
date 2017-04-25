@@ -63,7 +63,7 @@ namespace VSFindTool
                 return 0;
             linePath = resultLine.Substring(0, resultLine.IndexOf(":", 10)).Trim();
             lineContent = resultLine.Substring(resultLine.IndexOf(":", 10) + 1).Trim();
-            linePathPartsList = linePath.Split('/').ToList<string>();
+            linePathPartsList = linePath.Split('\\').ToList<string>();
 
             for (int i = 0; i < linePathPartsList.Count; i++)
             {
@@ -151,7 +151,7 @@ namespace VSFindTool
                         if (pathAgg == "")
                             pathAgg = pathPart;
                         else
-                            pathAgg = pathAgg + "\\" + pathPart;
+                            pathAgg = pathAgg + @"\" + pathPart;
                         if (Directory.Exists(pathAgg) || File.Exists(pathAgg))
                         {
                             treeItem = GetItem(treeItemColleaction, pathPart);
@@ -198,7 +198,7 @@ namespace VSFindTool
                         treeItem = GetItem(tvResultFlatTree.Items, linePath);
                         if (treeItem == null)
                         {
-                            treeItem = new TreeViewItem() { Header = linePath, FontWeight = FontWeights.ExtraBold };
+                            treeItem = new TreeViewItem() { Header = linePath, FontWeight = FontWeights.Bold };
                             tvResultFlatTree.Items.Add(treeItem);
                         }
                         treeItem.Items.Add(new TreeViewItem() { Header = "(" + lineInFileNumber.ToString() + ") : " + LineContent, FontWeight = FontWeights.Normal });
@@ -223,7 +223,7 @@ namespace VSFindTool
 
         public void Finish()
         {
-            last_InfoLabel.Content = last_searchSettings.ToLabelString();
+            last_searchSettings.FillWraperPanel(last_infoWrapPanel);
             //MoveResultToTextBox();
             MoveResultToTreeList(last_tvResultTree);
             MoveResultToFlatTreeList(last_tvResultFlatTree);

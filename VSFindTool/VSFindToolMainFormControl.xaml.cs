@@ -84,7 +84,7 @@ namespace VSFindTool
                         treeItem2.Items.Remove(treeItem3);
                         treeItem.Items.Add(treeItem3);
                     }
-                    treeItem.Header += @"/" + treeItem2.Header;
+                    treeItem.Header += @"\" + treeItem2.Header;
                 }
             }
         }
@@ -93,7 +93,6 @@ namespace VSFindTool
         {
             last_rowTree.Height = new GridLength(1, GridUnitType.Star);
             last_rowFlat.Height = new GridLength(0);
-            last_tb.Content = "Tree";
             last_tb.Foreground = Brushes.Red;
         }
 
@@ -101,7 +100,6 @@ namespace VSFindTool
         {
             last_rowTree.Height = new GridLength(0);
             last_rowFlat.Height = new GridLength(1, GridUnitType.Star);
-            last_tb.Content = "Flat";
             last_tb.ClearValue(ToggleButton.ForegroundProperty);
         }
 
@@ -142,7 +140,7 @@ namespace VSFindTool
                 Background = this.FindResource(SystemColors.ControlLightBrushKey) as Brush };
             grid.RowDefinitions.Add(new RowDefinition()
             {
-                Height = new GridLength(18, GridUnitType.Pixel)
+                Height = new GridLength(20, GridUnitType.Pixel)
             });
             grid.RowDefinitions.Add(new RowDefinition()
             {
@@ -172,16 +170,17 @@ namespace VSFindTool
             //Set snapshot tab as selected
             //tbcMain.SelectedItem = newTab;
 
-            //Info label
-            Label infoLabel = new Label()
+            //Info Wraper
+            WrapPanel infoWrapPanel = new WrapPanel()
             {
-                HorizontalAlignment = HorizontalAlignment.Left,
+                Orientation = Orientation.Horizontal,
+                Name = snapshotTag + "_infoWrapPanel",
                 VerticalAlignment = VerticalAlignment.Top,
-                Padding = new Thickness(5, 0, 5, 5),
-                Content = last_searchSettings.ToLabelString()
+                HorizontalAlignment = HorizontalAlignment.Left
             };
-            grid.Children.Add(infoLabel);
-            Grid.SetRow(infoLabel, 0);
+            grid.Children.Add(infoWrapPanel);
+            Grid.SetColumn(infoWrapPanel, 0);
+            last_searchSettings.FillWraperPanel(infoWrapPanel);
 
             //navigator
             Grid navGrid = new Grid(){
@@ -200,6 +199,9 @@ namespace VSFindTool
             WrapPanel upperMenuWrapPanel = new WrapPanel()
             {
                 Orientation = Orientation.Horizontal,
+                Name = snapshotTag + "upperMenuWrapPanel",
+                VerticalAlignment = VerticalAlignment.Top,
+                HorizontalAlignment = HorizontalAlignment.Left
             };
             navGrid.Children.Add(upperMenuWrapPanel);
             Grid.SetColumn(upperMenuWrapPanel, 0);
@@ -212,7 +214,7 @@ namespace VSFindTool
                 Width = 34,
                 BorderBrush = this.FindResource(SystemColors.ControlDarkBrushKey) as Brush,
                 Height = 21,
-                Content = "Flat"
+                Content = "Tree"
             };
             tbFlatTree.Click += (o, e) =>
             {
@@ -221,14 +223,12 @@ namespace VSFindTool
                 {
                     rowFlat.Height = new GridLength(1, GridUnitType.Star);
                     rowTree.Height = new GridLength(0, GridUnitType.Pixel);
-                    tb.Content = "Flat";
                     tb.ClearValue(ToggleButton.ForegroundProperty);
                 }
                 else
                 {
                     rowFlat.Height = new GridLength(0, GridUnitType.Pixel);
                     rowTree.Height = new GridLength(1, GridUnitType.Star);
-                    tb.Content = "Tree";
                     tb.Foreground = Brushes.Red;
                 }
             };
