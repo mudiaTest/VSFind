@@ -9,6 +9,8 @@ using System.Linq;
 using Microsoft.VisualStudio.Shell;
 using EnvDTE;
 using System.Windows.Media;
+using System.IO;
+using System.Windows.Forms;
 
 namespace VSFindTool
 {
@@ -29,7 +31,12 @@ namespace VSFindTool
         public VSFindToolMainForm parentToolWindow;
         //List<string> resList;
         public EnvDTE.Window LastDocWindow;
-        EnvDTE.DTE dte;
+        EnvDTE80.DTE2 dte {
+            get
+            {
+                return ((VSFindToolPackage)parentToolWindow.Package).dte2;
+            }
+        }
         string originalFindResult2;
         Dictionary<string, FindSettings> findSettings = new Dictionary<string, FindSettings>();
 
@@ -38,7 +45,6 @@ namespace VSFindTool
         public VSFindToolMainFormControl()
         {
             this.InitializeComponent();
-            dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
         }
 
         /// <summary>
@@ -121,6 +127,33 @@ namespace VSFindTool
         {
             SetExpandAllInLvl(last_tvResultFlatTree.Items, true);
             SetExpandAllInLvl(last_tvResultTree.Items, true);
+        }
+
+        private void rbLocation_Click(object sender, RoutedEventArgs e)
+        {
+            tbLocation.IsEnabled = rbLocation.IsChecked == true;
+            btnGetLocation.IsEnabled = rbLocation.IsChecked == true;
+        }
+
+        private void btnGetLocation_Click(object sender, RoutedEventArgs e)
+        {
+            FolderBrowserDialog dlg = new FolderBrowserDialog();
+            if (tbLocation.Text != "" && Directory.Exists(tbLocation.Text))
+                dlg.SelectedPath = tbLocation.Text;
+            if (DialogResult.OK == dlg.ShowDialog())
+                tbLocation.Text = dlg.SelectedPath;
+        }
+
+        private void rbLocation_Checked(object sender, RoutedEventArgs e)
+        {
+            tbLocation.IsEnabled = true;
+            btnGetLocation.IsEnabled = true;
+        }
+
+        private void rbLocation_Unchecked(object sender, RoutedEventArgs e)
+        {
+            tbLocation.IsEnabled = false;
+            btnGetLocation.IsEnabled = false;
         }
     }
 }

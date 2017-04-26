@@ -37,6 +37,9 @@ namespace VSFindTool
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
+         
+        internal EnvDTE80.DTE2 dte2;
+
         private VSFindToolMainFormCommand(Package package)
         {
             if (package == null)
@@ -82,6 +85,7 @@ namespace VSFindTool
         public static void Initialize(Package package)
         {
             Instance = new VSFindToolMainFormCommand(package);
+            Instance.dte2 = ((VSFindToolPackage)package).dte2;
         }
 
         /// <summary>
