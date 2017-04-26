@@ -88,7 +88,7 @@
                         <RowDefinition x:Name="last_preview" Height="60"/>
                     </Grid.RowDefinitions>
 
-                    <WrapPanel x:Name="last_infoWrapPanel" Orientation="Horizontal" Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Left" Grid.ColumnSpan="2" Height="0" Width="0">
+                    <WrapPanel x:Name="last_infoWrapPanel" Orientation="Horizontal" Grid.Row="0" VerticalAlignment="Top" HorizontalAlignment="Left" Grid.ColumnSpan="2">
                     </WrapPanel>
 
                     <Grid Grid.Row="1" Grid.ColumnSpan="2">
@@ -98,8 +98,8 @@
                         </Grid.ColumnDefinitions>
                         <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0">
                             <ToggleButton x:Name="last_tb" Content = "Tree" HorizontalAlignment = "Center" Padding="3,1" Width="34" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Checked="tb_Checked" Unchecked="tb_Unchecked" Margin="5,0,0,0" Height="21" VerticalAlignment="Center" />
-                            <Button x:Name="btnExpAll" Width="21" Content="+" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-4,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="1,1" Click="btnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                            <Button x:Name="btnUnExpAll" Width="21" Content="-" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-4,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="1,1" Click="btnUnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            <Button x:Name="btnExpAll" Width="21" Content="+" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-5,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="1,1" Click="btnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            <Button x:Name="btnUnExpAll" Width="21" Content="-" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-5,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="1,1" Click="btnUnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />
                         </WrapPanel>
                         <Button x:Name="btnAddSnapshot" Grid.Column="1" Content="Snapshot" Margin="0" Width="70" Padding="3,1,3,0" IsCancel="True" Click="btnAddSnapshot_Click" HorizontalAlignment="Center" VerticalAlignment="Center" Height="21"/>
                     </Grid>
