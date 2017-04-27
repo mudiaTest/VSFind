@@ -5,6 +5,9 @@ using EnvDTE;
 using EnvDTE80;
 using System.IO;
 using System.Diagnostics;
+//using Microsoft.VisualStudio.Shell.Interop;
+using VSHierarchyAddin;
+using Extensibility;
 
 namespace VSFindTool
 {
@@ -20,6 +23,9 @@ namespace VSFindTool
         FindSettings last_searchSettings = new FindSettings();
         Dictionary<TreeViewItem, ResultLineData> dictResultLines = new Dictionary<TreeViewItem, ResultLineData>();
         Dictionary<TreeViewItem, FindSettings> dictSearchSettings = new Dictionary<TreeViewItem, FindSettings>();
+        Dictionary<TreeViewItem, TextBox> dictTBPreview = new Dictionary<TreeViewItem, TextBox>();
+
+        Connect c = new Connect();
 
         public string GetFindResults2Content()
         {
@@ -96,17 +102,71 @@ namespace VSFindTool
             return 1;
         }
 
+        public void Test()
+        {            
+            Array custom = new string[1000];
+            c.OnConnection(dte.Application, ext_ConnectMode.ext_cm_AfterStartup, this, ref custom);
+            var i = 0;
+        }
+
+        public void TestOpenResultDocLine(object src, EventArgs args)
+        {
+            ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
+            FindSettings settings = dictSearchSettings[(TreeViewItem)src];
+            if (dte != null)
+            {
+
+                /*Guid logicalView = Microsoft.VisualStudio.VSConstants.LOGVIEWID_Debugging;//różne typy edytora? inny np LOGVIEWID_Debugging
+                string caption = "TESST";
+                uint grfOpenStandard = (uint)__VSOSEFLAGS.OSE_UseOpenWithDialog; //Flagi z Microsoft.VisualStudio.Shell.Interop.__VSOSEFLAGS
+
+                //IVsSolution solution = (IVsSolution)GetService(serviceProvider, typeof(SVsSolution), typeof(IVsSolution));
+
+                //EnvDTE.Project proj;
+                //object service = GetService(proj.DTE, typeof(IVsSolution));
+                //IVsSolution solution = (IVsSolution)dte.Solution;
+                //((VSFindToolPackage)(this.parentToolWindow).Package).
+                
+                //IVsSolution solution = (IVsSolution)service; 
+                //solution.GetProjectOfUniqueName(proj.UniqueName, out hierarchy);
+
+                IVsUIShellOpenDocument.OpenStandardEditor(
+                    grfOpenStandard,
+                    resultLine.linePath,
+                    ref logicalView, 
+                    caption, 
+                    (IVsUIHierarchy)c.hierarchy[c.projects[0]], 
+                    this.Node.ID, 
+                    docDataExisting, 
+                    serviceProvider,
+                    out windowFrame
+                );
+                */ 
+            }
+            else
+                Debug.Assert(false, "Brak DTE");
+            int i = 0;
+        }
+
         public void OpenResultDocLine(object src, EventArgs args)
         {            
             ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
             FindSettings settings = dictSearchSettings[(TreeViewItem)src];
             if (dte != null)
             {
-                EnvDTE.Window docWindow = dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);               
+                EnvDTE.Window docWindow = dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
                 //http://stackoverflow.com/questions/350323/open-a-file-in-visual-studio-at-a-specific-line-number
+
+                //string text = selection.Text; - pobiera zaznaczony tekst - na potrzeby uruchamiania z key
                 TextSelection selection = ((EnvDTE.TextSelection)dte.ActiveDocument.Selection);
                 if (selection != null)
                 {
+                    selection.SelectAll();
+                    int lastLine = selection.CurrentLine;
+                    selection.MoveToLineAndOffset(Math.Max(0, resultLine.lineInFileNumbe.Value - 2), 1, false);                    
+                    selection.MoveToLineAndOffset(Math.Max(0, resultLine.lineInFileNumbe.Value + 2), 1, true);;
+                    selection.EndOfLine(true);
+                    dictTBPreview[(TreeViewItem)src].Text = selection.Text;
                     selection.GotoLine(resultLine.lineInFileNumbe.Value, false);
                     if (settings.chkRegExp == true)
                         Debug.Assert(false, "Brak obsługi RegExp");
@@ -128,7 +188,6 @@ namespace VSFindTool
             }
             else
                 Debug.Assert(false, "Brak DTE");
-            int i = 0;
         }
 
         /*public void MoveResultToTreeViewModel(TreeView tvResultFlatTree)
@@ -172,7 +231,7 @@ namespace VSFindTool
             tvResultFlatTree.DataContext = resultTree;
         }*/
 
-        internal void MoveResultToTreeList(TreeView tvResultTree, FindSettings last_searchSettings)
+        internal void MoveResultToTreeList(TreeView tvResultTree, FindSettings last_searchSettings, TextBox tbPreview)
         {
             ItemCollection treeItemColleaction;
             TreeViewItem treeItem;
@@ -234,6 +293,7 @@ namespace VSFindTool
                                 leafItem.MouseDoubleClick += OpenResultDocLine;
                                 dictResultLines.Add(leafItem, resultLineObject);
                                 dictSearchSettings.Add(leafItem, last_searchSettings);
+                                dictTBPreview.Add(leafItem, tbPreview);
                                 treeItemColleaction.Add(leafItem);
                             }
                     }
@@ -249,7 +309,7 @@ namespace VSFindTool
             SetExpandAllInLvl(tvResultTree.Items, true);
         }
 
-        internal void MoveResultToFlatTreeList(TreeView tvResultFlatTree, FindSettings last_searchSettings)
+        internal void MoveResultToFlatTreeList(TreeView tvResultFlatTree, FindSettings last_searchSetting, TextBox tbPreview)
         {
             TreeViewItem treeItem;
             string linePath;
@@ -293,6 +353,7 @@ namespace VSFindTool
                         this.Focusable = false;
                         dictResultLines.Add(leafItem, resultLineObject);
                         dictSearchSettings.Add(leafItem, last_searchSettings);
+                        dictTBPreview.Add(leafItem, tbPreview);
                         treeItem.Items.Add(leafItem);
                         prvLine = line;
                         break;
@@ -317,9 +378,8 @@ namespace VSFindTool
         public void Finish()
         {
             last_searchSettings.FillWraperPanel(last_infoWrapPanel);
-            //MoveResultToTextBox();
-            MoveResultToTreeList(last_tvResultTree, last_searchSettings);
-            MoveResultToFlatTreeList(last_tvResultFlatTree, last_searchSettings);
+            MoveResultToTreeList(last_tvResultTree, last_searchSettings, last_TBPreview);
+            MoveResultToFlatTreeList(last_tvResultFlatTree, last_searchSettings, last_TBPreview);
             //MoveResultToTreeViewModel();
 
             /*List<string> list = tbResult.Text.Split('\n').ToList<string>();
@@ -353,6 +413,9 @@ namespace VSFindTool
 
         private void ExecSearch()
         {
+
+            //Test();
+
             Boolean docIsSelected = true;            
             LastDocWindow = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
             //tbResult.Text = "";

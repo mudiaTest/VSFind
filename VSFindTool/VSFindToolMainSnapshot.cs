@@ -15,24 +15,25 @@ namespace VSFindTool
 
     public partial class VSFindToolMainFormControl : UserControl
     {
-        private void CopyItems(ItemCollection src, ItemCollection dst, FindSettings findSettings)
+        private void CopyItems(ItemCollection src, ItemCollection dst, FindSettings findSettings, TextBox tbPreview)
         {
             foreach (TreeViewItem item in src)
             {
                 TreeViewItem newItem = new TreeViewItem() { Header = item.Header };
                 dst.Add(newItem);
                 dictSearchSettings.Add(newItem, findSettings);
+                dictTBPreview.Add(newItem, tbPreview);
                 newItem.FontWeight = item.FontWeight;  //FontWeights.Bold - FontWeights is a static class, so it's ok
-                CopyItems(item.Items, newItem.Items, findSettings);
+                CopyItems(item.Items, newItem.Items, findSettings, tbPreview);
             }
         }
 
-        private void FillSnapshotFromLast(string snapshotTag, TreeView flattv, TreeView treetv, FindSettings findSettings)
+        private void FillSnapshotFromLast(string snapshotTag, TreeView flattv, TreeView treetv, FindSettings findSettings, TextBox tbPreview)
         {
             //TreeView flattv = (TreeView)this.FindName(snapshotTag + "_tvResultFlatTree");
             //TreeView treetv = (TreeView)this.FindName(snapshotTag + "_tvResultFlatTree");
-            CopyItems(last_tvResultFlatTree.Items, flattv.Items, findSettings);
-            CopyItems(last_tvResultTree.Items, treetv.Items, findSettings);
+            CopyItems(last_tvResultFlatTree.Items, flattv.Items, findSettings, tbPreview);
+            CopyItems(last_tvResultTree.Items, treetv.Items, findSettings, tbPreview);
         }
 
         private void AddSmapshotTab()
@@ -237,6 +238,10 @@ namespace VSFindTool
             Grid.SetRow(treetv, 3);
             Grid.SetColumnSpan(treetv, 2);
 
+            TextBox tbPreview = new TextBox();
+            Grid.SetRow(tbPreview, 4);
+            Grid.SetColumnSpan(tbPreview, 2);
+
             //Events
             btnExpAll.Click += (o, e) =>
             {
@@ -266,7 +271,7 @@ namespace VSFindTool
             findSettings.Add(snapshotTag, last_searchSettings.GetCopy());
 
             //Populate new TreeViews from "last"
-            FillSnapshotFromLast(snapshotTag, flattv, treetv, findSettings[snapshotTag]);
+            FillSnapshotFromLast(snapshotTag, flattv, treetv, findSettings[snapshotTag], tbPreview);
             //Expand new views
             SetExpandAllInLvl(flattv.Items, true);
             SetExpandAllInLvl(treetv.Items, true);
