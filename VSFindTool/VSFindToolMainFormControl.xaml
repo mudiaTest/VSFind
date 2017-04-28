@@ -107,6 +107,7 @@
 
                     <TreeView x:Name="last_tvResultFlatTree" HorizontalContentAlignment="Stretch" Grid.Row="2" Grid.ColumnSpan="2"/>
                     <TreeView x:Name="last_tvResultTree" HorizontalContentAlignment="Stretch" Grid.Row="3" Grid.ColumnSpan="2"/>
+                    <TextBox Name="last_TBPreview" Grid.Row="4" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"></TextBox>
                 </Grid>
             </TabItem>
         </TabControl>
