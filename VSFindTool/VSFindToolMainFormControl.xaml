@@ -60,14 +60,15 @@
                                 <RadioButton x:Name="rbSolution" Content="Solution" HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top" Grid.Column="1"/>
                                 <RadioButton x:Name="rbPrjectExt" Content="Project+Ext" HorizontalAlignment="Left" Grid.Row="2" VerticalAlignment="Top" IsEnabled="False"/>
                                 <RadioButton x:Name="rbSolutionExt" Content="Solution+Ext" HorizontalAlignment="Left" Grid.Row="2" VerticalAlignment="Top" Grid.Column="1" IsEnabled="False"/>
-                                <RadioButton x:Name="rbSelection" Content="Selection" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="3" Grid.ColumnSpan="2" IsEnabled="False"/>
+                                <RadioButton x:Name="rbSelection" Content="Selection" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="3" Grid.Column="0" IsEnabled="False"/>
+                                <RadioButton x:Name="rbLocation" Content="Lacation" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="3" Grid.Column="1" Checked="rbLocation_Checked" Unchecked="rbLocation_Unchecked"/>
                                 <Grid Grid.Row="4" Grid.ColumnSpan="2">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition/>
                                         <ColumnDefinition Width="30"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBox TextWrapping="Wrap" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEnabled="False"/>
-                                    <Button Content=". . ." Grid.Column="1" Margin="0" Width="25" HorizontalAlignment="Center" IsEnabled="False"/>
+                                    <TextBox Name="tbLocation" TextWrapping="Wrap" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEnabled="False"/>
+                                    <Button Name="btnGetLocation"  Content=". . ." Grid.Column="1" Margin="0" Width="25" HorizontalAlignment="Center" IsEnabled="False" Click="btnGetLocation_Click"/>
                                 </Grid>
                             </Grid>
                         </Expander>

@@ -65,6 +65,8 @@ namespace VSFindTool
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
 
+        internal EnvDTE80.DTE2 dte2;
+        private DteInitializer dteInitializer;
 		public EnvDTE.Window LastDocWindow = null;
         public void m_WindowActivatedEvent(EnvDTE.Window GotFocus, EnvDTE.Window LostFocus)
         {
@@ -91,10 +93,10 @@ namespace VSFindTool
 
         private void AddWindowEvent()
         {
-            EnvDTE.DTE dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
-            if (dte != null)
+            //EnvDTE.DTE dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
+            if (dte2 != null)
             {
-                var m_WindowEvents = dte.Events.WindowEvents;
+                var m_WindowEvents = dte2.Events.WindowEvents;
                 m_WindowEvents.WindowActivated += new EnvDTE._dispWindowEvents_WindowActivatedEventHandler(m_WindowActivatedEvent);
                 m_WindowEvents.WindowClosing += new EnvDTE._dispWindowEvents_WindowClosingEventHandler(m_WindowClosingEvent);
             }
@@ -112,7 +114,7 @@ namespace VSFindTool
         {
             Debug.WriteLine (string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
             base.Initialize();
-
+            InitializeDTE();
             // Add our command handlers for menu (commands must exist in the .vsct file)
             OleMenuCommandService mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if ( null != mcs )
@@ -126,5 +128,67 @@ namespace VSFindTool
         }
         #endregion
 
+        private void InitializeDTE()
+        {
+            IVsShell shellService;
+
+            this.dte2 = this.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
+
+            if (this.dte2 == null) // The IDE is not yet fully initialized
+            {
+                shellService = this.GetService(typeof(SVsShell)) as IVsShell;
+                this.dteInitializer = new DteInitializer(shellService, this.InitializeDTE);
+            }
+            else
+            {
+                this.dteInitializer = null;
+            }
+        }
+    }
+
+
+
+    internal class DteInitializer : IVsShellPropertyEvents
+    {
+        private IVsShell shellService;
+        private uint cookie;
+        private Action callback;
+
+        internal DteInitializer(IVsShell shellService, Action callback)
+        {
+            int hr;
+
+            this.shellService = shellService;
+            this.callback = callback;
+
+            // Set an event handler to detect when the IDE is fully initialized
+            hr = this.shellService.AdviseShellPropertyChanges(this, out this.cookie);
+
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(hr);
+        }
+
+        int IVsShellPropertyEvents.OnShellPropertyChange(int propid, object var)
+        {
+            int hr;
+            bool isZombie;
+
+            if (propid == (int)__VSSPROPID.VSSPROPID_Zombie)
+            {
+                isZombie = (bool)var;
+
+                if (!isZombie)
+                {
+                    // Release the event handler to detect when the IDE is fully initialized
+                    hr = this.shellService.UnadviseShellPropertyChanges(this.cookie);
+
+                    Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(hr);
+
+                    this.cookie = 0;
+
+                    this.callback();
+                }
+            }
+            return VSConstants.S_OK;
+        }
     }
 }
