@@ -102,26 +102,29 @@ namespace VSFindTool
             FindSettings settings = dictSearchSettings[(TreeViewItem)src];
             if (dte != null)
             {
-                EnvDTE.Window docWindow = dte.ItemOperations.OpenFile(resultLine.linePath);               
+                EnvDTE.Window docWindow = dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);               
                 //http://stackoverflow.com/questions/350323/open-a-file-in-visual-studio-at-a-specific-line-number
                 TextSelection selection = ((EnvDTE.TextSelection)dte.ActiveDocument.Selection);
-                selection.GotoLine(resultLine.lineInFileNumbe.Value, false);
-                if (settings.chkRegExp == true)
-                    Debug.Assert(false, "Brak obsługi RegExp");
-                else
+                if (selection != null)
                 {
-                    //in case there are many hits in on line we'll jump to specyfic one
-                    for (int j=0; j<resultLine.textInLineNumer; j++)
-                        selection.FindText(settings.tbPhrase, settings.GetVsFindOptions());                    
-                    selection.FindText(settings.tbPhrase, settings.GetVsFindOptions());
-                    Debug.Assert(
-                        resultLine.lineInFileNumbe == selection.CurrentLine, 
-                        String.Format("Linia wyniku ({0}) nie jest zgodna z aktualnie wybraną ({1})", resultLine.lineInFileNumbe, selection.CurrentLine)
-                    );
+                    selection.GotoLine(resultLine.lineInFileNumbe.Value, false);
+                    if (settings.chkRegExp == true)
+                        Debug.Assert(false, "Brak obsługi RegExp");
+                    else
+                    {
+                        //in case there are many hits in on line we'll jump to specyfic one
+                        for (int j = 0; j < resultLine.textInLineNumer; j++)
+                            selection.FindText(settings.tbPhrase, settings.GetVsFindOptions());
+                        selection.FindText(settings.tbPhrase, settings.GetVsFindOptions());
+                        Debug.Assert(
+                            resultLine.lineInFileNumbe == selection.CurrentLine,
+                            String.Format("Linia wyniku ({0}) nie jest zgodna z aktualnie wybraną ({1})", resultLine.lineInFileNumbe, selection.CurrentLine)
+                        );
+                    }
+                    //Add action to set focus no doc window after finishing all action in queue (currenty there should be only double click event) 
+                    Action showAction = () => docWindow.Activate();
+                    this.Dispatcher.BeginInvoke(showAction);
                 }
-                //Add action to set focus no doc window after finishing all action in queue (currenty there should be only double click event) 
-                Action showAction = () => docWindow.Activate();
-                this.Dispatcher.BeginInvoke(showAction);
             }
             else
                 Debug.Assert(false, "Brak DTE");
