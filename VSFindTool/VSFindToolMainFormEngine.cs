@@ -5,9 +5,20 @@ using EnvDTE;
 using EnvDTE80;
 using System.IO;
 using System.Diagnostics;
-//using Microsoft.VisualStudio.Shell.Interop;
 using VSHierarchyAddin;
 using Extensibility;
+
+using System.ComponentModel.Composition; //[Import]
+using System.Threading;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations; //ITextSearchService, ITextStructureNavigatorSelectorService
+using Microsoft.VisualStudio.Text.Tagging;
+using Microsoft.VisualStudio.Utilities;
+using System.Windows.Media;
+using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace VSFindTool
 {
@@ -24,6 +35,15 @@ namespace VSFindTool
         Dictionary<TreeViewItem, ResultLineData> dictResultLines = new Dictionary<TreeViewItem, ResultLineData>();
         Dictionary<TreeViewItem, FindSettings> dictSearchSettings = new Dictionary<TreeViewItem, FindSettings>();
         Dictionary<TreeViewItem, TextBox> dictTBPreview = new Dictionary<TreeViewItem, TextBox>();
+        Dictionary<TreeView, TVData> dictTVData = new Dictionary<TreeView, TVData>();
+
+
+        [Import]
+        internal ITextSearchService TextSearchService { get; set; }
+
+        [Import]
+        internal ITextStructureNavigatorSelectorService TextStructureNavigatorSelector { get; set; }
+
 
         Connect c = new Connect();
 
@@ -155,9 +175,6 @@ namespace VSFindTool
             if (dte != null)
             {
                 EnvDTE.Window docWindow = dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
-                //http://stackoverflow.com/questions/350323/open-a-file-in-visual-studio-at-a-specific-line-number
-
-                //string text = selection.Text; - pobiera zaznaczony tekst - na potrzeby uruchamiania z key
                 TextSelection selection = ((EnvDTE.TextSelection)dte.ActiveDocument.Selection);
                 if (selection != null)
                 {
@@ -188,6 +205,26 @@ namespace VSFindTool
             }
             else
                 Debug.Assert(false, "Brak DTE");
+        }
+
+        public void PreviewResultDoc(object src, EventArgs args)
+        {
+            ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
+            FindSettings settings = dictSearchSettings[(TreeViewItem)src];
+            TextBox tbPreview = dictTBPreview[(TreeViewItem)src];
+            tbPreview.Text = "";
+            int lineNumber = 0;
+            using (var reader = new StreamReader(resultLine.linePath))
+            {
+                string line;
+                while (lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
+                {
+                    lineNumber++;
+                    line = reader.ReadLine();
+                    if (lineNumber >= Math.Max(0, resultLine.lineInFileNumbe.Value - 2) && lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
+                        tbPreview.AppendText((tbPreview.Text != "" ? Environment.NewLine : "") + line);
+                }  
+            }
         }
 
         /*public void MoveResultToTreeViewModel(TreeView tvResultFlatTree)
@@ -246,6 +283,10 @@ namespace VSFindTool
             String prvLine = "";
             int sameLineCounter = 0;
 
+            dictTVData[tvResultTree] = new TVData() {
+                longDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName)
+            };
+
             tvResultTree.Items.Clear();
             List<string> resList = GetFindResults2Content().Replace("\n\r","\n").Split('\n').ToList<string>();
             resList.RemoveAt(0);
@@ -262,28 +303,28 @@ namespace VSFindTool
                     sameLineCounter = 0;
 
                 switch (ParseResultLine(line, out linePath, out linePathPartsList, out LineContent, out lineInFileNumber, out resultLineObject))
-                { 
-                case 0: //Line to skip
-                    continue;
-                case 1: //proper line
+                {                    
+                    case 0: //Line to skip
+                        continue;
+                    case 1: //proper line
                         resultLineObject.textInLineNumer = sameLineCounter;
-                    for (int i = 0; i < linePathPartsList.Count; i++)
-                    {
-                        pathPart = linePathPartsList[i];
-                        if (pathAgg == "")
-                            pathAgg = pathPart;
-                        else
-                            pathAgg = pathAgg + @"\" + pathPart;
-                        if (Directory.Exists(pathAgg) || File.Exists(pathAgg))
+                        for (int i = 0; i < linePathPartsList.Count; i++)
                         {
-                            treeItem = GetItem(treeItemColleaction, pathPart);
-                            if (treeItem == null)
+                            pathPart = linePathPartsList[i];
+                            if (pathAgg == "")
+                                pathAgg = pathPart;
+                            else
+                                pathAgg = pathAgg + @"\" + pathPart;
+                            if (Directory.Exists(pathAgg) || File.Exists(pathAgg))
                             {
-                                treeItem = new TreeViewItem() { Header = pathPart, FontWeight = FontWeights.Bold };
-                                treeItemColleaction.Add(treeItem);
+                                treeItem = GetItem(treeItemColleaction, pathPart);
+                                if (treeItem == null)
+                                {
+                                    treeItem = new TreeViewItem() { Header = pathPart, FontWeight = FontWeights.Bold };
+                                    treeItemColleaction.Add(treeItem);                                    
+                                }
+                                treeItemColleaction = treeItem.Items;
                             }
-                            treeItemColleaction = treeItem.Items;
-                        }
                             if (i == linePathPartsList.Count - 1)
                             {
                                 leafItem = new TreeViewItem() {
@@ -291,18 +332,20 @@ namespace VSFindTool
                                     FontWeight = FontWeights.Normal
                                 };
                                 leafItem.MouseDoubleClick += OpenResultDocLine;
+                                leafItem.MouseUp += PreviewResultDoc;
                                 dictResultLines.Add(leafItem, resultLineObject);
                                 dictSearchSettings.Add(leafItem, last_searchSettings);
                                 dictTBPreview.Add(leafItem, tbPreview);
                                 treeItemColleaction.Add(leafItem);
                             }
-                    }
-                    prvLine = line;
-                    break;
-                    default:
-                        Debug.Assert(false, "An exception has occured.");
-                    break;
+                        }
+                        prvLine = line;
+                        break;
+                        default:
+                            Debug.Assert(false, "An exception has occured.");
+                        break;
                 }
+                resultLineObject.solutionDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName);
             }
             foreach (TreeViewItem tmpItem in tvResultTree.Items)
                 JoinNodesWOLeafs(tmpItem);
@@ -321,6 +364,11 @@ namespace VSFindTool
             TreeViewItem leafItem;
             String prvLine = "";
             int sameLineCounter = 0;
+
+            dictTVData[tvResultFlatTree] = new TVData()
+            {
+                longDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName)
+            };
 
             tvResultFlatTree.Items.Clear();
             List<string> resList = GetFindResults2Content().Replace("\n\r", "\n").Split('\n').ToList<string>();
@@ -350,6 +398,7 @@ namespace VSFindTool
                             FontWeight = FontWeights.Normal
                         };
                         leafItem.MouseDoubleClick += OpenResultDocLine;
+                        leafItem.MouseUp += PreviewResultDoc;
                         this.Focusable = false;
                         dictResultLines.Add(leafItem, resultLineObject);
                         dictSearchSettings.Add(leafItem, last_searchSettings);
@@ -361,6 +410,7 @@ namespace VSFindTool
                         Debug.Assert(false, "An exception has occured.");
                         break;
                 }
+                resultLineObject.solutionDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName);
             }
             SetExpandAllInLvl(tvResultFlatTree.Items, true);
         } 
@@ -380,6 +430,8 @@ namespace VSFindTool
             last_searchSettings.FillWraperPanel(last_infoWrapPanel);
             MoveResultToTreeList(last_tvResultTree, last_searchSettings, last_TBPreview);
             MoveResultToFlatTreeList(last_tvResultFlatTree, last_searchSettings, last_TBPreview);
+            SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, last_shortDir.IsChecked.Value);
+            SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, last_shortDir.IsChecked.Value);
             //MoveResultToTreeViewModel();
 
             /*List<string> list = tbResult.Text.Split('\n').ToList<string>();
@@ -412,6 +464,88 @@ namespace VSFindTool
         }
 
         private void ExecSearch()
+        {
+            /*
+            FindData findData = new FindData(currentWord.GetText(), currentWord.Snapshot);
+            SnapshotSpan currentWord = this.View.Selection.StreamSelectionSpan.SnapshotSpan;
+            if (CurrentWord.HasValue && currentWord == CurrentWord)
+            {
+                return;
+            }
+            */ 
+
+            Boolean docIsSelected = true;
+            LastDocWindow = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
+            //tbResult.Text = "";
+            /*if (dte != null)
+            {
+                var m_findEvents = dte.Events.FindEvents;
+                m_findEvents.FindDone += new EnvDTE._dispFindEvents_FindDoneEventHandler(m_findEvents_FindDone);
+            }*/
+
+            Find find = dte.Find;
+            last_searchSettings.action = vsFindAction.vsFindActionFindAll;
+            last_searchSettings.location = vsFindResultsLocation.vsFindResults2;
+
+            //Search phrase
+            last_searchSettings.tbPhrase = tbPhrase.Text;
+
+            //Find options
+            last_searchSettings.chkWholeWord = chkWholeWord.IsChecked == true;
+            last_searchSettings.chkCase = chkCase.IsChecked == true;
+            last_searchSettings.chkRegExp = chkRegExp.IsChecked == true;
+
+            //Look in
+            last_searchSettings.rbCurrDoc = rbCurrDoc.IsChecked == true;
+            last_searchSettings.rbOpenDocs = rbOpenDocs.IsChecked == true;
+            last_searchSettings.rbProject = rbProject.IsChecked == true;
+            last_searchSettings.rbSolution = rbSolution.IsChecked == true;
+            //Select last active document
+            if (rbCurrDoc.IsChecked == true)
+            {
+                if (dte.ActiveDocument != null && dte.ActiveDocument.ActiveWindow != null)
+                {
+                    dte.ActiveDocument.ActiveWindow.Activate();
+                }
+                else if (LastDocWindow != null)
+                {
+                    LastDocWindow.Activate();
+                }
+                else
+                {
+                    tbiLastResult.IsSelected = true;
+                    docIsSelected = false;
+                }
+            }
+
+
+            TextSelection selection = ((EnvDTE.TextSelection)dte.ActiveDocument.Selection);
+            if (selection != null)
+            {
+                selection.SelectAll();
+
+                //SnapshotSpan currentWord = selection.StreamSelectionSpan.SnapshotSpan;
+
+                if (textManager == null)
+                    return;
+                IVsTextView textView = null;
+                textManager.GetActiveView(1, null, out textView);
+                if (textView == null)
+                    return;
+
+
+
+                FindData findData = new FindData();// (last_searchSettings.tbPhrase, currentWord.Snapshot);
+                //findData.TextStructureNavigator = TextStructureNavigatorSelector;
+
+                last_searchSettings.FillFindData(findData);
+                //findData.SearchString = last_searchSettings.tbPhrase;
+                System.Collections.ObjectModel.Collection< SnapshotSpan> coll = TextSearchService.FindAll(findData);
+                var i = 0;
+            }
+        }
+
+        private void ExecSearch2()
         {
 
             //Test();
@@ -464,6 +598,7 @@ namespace VSFindTool
 
             /*Check the need for this code*/
             var x = dte.Find.FindWhat;
+
 
             //Remember original result
             //originalFindResult2 = GetFindResults2Content();

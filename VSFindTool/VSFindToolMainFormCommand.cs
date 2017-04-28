@@ -9,6 +9,7 @@ using System.ComponentModel.Design;
 using System.Globalization;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace VSFindTool
 {
@@ -39,6 +40,7 @@ namespace VSFindTool
         /// <param name="package">Owner package, not null.</param>
          
         internal EnvDTE80.DTE2 dte2;
+        internal IVsTextManager textManager;
 
         private VSFindToolMainFormCommand(Package package)
         {
@@ -86,6 +88,7 @@ namespace VSFindTool
         {
             Instance = new VSFindToolMainFormCommand(package);
             Instance.dte2 = ((VSFindToolPackage)package).dte2;
+            Instance.textManager = ((VSFindToolPackage)package).textManager;
         }
 
         /// <summary>
@@ -105,7 +108,7 @@ namespace VSFindTool
             }
 
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
-            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());            
         }
     }
 }

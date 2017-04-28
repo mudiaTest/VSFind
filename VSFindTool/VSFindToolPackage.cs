@@ -15,6 +15,7 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Win32;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace VSFindTool
 {
@@ -60,6 +61,7 @@ namespace VSFindTool
         }
 
         internal EnvDTE80.DTE2 dte2;
+        internal IVsTextManager textManager;
         private DteInitializer dteInitializer;
         public EnvDTE.Window LastDocWindow = null;
         public void m_WindowActivatedEvent(EnvDTE.Window GotFocus, EnvDTE.Window LostFocus)
@@ -114,6 +116,8 @@ namespace VSFindTool
         private void InitializeDTE()
         {
             IVsShell shellService;
+
+            this.textManager = (IVsTextManager)GetService(typeof(SVsTextManager));
 
             this.dte2 = this.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
 

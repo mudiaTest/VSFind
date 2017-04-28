@@ -21,6 +21,11 @@ namespace VSFindTool
             {
                 TreeViewItem newItem = new TreeViewItem() { Header = item.Header };
                 dst.Add(newItem);
+                if (item.Items.Count == 0)
+                {
+                    newItem.MouseDoubleClick += OpenResultDocLine;
+                    newItem.MouseUp += PreviewResultDoc;
+                }
                 dictSearchSettings.Add(newItem, findSettings);
                 dictTBPreview.Add(newItem, tbPreview);
                 newItem.FontWeight = item.FontWeight;  //FontWeights.Bold - FontWeights is a static class, so it's ok
@@ -80,7 +85,7 @@ namespace VSFindTool
             grid.RowDefinitions.Add(new RowDefinition()
             {
                 Name = snapshotTag + "_preview",
-                Height = new GridLength(60, GridUnitType.Pixel)
+                Height = new GridLength(100, GridUnitType.Pixel)
             });
             //add grid as the main element in tab
             newTab.Content = grid;
@@ -238,7 +243,10 @@ namespace VSFindTool
             Grid.SetRow(treetv, 3);
             Grid.SetColumnSpan(treetv, 2);
 
-            TextBox tbPreview = new TextBox();
+            TextBox tbPreview = new TextBox(){
+                Name = snapshotTag + "_TBPreview",
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
+            };
             Grid.SetRow(tbPreview, 4);
             Grid.SetColumnSpan(tbPreview, 2);
 

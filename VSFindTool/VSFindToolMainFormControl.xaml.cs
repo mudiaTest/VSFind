@@ -11,6 +11,8 @@ using EnvDTE;
 using System.Windows.Media;
 using System.IO;
 using System.Windows.Forms;
+using System.Diagnostics;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace VSFindTool
 {
@@ -39,12 +41,20 @@ namespace VSFindTool
         }
         string originalFindResult2;
         Dictionary<string, FindSettings> findSettings = new Dictionary<string, FindSettings>();
+        IVsTextManager textManager
+        {
+            get
+            {
+                return ((VSFindToolPackage)parentToolWindow.Package).textManager;
+            }
+        }
 
         //ResultTreeViewModel resultTree;
 
         public VSFindToolMainFormControl()
         {
             this.InitializeComponent();
+            last_shortDir.IsChecked = true;
         }
 
         /// <summary>
@@ -55,7 +65,7 @@ namespace VSFindTool
         [SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions", Justification = "Sample code")]
         [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Default event handler naming pattern")]
 
-        public void SetExpandAllInLvl(ItemCollection treeItemColleaction, bool value)
+        internal void SetExpandAllInLvl(ItemCollection treeItemColleaction, bool value)
         {
             if (treeItemColleaction == null || treeItemColleaction.Count == 0)
                 return;
@@ -63,6 +73,41 @@ namespace VSFindTool
             {
                 item.IsExpanded = value;
                 SetExpandAllInLvl(item.Items, value);
+            }
+        }
+
+        internal void SetHeaderShortLong(TreeView treeView, ItemCollection collection, bool blShort)
+        {
+            if (dictTVData.Count == 0)
+                return;
+            Debug.Assert(dictTVData.ContainsKey(treeView), "There is no tvData in the dictionary for " + treeView.Name);
+
+            TVData tvData = dictTVData[treeView];
+            if (blShort)
+            {
+                foreach(TreeViewItem item in collection)
+                {
+                    if (item.Items.Count != 0)
+                    {
+                        if (item.Header.ToString().StartsWith(tvData.longDir))
+                            item.Header = tvData.shortDir + item.Header.ToString().Substring(tvData.longDir.Length);
+                    }
+                    else
+                        SetHeaderShortLong(treeView, item.Items, blShort);
+                }
+            }
+            else
+            {
+                foreach (TreeViewItem item in collection)
+                {
+                    if (item.Items.Count != 0)
+                    {
+                        if (item.Header.ToString().StartsWith(tvData.shortDir))
+                            item.Header = tvData.longDir + item.Header.ToString().Substring(tvData.shortDir.Length);
+                    }
+                    else
+                        SetHeaderShortLong(treeView, item.Items, blShort);
+                }
             }
         }
 
@@ -95,14 +140,14 @@ namespace VSFindTool
         {
             last_rowTree.Height = new GridLength(1, GridUnitType.Star);
             last_rowFlat.Height = new GridLength(0);
-            last_tb.Foreground = Brushes.Red;
+            last_tbFlatTree.Foreground = Brushes.Red;
         }
 
         private void tb_Unchecked(object sender, RoutedEventArgs e)
         {
             last_rowTree.Height = new GridLength(0);
             last_rowFlat.Height = new GridLength(1, GridUnitType.Star);
-            last_tb.ClearValue(ToggleButton.ForegroundProperty);
+            last_tbFlatTree.ClearValue(ToggleButton.ForegroundProperty);
         }
 
         private void btnAddSnapshot_Click(object sender, RoutedEventArgs e)
@@ -154,6 +199,20 @@ namespace VSFindTool
         {
             tbLocation.IsEnabled = false;
             btnGetLocation.IsEnabled = false;
+        }
+
+        private void last_shortDir_Checked(object sender, RoutedEventArgs e)
+        {
+            SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, true);
+            SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, true);
+            last_shortDir.Foreground = Brushes.Red;
+        }
+
+        private void last_shortDir_Unchecked(object sender, RoutedEventArgs e)
+        {
+            SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, false);
+            SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, false);
+            last_shortDir.ClearValue(ToggleButton.ForegroundProperty);
         }
     }
 }
