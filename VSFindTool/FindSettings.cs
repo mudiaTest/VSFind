@@ -41,7 +41,7 @@ namespace VSFindTool
 
             //Look in
             if (rbCurrDoc)
-                find.Target = vsFindTarget.vsFindTargetCurrentDocument;           
+                find.Target = vsFindTarget.vsFindTargetCurrentDocument;
             else if (rbOpenDocs)
                 find.Target = vsFindTarget.vsFindTargetOpenDocuments;
             else if (rbProject)
@@ -54,7 +54,7 @@ namespace VSFindTool
         {
             string result = "";
 
-            if(chkWholeWord)
+            if (chkWholeWord)
                 result += "W ";
             else
                 result += "w ";
@@ -70,7 +70,7 @@ namespace VSFindTool
                 result += "r ";
 
             if (rbCurrDoc)
-                result +=  " [CurDocum] ";
+                result += " [CurDocum] ";
             else if (rbOpenDocs)
                 result += " [Opened] ";
             else if (rbProject)
@@ -78,7 +78,7 @@ namespace VSFindTool
             else if (rbSolution)
                 result += " [Solution] ";
 
-            result += "'" + tbPhrase + "'";     
+            result += "'" + tbPhrase + "'";
 
 
             return result;
@@ -165,6 +165,18 @@ namespace VSFindTool
             AddExtraBold(AddLabel(" | ", infoWrapPanel));
 
             AddLabel("`" + tbPhrase + "`", infoWrapPanel);
+        }
+
+        public int GetVsFindOptions()
+        {
+            int result = (Byte)vsFindOptions.vsFindOptionsNone;
+            if (chkWholeWord)
+                result = result | (Byte)vsFindOptions.vsFindOptionsMatchWholeWord;
+            if (chkCase)
+                result = result | (Byte)vsFindOptions.vsFindOptionsMatchCase;
+            if (chkRegExp)
+                result = result | (Byte)vsFindOptions.vsFindOptionsRegularExpression;
+            return result;
         }
     }
 }

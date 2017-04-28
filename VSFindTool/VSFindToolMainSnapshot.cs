@@ -15,23 +15,24 @@ namespace VSFindTool
 
     public partial class VSFindToolMainFormControl : UserControl
     {
-        private void CopyItems(ItemCollection src, ItemCollection dst)
+        private void CopyItems(ItemCollection src, ItemCollection dst, FindSettings findSettings)
         {
             foreach (TreeViewItem item in src)
             {
                 TreeViewItem newItem = new TreeViewItem() { Header = item.Header };
                 dst.Add(newItem);
+                dictSearchSettings.Add(newItem, findSettings);
                 newItem.FontWeight = item.FontWeight;  //FontWeights.Bold - FontWeights is a static class, so it's ok
-                CopyItems(item.Items, newItem.Items);
+                CopyItems(item.Items, newItem.Items, findSettings);
             }
         }
 
-        private void FillSnapshotFromLast(string snapshotTag, TreeView flattv, TreeView treetv)
+        private void FillSnapshotFromLast(string snapshotTag, TreeView flattv, TreeView treetv, FindSettings findSettings)
         {
             //TreeView flattv = (TreeView)this.FindName(snapshotTag + "_tvResultFlatTree");
             //TreeView treetv = (TreeView)this.FindName(snapshotTag + "_tvResultFlatTree");
-            CopyItems(last_tvResultFlatTree.Items, flattv.Items);
-            CopyItems(last_tvResultTree.Items, treetv.Items);
+            CopyItems(last_tvResultFlatTree.Items, flattv.Items, findSettings);
+            CopyItems(last_tvResultTree.Items, treetv.Items, findSettings);
         }
 
         private void AddSmapshotTab()
@@ -261,14 +262,14 @@ namespace VSFindTool
                 findSettings.Remove(snapshotTag);
             };
 
+            //Copy settings for snapshot            
+            findSettings.Add(snapshotTag, last_searchSettings.GetCopy());
 
             //Populate new TreeViews from "last"
-            FillSnapshotFromLast(snapshotTag, flattv, treetv);
+            FillSnapshotFromLast(snapshotTag, flattv, treetv, findSettings[snapshotTag]);
             //Expand new views
             SetExpandAllInLvl(flattv.Items, true);
             SetExpandAllInLvl(treetv.Items, true);
-
-            findSettings.Add(snapshotTag, last_searchSettings.GetCopy());
         }
 
         private string GetSnapshotTag(int number)
