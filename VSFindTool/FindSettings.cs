@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using EnvDTE;
 using System.Windows.Controls;
 using System.Windows;
+using Microsoft.VisualStudio.Text.Operations;
 
 namespace VSFindTool
 {
@@ -177,6 +178,22 @@ namespace VSFindTool
             if (chkRegExp)
                 result = result | (Byte)vsFindOptions.vsFindOptionsRegularExpression;
             return result;
+        }
+
+        public void FillFindData(FindData findData)
+        {
+
+
+            if (chkWholeWord)
+                findData.FindOptions |= FindOptions.WholeWord;
+
+
+            if (chkCase)
+                findData.FindOptions |= FindOptions.MatchCase;
+
+
+            if (chkRegExp)
+                findData.FindOptions |= FindOptions.UseRegularExpressions;
         }
     }
 }

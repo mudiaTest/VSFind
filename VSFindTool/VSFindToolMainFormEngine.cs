@@ -5,9 +5,26 @@ using EnvDTE;
 using EnvDTE80;
 using System.IO;
 using System.Diagnostics;
-//using Microsoft.VisualStudio.Shell.Interop;
 using VSHierarchyAddin;
 using Extensibility;
+
+using System.ComponentModel.Composition; //[Import]
+using System.Threading;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations; //ITextSearchService, ITextStructureNavigatorSelectorService
+using Microsoft.VisualStudio.Text.Tagging;
+//using Microsoft.VisualStudio.Utilities;
+using System.Windows.Media;
+using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.ComponentModelHost;
+//using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Editor;
+using Microsoft.VisualStudio.Shell;
+
+using System.Text;
 
 namespace VSFindTool
 {
@@ -20,10 +37,24 @@ namespace VSFindTool
     /// </summary>
     public partial class VSFindToolMainFormControl : UserControl
     {
+        List<ResultLineData> resultList = new List<ResultLineData>();
+        List<ErrData> errList = new List<ErrData>();
         FindSettings last_searchSettings = new FindSettings();
         Dictionary<TreeViewItem, ResultLineData> dictResultLines = new Dictionary<TreeViewItem, ResultLineData>();
         Dictionary<TreeViewItem, FindSettings> dictSearchSettings = new Dictionary<TreeViewItem, FindSettings>();
         Dictionary<TreeViewItem, TextBox> dictTBPreview = new Dictionary<TreeViewItem, TextBox>();
+        Dictionary<TreeView, TVData> dictTVData = new Dictionary<TreeView, TVData>();
+
+
+        [Import]
+        internal ITextSearchService TextSearchService { get; set; }
+
+        [Import]
+        internal ITextStructureNavigatorSelectorService TextStructureNavigatorSelector { get; set; }
+
+        [Import]
+        public ITextDocumentFactoryService textDocumentFactory { get; set; }
+
 
         Connect c = new Connect();
 
@@ -38,6 +69,27 @@ namespace VSFindTool
             selection1.SelectAll();
             string result1 = selection1.Text;
             string result = selection.Text;
+            return result;
+        }
+
+        internal string GetDocumentContent(Document document, List<ErrData> errList)
+        {
+            if (document.Selection == null)
+            {
+                errList.Add(new ErrData()
+                {
+                    path = document.FullName,
+                    caption = document.ActiveWindow != null ? document.ActiveWindow.Caption : "",
+                    info = "No Selection object found."
+                });
+                return "";
+            }
+            EnvDTE.TextSelection selection = document.Selection as EnvDTE.TextSelection;
+            int line = selection.ActivePoint.Line;
+            int lineCharOffset = selection.ActivePoint.LineCharOffset;
+            selection.SelectAll();
+            string result = selection.Text;
+            selection.MoveToLineAndOffset(line, lineCharOffset);
             return result;
         }
 
@@ -95,7 +147,7 @@ namespace VSFindTool
             resultLine = new ResultLineData(){
                 resultLineText = resultLineText,
                 linePath = linePath,
-                linePathPartsList = linePathPartsList,
+                //linePathPartsList = linePathPartsList,
                 lineContent = lineContent,
                 lineInFileNumbe = lineInFileNumber
             };
@@ -155,9 +207,6 @@ namespace VSFindTool
             if (dte != null)
             {
                 EnvDTE.Window docWindow = dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
-                //http://stackoverflow.com/questions/350323/open-a-file-in-visual-studio-at-a-specific-line-number
-
-                //string text = selection.Text; - pobiera zaznaczony tekst - na potrzeby uruchamiania z key
                 TextSelection selection = ((EnvDTE.TextSelection)dte.ActiveDocument.Selection);
                 if (selection != null)
                 {
@@ -188,6 +237,26 @@ namespace VSFindTool
             }
             else
                 Debug.Assert(false, "Brak DTE");
+        }
+
+        public void PreviewResultDoc(object src, EventArgs args)
+        {
+            ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
+            FindSettings settings = dictSearchSettings[(TreeViewItem)src];
+            TextBox tbPreview = dictTBPreview[(TreeViewItem)src];
+            tbPreview.Text = "";
+            int lineNumber = 0;
+            using (var reader = new StreamReader(resultLine.linePath))
+            {
+                string line;
+                while (lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
+                {
+                    lineNumber++;
+                    line = reader.ReadLine();
+                    if (lineNumber >= Math.Max(0, resultLine.lineInFileNumbe.Value - 2) && lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
+                        tbPreview.AppendText((tbPreview.Text != "" ? Environment.NewLine : "") + line);
+                }  
+            }
         }
 
         /*public void MoveResultToTreeViewModel(TreeView tvResultFlatTree)
@@ -234,6 +303,98 @@ namespace VSFindTool
         internal void MoveResultToTreeList(TreeView tvResultTree, FindSettings last_searchSettings, TextBox tbPreview)
         {
             ItemCollection treeItemColleaction;
+            string pathAgg;
+            TreeViewItem treeItem;
+            TreeViewItem leafItem;
+
+            dictTVData[tvResultTree] = new TVData() {
+                longDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName)
+            };
+
+            tvResultTree.Items.Clear();
+
+            treeItemColleaction = tvResultTree.Items;
+            treeItem = null;
+            pathAgg = "";
+
+            foreach (ResultLineData resultLineData in resultList)
+            {
+                for (int i = 0; i < resultLineData.pathPartsList.Count; i++)
+                {
+                    if (pathAgg == "")
+                        pathAgg = resultLineData.pathPartsList[i];
+                    else
+                        pathAgg = pathAgg + @"\" + resultLineData.pathPartsList[i];
+                    if (Directory.Exists(pathAgg) || File.Exists(pathAgg))
+                    {
+                        treeItem = GetItem(treeItemColleaction, resultLineData.pathPartsList[i]);
+                        if (treeItem == null)
+                        {
+                            treeItem = new TreeViewItem() { Header = resultLineData.pathPartsList[i], FontWeight = FontWeights.Bold };
+                            treeItemColleaction.Add(treeItem);
+                        }
+                        treeItemColleaction = treeItem.Items;
+                    }
+                    if (i == resultLineData.pathPartsList.Count - 1)
+                    {
+                        leafItem = new TreeViewItem()
+                        {
+                            Header = "(" + resultLineData.lineInFileNumbe.ToString() + ") : " + resultLineData.lineContent,
+                            FontWeight = FontWeights.Normal
+                        };
+                        leafItem.MouseDoubleClick += OpenResultDocLine;
+                        leafItem.MouseUp += PreviewResultDoc;
+                        dictResultLines.Add(leafItem, resultLineData);
+                        dictSearchSettings.Add(leafItem, last_searchSettings);
+                        dictTBPreview.Add(leafItem, tbPreview);
+                        treeItemColleaction.Add(leafItem);
+                    }
+                }
+            }
+            
+            foreach (TreeViewItem tmpItem in tvResultTree.Items)
+                JoinNodesWOLeafs(tmpItem);
+            SetExpandAllInLvl(tvResultTree.Items, true);
+        }
+
+        internal void MoveResultToFlatTreeList(TreeView tvResultFlatTree, FindSettings last_searchSetting, TextBox tbPreview)
+        {
+            TreeViewItem treeItem;
+            TreeViewItem leafItem;
+
+            dictTVData[tvResultFlatTree] = new TVData()
+            {
+                longDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName)
+            };
+
+            tvResultFlatTree.Items.Clear();
+            foreach (ResultLineData resultLineData in resultList)
+            {
+                treeItem = GetItem(tvResultFlatTree.Items, resultLineData.linePath);
+                if (treeItem == null)
+                {
+                    treeItem = new TreeViewItem() { Header = resultLineData.linePath, FontWeight = FontWeights.Bold };
+                    tvResultFlatTree.Items.Add(treeItem);
+                }
+                leafItem = new TreeViewItem()
+                {
+                    Header = "(" + resultLineData.lineInFileNumbe.ToString() + ") : " + resultLineData.lineContent,
+                    FontWeight = FontWeights.Normal
+                };
+                leafItem.MouseDoubleClick += OpenResultDocLine;
+                leafItem.MouseUp += PreviewResultDoc;
+                this.Focusable = false;
+                dictResultLines.Add(leafItem, resultLineData);
+                dictSearchSettings.Add(leafItem, last_searchSettings);
+                dictTBPreview.Add(leafItem, tbPreview);
+                treeItem.Items.Add(leafItem);
+            }
+            SetExpandAllInLvl(tvResultFlatTree.Items, true);
+        }
+
+        internal void MoveResultToTreeList2(TreeView tvResultTree, FindSettings last_searchSettings, TextBox tbPreview)
+        {
+            ItemCollection treeItemColleaction;
             TreeViewItem treeItem;
             string pathAgg;
             string linePath;
@@ -246,10 +407,15 @@ namespace VSFindTool
             String prvLine = "";
             int sameLineCounter = 0;
 
+            dictTVData[tvResultTree] = new TVData()
+            {
+                longDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName)
+            };
+
             tvResultTree.Items.Clear();
-            List<string> resList = GetFindResults2Content().Replace("\n\r","\n").Split('\n').ToList<string>();
+            List<string> resList = GetFindResults2Content().Replace("\n\r", "\n").Split('\n').ToList<string>();
             resList.RemoveAt(0);
-            foreach(string line in resList)
+            foreach (string line in resList)
             {
 
                 treeItemColleaction = tvResultTree.Items;
@@ -262,54 +428,57 @@ namespace VSFindTool
                     sameLineCounter = 0;
 
                 switch (ParseResultLine(line, out linePath, out linePathPartsList, out LineContent, out lineInFileNumber, out resultLineObject))
-                { 
-                case 0: //Line to skip
-                    continue;
-                case 1: //proper line
+                {
+                    case 0: //Line to skip
+                        continue;
+                    case 1: //proper line
                         resultLineObject.textInLineNumer = sameLineCounter;
-                    for (int i = 0; i < linePathPartsList.Count; i++)
-                    {
-                        pathPart = linePathPartsList[i];
-                        if (pathAgg == "")
-                            pathAgg = pathPart;
-                        else
-                            pathAgg = pathAgg + @"\" + pathPart;
-                        if (Directory.Exists(pathAgg) || File.Exists(pathAgg))
+                        for (int i = 0; i < linePathPartsList.Count; i++)
                         {
-                            treeItem = GetItem(treeItemColleaction, pathPart);
-                            if (treeItem == null)
+                            pathPart = linePathPartsList[i];
+                            if (pathAgg == "")
+                                pathAgg = pathPart;
+                            else
+                                pathAgg = pathAgg + @"\" + pathPart;
+                            if (Directory.Exists(pathAgg) || File.Exists(pathAgg))
                             {
-                                treeItem = new TreeViewItem() { Header = pathPart, FontWeight = FontWeights.Bold };
-                                treeItemColleaction.Add(treeItem);
+                                treeItem = GetItem(treeItemColleaction, pathPart);
+                                if (treeItem == null)
+                                {
+                                    treeItem = new TreeViewItem() { Header = pathPart, FontWeight = FontWeights.Bold };
+                                    treeItemColleaction.Add(treeItem);
+                                }
+                                treeItemColleaction = treeItem.Items;
                             }
-                            treeItemColleaction = treeItem.Items;
-                        }
                             if (i == linePathPartsList.Count - 1)
                             {
-                                leafItem = new TreeViewItem() {
+                                leafItem = new TreeViewItem()
+                                {
                                     Header = "(" + lineInFileNumber.ToString() + ") : " + LineContent,
                                     FontWeight = FontWeights.Normal
                                 };
                                 leafItem.MouseDoubleClick += OpenResultDocLine;
+                                leafItem.MouseUp += PreviewResultDoc;
                                 dictResultLines.Add(leafItem, resultLineObject);
                                 dictSearchSettings.Add(leafItem, last_searchSettings);
                                 dictTBPreview.Add(leafItem, tbPreview);
                                 treeItemColleaction.Add(leafItem);
                             }
-                    }
-                    prvLine = line;
-                    break;
+                        }
+                        prvLine = line;
+                        break;
                     default:
                         Debug.Assert(false, "An exception has occured.");
-                    break;
+                        break;
                 }
+                resultLineObject.solutionDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName);
             }
             foreach (TreeViewItem tmpItem in tvResultTree.Items)
                 JoinNodesWOLeafs(tmpItem);
             SetExpandAllInLvl(tvResultTree.Items, true);
         }
 
-        internal void MoveResultToFlatTreeList(TreeView tvResultFlatTree, FindSettings last_searchSetting, TextBox tbPreview)
+        internal void MoveResultToFlatTreeList2(TreeView tvResultFlatTree, FindSettings last_searchSetting, TextBox tbPreview)
         {
             TreeViewItem treeItem;
             string linePath;
@@ -321,6 +490,11 @@ namespace VSFindTool
             TreeViewItem leafItem;
             String prvLine = "";
             int sameLineCounter = 0;
+
+            dictTVData[tvResultFlatTree] = new TVData()
+            {
+                longDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName)
+            };
 
             tvResultFlatTree.Items.Clear();
             List<string> resList = GetFindResults2Content().Replace("\n\r", "\n").Split('\n').ToList<string>();
@@ -350,6 +524,7 @@ namespace VSFindTool
                             FontWeight = FontWeights.Normal
                         };
                         leafItem.MouseDoubleClick += OpenResultDocLine;
+                        leafItem.MouseUp += PreviewResultDoc;
                         this.Focusable = false;
                         dictResultLines.Add(leafItem, resultLineObject);
                         dictSearchSettings.Add(leafItem, last_searchSettings);
@@ -361,6 +536,7 @@ namespace VSFindTool
                         Debug.Assert(false, "An exception has occured.");
                         break;
                 }
+                resultLineObject.solutionDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName);
             }
             SetExpandAllInLvl(tvResultFlatTree.Items, true);
         } 
@@ -380,6 +556,24 @@ namespace VSFindTool
             last_searchSettings.FillWraperPanel(last_infoWrapPanel);
             MoveResultToTreeList(last_tvResultTree, last_searchSettings, last_TBPreview);
             MoveResultToFlatTreeList(last_tvResultFlatTree, last_searchSettings, last_TBPreview);
+            SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, last_shortDir.IsChecked.Value);
+            SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, last_shortDir.IsChecked.Value);
+            //MoveResultToTreeViewModel();
+
+            /*List<string> list = tbResult.Text.Split('\n').ToList<string>();
+            if (list[list.Count - 2].StartsWith("Matching lines"))
+                BringBackFindResult2Value();
+            else
+                HideFindResult2Window();*/
+        }
+
+        public void Finish2()
+        {
+            last_searchSettings.FillWraperPanel(last_infoWrapPanel);
+            MoveResultToTreeList2(last_tvResultTree, last_searchSettings, last_TBPreview);
+            MoveResultToFlatTreeList2(last_tvResultFlatTree, last_searchSettings, last_TBPreview);
+            SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, last_shortDir.IsChecked.Value);
+            SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, last_shortDir.IsChecked.Value);
             //MoveResultToTreeViewModel();
 
             /*List<string> list = tbResult.Text.Split('\n').ToList<string>();
@@ -413,12 +607,258 @@ namespace VSFindTool
 
         private void ExecSearch()
         {
+            Boolean docIsSelected = true;
+            LastDocWindow = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
+            Find find = dte.Find;
+            last_searchSettings.action = vsFindAction.vsFindActionFindAll;
+            last_searchSettings.location = vsFindResultsLocation.vsFindResults2;
 
-            //Test();
+            //Search phrase
+            last_searchSettings.tbPhrase = tbPhrase.Text;
 
+            //Find options
+            last_searchSettings.chkWholeWord = chkWholeWord.IsChecked == true;
+            last_searchSettings.chkCase = chkCase.IsChecked == true;
+            last_searchSettings.chkRegExp = chkRegExp.IsChecked == true;
+
+            //Look in
+            last_searchSettings.rbCurrDoc = rbCurrDoc.IsChecked == true;
+            last_searchSettings.rbOpenDocs = rbOpenDocs.IsChecked == true;
+            last_searchSettings.rbProject = rbProject.IsChecked == true;
+            last_searchSettings.rbSolution = rbSolution.IsChecked == true;
+            //Select last active document
+            if (rbCurrDoc.IsChecked == true)
+            {
+                if (dte.ActiveDocument != null && dte.ActiveDocument.ActiveWindow != null)
+                {
+                    dte.ActiveDocument.ActiveWindow.Activate();
+                }
+                else if (LastDocWindow != null)
+                {
+                    LastDocWindow.Activate();
+                }
+                else
+                {
+                    tbiLastResult.IsSelected = true;
+                    docIsSelected = false;
+                }
+            }
+
+            resultList.Clear();
+            string solutionDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName);
+            if (last_searchSettings.rbCurrDoc)
+            {
+                FindInDocument(LastDocWindow.Document, last_searchSettings, resultList, errList, solutionDir);
+            }
+            else if (last_searchSettings.rbOpenDocs)
+            {
+                foreach (Document document in GetOpenDocuments())
+                {
+                    FindInDocument(document, last_searchSettings, resultList, errList, solutionDir);
+                }                
+            }
+            else if (last_searchSettings.rbProject)
+            {
+                FindInProject(GetActiveProject(), last_searchSettings, resultList, solutionDir);
+            }
+            else if (last_searchSettings.rbSolution)
+            {
+                foreach (Project project in dte.Solution.Projects)
+                {
+                    FindInProject(project, last_searchSettings, resultList, solutionDir);
+                }   
+            }
+            Finish();
+        }
+
+        private List<Document> GetOpenDocuments()
+        {
+            List<Document> result = new List<Document>();
+            foreach (EnvDTE.Window window in dte.Windows)
+            {
+                if (window.Document != null)
+                    result.Add(window.Document);
+            }
+            return result;
+        }
+
+        private void FindInProject(Project project, FindSettings settings, List<ResultLineData> resultList, string solutionDir)
+        {
+
+            /*foreach (ProjectItem item in project.ProjectItems)
+            {
+                String projectPath = Path.GetDirectoryName(project.FullName);
+
+                if (item.FileCodeModel != null)
+                {
+                    if (item.Document != null)
+                        FindInDocument(item.Document, last_searchSettings, resultList, errList, solutionDir);
+                    else
+                        FindInFile(Path.Combine(projectPath, item.Name), last_searchSettings, resultList, solutionDir);
+                    foreach (ProjectItem subItem in item.ProjectItems)
+                    {
+                        FindInFile(Path.Combine(projectPath, subItem.Name), last_searchSettings, resultList, solutionDir);
+                    }
+                }
+                else if (Directory.Exists(Path.Combine(Path.GetDirectoryName(project.FullName), item.Name)))
+                {
+                    foreach (ProjectItem subItem in item.ProjectItems)
+                    {
+                        FindInFile(Path.Combine(projectPath, subItem.Name), last_searchSettings, resultList, solutionDir);
+                    }
+                }
+            }*/
+            bool asDocument = false;
+            List<Candidate> candidates = GetCandidates(project);
+            foreach (Candidate candidate in candidates)
+            {
+                asDocument = false;
+                foreach (EnvDTE.Window window in dte.Windows)
+                {
+                    if (window.Document != null)
+                    {
+                        if (window.Document.FullName == candidate.path)
+                        {
+                            FindInDocument(window.Document, last_searchSettings, resultList, errList, solutionDir);
+                            asDocument = true;
+                            break;
+                        }                                                    
+                    }
+                }
+                if (!asDocument)
+                    FindInFile(candidate.path, last_searchSettings, resultList, solutionDir);
+            }
+            var r = 0;
+        }
+
+        private List<Candidate> GetCandidates(Project project)
+        {
+            List<Candidate> result = new List<Candidate>();
+            foreach (ProjectItem item in project.ProjectItems)
+            {
+                GetCandidates(item, result, Path.GetDirectoryName(project.FullName));
+            }
+            return result;
+        }
+
+        private void GetCandidates(ProjectItem item, List<Candidate> result, string parentPath)
+        {
+            string itemPath = Path.Combine(parentPath, item.Name);
+            if (item.FileCodeModel != null)
+            {
+
+                if (File.Exists(itemPath))
+                {
+                    result.Add(new Candidate()
+                    {
+                        path = itemPath
+                    });
+                    foreach (ProjectItem subItem in item.ProjectItems)
+                    {
+                        GetCandidates(subItem, result, parentPath);
+                    }
+                }
+            }
+            else
+            {
+                string potentialSubPath = itemPath;
+                if (Directory.Exists(potentialSubPath))
+                    foreach (ProjectItem subItem in item.ProjectItems)
+                    {
+                        GetCandidates(subItem, result, potentialSubPath);
+                    }
+            }
+        }
+
+        private void FindInProjectItem(ProjectItem projectItem, FindSettings settings, List<ResultLineData> resultList, string solutionDir, string parentPath)
+        {
+            string potentialSubPath = Path.Combine(parentPath, projectItem.Name);
+            if (projectItem.FileCodeModel != null)
+            {
+                if (projectItem.Document != null)
+                    FindInDocument(projectItem.Document, last_searchSettings, resultList, errList, solutionDir);
+                else
+                    FindInFile(Path.Combine(parentPath, projectItem.Name), last_searchSettings, resultList, solutionDir);
+            }
+            else if (Directory.Exists(potentialSubPath))
+            {
+                foreach (ProjectItem subItem in projectItem.ProjectItems)
+                {
+                    FindInProjectItem(subItem, settings, resultList, solutionDir, potentialSubPath);
+                }
+            }
+        }
+
+        private void LineToResultList(string line, FindSettings settings, List<ResultLineData> resultList, string solutionDir, string path, int lineIndex)
+        {
+            ResultLineData resultLineData;
+            int indexInLine = 0;
+            while (indexInLine != -1)
+            {
+                indexInLine = line.IndexOf(settings.tbPhrase, indexInLine);
+                if (indexInLine != -1)
+                {
+                    resultLineData = new ResultLineData()
+                    {
+                        solutionDir = "",
+                        resultLineText = "",
+                        linePath = path,
+                        lineContent = line.Trim(),
+                        lineInFileNumbe = lineIndex,
+                        textInLineNumer = indexInLine
+                    };
+                    resultList.Add(resultLineData);
+                    indexInLine++;
+                }
+            } 
+        }
+
+        private Project GetActiveProject()
+        {
+            if (dte.Solution.Projects.Count == 1)
+            {
+                foreach (Project project in dte.Solution.Projects)
+                    return project;
+            }
+            else
+            {
+                Array activeSolutionProjects = dte.ActiveSolutionProjects as Array;
+                if (activeSolutionProjects != null && activeSolutionProjects.Length > 0)
+                    return activeSolutionProjects.GetValue(0) as Project;
+                else
+                    Debug.Assert(false, "Brak aktywnego projektu.");
+            }
+            return null;
+        }
+
+        private void FindInDocument(Document document, FindSettings settings, List<ResultLineData> resultList, List<ErrData> errList, string solutionDir)
+        {
+            int lineIndex = 0;
+            List<string> resList = GetDocumentContent(document, errList).Replace("\n\r", "\n").Split('\n').ToList<string>();
+            foreach (string line in resList)
+            {
+                LineToResultList(line, settings, resultList, solutionDir, document.FullName, lineIndex);
+                lineIndex++;                
+            }
+        }
+
+        private void FindInFile(string path, FindSettings settings, List<ResultLineData> resultList, string solutionDir)
+        {
+            StreamReader stream = new StreamReader(path, Encoding.Default);
+            string line = stream.ReadLine();
+            int lineIndex = 0;
+            while (!stream.EndOfStream)
+            {
+                LineToResultList(line, settings, resultList, solutionDir, path, lineIndex);
+                line = stream.ReadLine();
+                lineIndex++;
+            }            
+        }
+
+        private void ExecSearch2()
+        {
             Boolean docIsSelected = true;            
             LastDocWindow = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
-            //tbResult.Text = "";
             if (dte != null)
             {
                 var m_findEvents = dte.Events.FindEvents;
@@ -464,6 +904,7 @@ namespace VSFindTool
 
             /*Check the need for this code*/
             var x = dte.Find.FindWhat;
+
 
             //Remember original result
             //originalFindResult2 = GetFindResults2Content();

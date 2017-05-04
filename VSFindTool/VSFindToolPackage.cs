@@ -8,6 +8,16 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Utilities;//Install-Package Microsoft.VisualStudio.Utilities - from paket manager console
+
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Projection;
+using System.Threading.Tasks;
+
+using Microsoft.VisualStudio.ComponentModelHost;
+//using Microsoft.VisualStudio.Tools.Office.Runtime.Interop;
 
 namespace VSFindTool
 {
@@ -66,8 +76,11 @@ namespace VSFindTool
         }
 
         internal EnvDTE80.DTE2 dte2;
+        internal IComponentModel componentModel;
+        internal IVsTextManager textManager;
         private DteInitializer dteInitializer;
 		public EnvDTE.Window LastDocWindow = null;
+        //internal IOleServiceProvider oleServiceProvider;
         public void m_WindowActivatedEvent(EnvDTE.Window GotFocus, EnvDTE.Window LostFocus)
         {
             EnvDTE.DTE dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));   
@@ -130,13 +143,27 @@ namespace VSFindTool
 
         private void InitializeDTE()
         {
-            IVsShell shellService;
+            IVsShell shellService;            
+
+            this.textManager = (IVsTextManager)GetService(typeof(SVsTextManager));
 
             this.dte2 = this.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SDTE)) as EnvDTE80.DTE2;
 
+            if (componentModel == null)
+            {
+                componentModel = (IComponentModel)GetService(typeof(SComponentModel));
+            }
+
+            //if (oleServiceProvider = null)
+            //{
+            //    oleServiceProvider = GetService(typeof(IOleServiceProvider));
+            //}
+
             if (this.dte2 == null) // The IDE is not yet fully initialized
             {
-                shellService = this.GetService(typeof(SVsShell)) as IVsShell;
+                shellService = GetService(typeof(SVsShell)) as IVsShell;
+               // IContentTypeRegistryService service3 = this.GetService<IContentTypeRegistryService>();
+                
                 this.dteInitializer = new DteInitializer(shellService, this.InitializeDTE);
             }
             else
