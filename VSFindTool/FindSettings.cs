@@ -14,6 +14,7 @@ namespace VSFindTool
     {
         internal string tbPhrase;
         internal bool chkWholeWord;
+        internal bool chkForm;
         internal bool chkCase;
         internal bool chkRegExp;
         internal bool rbCurrDoc;
@@ -65,6 +66,11 @@ namespace VSFindTool
             else
                 result += "c ";
 
+            if (chkForm)
+                result += "F";
+            else
+                result += "f";
+
             if (chkRegExp)
                 result += "R ";
             else
@@ -90,6 +96,7 @@ namespace VSFindTool
             FindSettings result = new FindSettings();
             result.tbPhrase = tbPhrase;
             result.chkWholeWord = chkWholeWord;
+            result.chkForm = chkForm;
             result.chkCase = chkCase;
             result.chkRegExp = chkRegExp;
             result.rbCurrDoc = rbCurrDoc;
@@ -108,6 +115,7 @@ namespace VSFindTool
 
             //Find options
             form.chkWholeWord.IsChecked = chkWholeWord;
+            form.chkForm.IsChecked = chkForm;
             form.chkCase.IsChecked = chkCase;
 
             //Look in
@@ -140,6 +148,10 @@ namespace VSFindTool
         {
             infoWrapPanel.Children.Clear();
             if (chkWholeWord)
+                AddExtraBold(AddLabel("W", infoWrapPanel));
+            else
+                AddLabel("w", infoWrapPanel);
+            if (chkForm)
                 AddExtraBold(AddLabel("W", infoWrapPanel));
             else
                 AddLabel("w", infoWrapPanel);

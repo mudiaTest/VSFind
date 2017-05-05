@@ -17,6 +17,8 @@ namespace VSFindTool
         internal int? lineInFileNumbe;
         internal int textInLineNumer = 0;
         private List<string> _pathPartsList = null;
+        internal int textLength;
+        internal string foundResult;
         internal List<string> pathPartsList
         {
             get{
