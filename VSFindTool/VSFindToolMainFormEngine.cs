@@ -158,17 +158,21 @@ namespace VSFindTool
 
             if (dte.Solution.FullName != "")
             {
+                
                 string solutionDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName);
                 if (last_searchSettings.rbCurrDoc)
                 {
-                    FindInDocument(LastDocWindow.Document, last_searchSettings, resultList, errList, solutionDir);
+                    FindInDocument(LastDocWindow.Document, last_searchSettings, resultList, errList, solutionDir, LastDocWindow.Document.FullName);
                     Finish();
                 }
                 else if (last_searchSettings.rbOpenDocs)
                 {
+                    List<Candidate> candidates = GetCandidates(GetActiveProject());
+                    int index;
                     foreach (Document document in GetOpenDocuments())
                     {
-                        FindInDocument(document, last_searchSettings, resultList, errList, solutionDir);
+                        Candidate candidate = candidates.First<Candidate>((e => e.path.ToLower() == document.FullName.ToLower())); ;
+                        FindInDocument(document, last_searchSettings, resultList, errList, solutionDir, candidate.path);
                     }
                     Finish();
                 }
@@ -263,7 +267,7 @@ namespace VSFindTool
                         {
                             if (window.Document.FullName == candidate.path)
                             {
-                                FindInDocument(window.Document, last_searchSettings, resultList, errList, solutionDir);
+                                FindInDocument(window.Document, last_searchSettings, resultList, errList, solutionDir, candidate.path);
                                 asDocument = true;
                                 break;
                             }
@@ -284,7 +288,7 @@ namespace VSFindTool
             if (projectItem.FileCodeModel != null)
             {
                 if (projectItem.Document != null)
-                    FindInDocument(projectItem.Document, last_searchSettings, resultList, errList, solutionDir);
+                    FindInDocument(projectItem.Document, last_searchSettings, resultList, errList, solutionDir, Path.Combine(parentPath, projectItem.Name));
                 else
                     FindInFile(Path.Combine(parentPath, projectItem.Name), last_searchSettings, resultList, solutionDir);
             }
@@ -297,13 +301,13 @@ namespace VSFindTool
             }
         }
       
-        private void FindInDocument(Document document, FindSettings settings, List<ResultLineData> resultList, List<ErrData> errList, string solutionDir)
+        private void FindInDocument(Document document, FindSettings settings, List<ResultLineData> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
         {
             int lineIndex = 0;
             List<string> resList = GetDocumentContent(document, errList).Replace("\n\r", "\n").Split('\n').ToList<string>();
             foreach (string line in resList)
             {
-                LineToResultList(line, settings, resultList, solutionDir, document.FullName, lineIndex);
+                LineToResultList(line, settings, resultList, solutionDir, bulkPath, lineIndex);
                 lineIndex++;                
             }
         }
