@@ -130,12 +130,11 @@ namespace VSFindTool
 
             tvResultTree.Items.Clear();
 
-            treeItemColleaction = tvResultTree.Items;
-            treeItem = null;
-            pathAgg = "";
-
             foreach (ResultLineData resultLineData in resultList)
             {
+                treeItemColleaction = tvResultTree.Items;
+                treeItem = null; 
+                pathAgg = "";
                 for (int i = 0; i < resultLineData.pathPartsList.Count; i++)
                 {
                     if (pathAgg == "")
