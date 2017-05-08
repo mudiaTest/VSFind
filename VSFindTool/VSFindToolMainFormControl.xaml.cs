@@ -10,9 +10,10 @@ using Microsoft.VisualStudio.Shell;
 using EnvDTE;
 using System.Windows.Media;
 using System.IO;
-using System.Windows.Forms;
+//using System.Windows.Forms;
 using System.Diagnostics;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.ComponentModelHost;
 
 namespace VSFindTool
 {
@@ -39,6 +40,13 @@ namespace VSFindTool
                 return ((VSFindToolPackage)parentToolWindow.Package).dte2;
             }
         }
+        /*IComponentModel componentModel
+        {
+            get
+            {
+                return ((IComponentModel)parentToolWindow.Package).componentModel;
+            }
+        }*/
         string originalFindResult2;
         Dictionary<string, FindSettings> findSettings = new Dictionary<string, FindSettings>();
         IVsTextManager textManager
@@ -182,10 +190,10 @@ namespace VSFindTool
 
         private void btnGetLocation_Click(object sender, RoutedEventArgs e)
         {
-            FolderBrowserDialog dlg = new FolderBrowserDialog();
+            System.Windows.Forms.FolderBrowserDialog dlg = new System.Windows.Forms.FolderBrowserDialog();
             if (tbLocation.Text != "" && Directory.Exists(tbLocation.Text))
                 dlg.SelectedPath = tbLocation.Text;
-            if (DialogResult.OK == dlg.ShowDialog())
+            if (System.Windows.Forms.DialogResult.OK == dlg.ShowDialog())
                 tbLocation.Text = dlg.SelectedPath;
         }
 
