@@ -21,37 +21,9 @@ namespace VSFindTool
         internal bool rbOpenDocs;
         internal bool rbProject;
         internal bool rbSolution;
-        internal vsFindAction action;
-        internal vsFindResultsLocation location;
-        //internal strind searchPath;
-
-        public void ToFind(Find find)
-        {
-            find.Action = action;
-            find.ResultsLocation = location;
-
-            //Search phrase
-            find.FindWhat = tbPhrase;
-
-            //Find options
-            find.MatchWholeWord = chkWholeWord;
-            find.MatchCase = chkCase;
-            if (chkRegExp)
-                find.PatternSyntax = vsFindPatternSyntax.vsFindPatternSyntaxRegExpr;
-            else
-                find.PatternSyntax = vsFindPatternSyntax.vsFindPatternSyntaxLiteral;
-
-            //Look in
-            if (rbCurrDoc)
-                find.Target = vsFindTarget.vsFindTargetCurrentDocument;
-            else if (rbOpenDocs)
-                find.Target = vsFindTarget.vsFindTargetOpenDocuments;
-            else if (rbProject)
-                find.Target = vsFindTarget.vsFindTargetCurrentProject;
-            else if (rbSolution)
-                find.Target = vsFindTarget.vsFindTargetSolution;
-        }
-
+        internal bool rbLocation;
+        internal string tbLocation;
+        
         public string ToLabelString()
         {
             string result = "";
@@ -89,42 +61,6 @@ namespace VSFindTool
 
 
             return result;
-        }
-
-        public FindSettings GetCopy()
-        {
-            FindSettings result = new FindSettings()
-            {
-                tbPhrase = tbPhrase,
-                chkWholeWord = chkWholeWord,
-                chkForm = chkForm,
-                chkCase = chkCase,
-                chkRegExp = chkRegExp,
-                rbCurrDoc = rbCurrDoc,
-                rbOpenDocs = rbOpenDocs,
-                rbProject = rbProject,
-                rbSolution = rbSolution,
-                action = action,
-                location = location
-            };
-            return result;
-        }
-
-        public void SetColtrols(VSFindToolMainFormControl form)
-        {
-            //Search phrase
-            form.tbPhrase.Text = tbPhrase;
-
-            //Find options
-            form.chkWholeWord.IsChecked = chkWholeWord;
-            form.chkForm.IsChecked = chkForm;
-            form.chkCase.IsChecked = chkCase;
-
-            //Look in
-            form.rbCurrDoc.IsChecked = rbCurrDoc;
-            form.rbOpenDocs.IsChecked = rbOpenDocs;
-            form.rbProject.IsChecked = rbProject;
-            form.rbSolution.IsChecked = rbSolution;
         }
 
         private Label AddLabel(string text, WrapPanel infoWrapPanel)
@@ -192,32 +128,42 @@ namespace VSFindTool
             AddLabel("`" + tbPhrase + "`", infoWrapPanel);
         }
 
-        public int GetVsFindOptions()
+        public FindSettings GetCopy()
         {
-            int result = (Byte)vsFindOptions.vsFindOptionsNone;
-            if (chkWholeWord)
-                result = result | (Byte)vsFindOptions.vsFindOptionsMatchWholeWord;
-            if (chkCase)
-                result = result | (Byte)vsFindOptions.vsFindOptionsMatchCase;
-            if (chkRegExp)
-                result = result | (Byte)vsFindOptions.vsFindOptionsRegularExpression;
-            return result;
+            return new FindSettings()
+            {
+                tbPhrase = tbPhrase,
+                chkWholeWord = chkWholeWord,
+                chkForm = chkForm,
+                chkCase = chkCase,
+                chkRegExp = chkRegExp,
+                rbCurrDoc = rbCurrDoc,
+                rbOpenDocs = rbOpenDocs,
+                rbProject = rbProject,
+                rbSolution = rbSolution,
+                rbLocation = rbLocation,
+                tbLocation = tbLocation
+            };
         }
 
-        public void FillFindData(FindData findData)
+        public void SetColtrols(VSFindToolMainFormControl form)
         {
+            //Search phrase
+            form.tbPhrase.Text = tbPhrase;
 
+            //Find options
+            form.chkWholeWord.IsChecked = chkWholeWord;
+            form.chkForm.IsChecked = chkForm;
+            form.chkCase.IsChecked = chkCase;
+            form.chkRegExp.IsChecked = chkRegExp;
 
-            if (chkWholeWord)
-                findData.FindOptions |= FindOptions.WholeWord;
-
-
-            if (chkCase)
-                findData.FindOptions |= FindOptions.MatchCase;
-
-
-            if (chkRegExp)
-                findData.FindOptions |= FindOptions.UseRegularExpressions;
+            //Look in
+            form.rbCurrDoc.IsChecked = rbCurrDoc;
+            form.rbOpenDocs.IsChecked = rbOpenDocs;
+            form.rbProject.IsChecked = rbProject;
+            form.rbSolution.IsChecked = rbSolution;
+            form.rbLocation.IsChecked = rbLocation;
+            form.tbLocation.Text = tbLocation;
         }
     }
 }

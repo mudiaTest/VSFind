@@ -69,8 +69,8 @@
                                         <ColumnDefinition/>
                                         <ColumnDefinition Width="30"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBox Name="tbLocation" TextWrapping="Wrap" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEnabled="False"/>
-                                    <Button Name="btnGetLocation"  Content=". . ." Grid.Column="1" Margin="0" Width="25" HorizontalAlignment="Center" IsEnabled="False" Click="BtnGetLocation_Click"/>
+                                    <TextBox Name="tbLocation" TextWrapping="Wrap" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
+                                    <Button Name="btnGetLocation"  Content=". . ." Grid.Column="1" Margin="0" Width="25" HorizontalAlignment="Center" Click="BtnGetLocation_Click"/>
                                 </Grid>
                                 <CheckBox Grid.Row="0" Grid.Column="1" x:Name="chkCase" Content="Match Case"/>
                                 <CheckBox Grid.Row="1" Grid.Column="1" x:Name="chkWholeWord" Content="Match Whole Word"/>

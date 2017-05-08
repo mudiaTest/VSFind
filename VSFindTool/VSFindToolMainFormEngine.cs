@@ -166,6 +166,10 @@ namespace VSFindTool
                 {
                     FindInProjects(progress, Finish, last_searchSettings, resultList, solutionDir);
                 }
+                else if (last_searchSettings.rbLocation)
+                {
+                    FindInLocation(progress, Finish, last_searchSettings, resultList, solutionDir);
+                }
                 tbiLastResult.Focus();
             }
         }
@@ -173,8 +177,6 @@ namespace VSFindTool
         private void StartSearch()
         {
             LastDocWindow = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
-            last_searchSettings.action = vsFindAction.vsFindActionFindAll;
-            last_searchSettings.location = vsFindResultsLocation.vsFindResults2;
 
             //Search phrase
             last_searchSettings.tbPhrase = tbPhrase.Text;
@@ -190,6 +192,8 @@ namespace VSFindTool
             last_searchSettings.rbOpenDocs = rbOpenDocs.IsChecked == true;
             last_searchSettings.rbProject = rbProject.IsChecked == true;
             last_searchSettings.rbSolution = rbSolution.IsChecked == true;
+            last_searchSettings.rbLocation = rbLocation.IsChecked == true;
+            last_searchSettings.tbLocation = tbLocation.Text;
             //Select last active document
             if (rbCurrDoc.IsChecked == true)
             {
@@ -383,6 +387,30 @@ namespace VSFindTool
         }
 
 
+        private async System.Threading.Tasks.Task FindInLocation(IProgress<string> progress, FinishDelegate finish, Project project, FindSettings settings, List<ResultLineData> resultList, string solutionDir)
+        {
+            await System.Threading.Tasks.Task.Run(() =>
+            {
+                bool asDocument = false;
+                int loop = 0;
+                List<Candidate> candidates = new List<Candidate>();
+                GetCandidatesFromLocation(settings.tbLocation, candidates);
+                foreach (Candidate candidate in candidates)
+                {
+                    loop++;
+                    if (progress != null)
+                        progress.Report(String.Format("Searching {0}/{1}", loop, candidates.Count));
+                    //await System.Threading.Tasks.Task.Delay(TimeSpan.FromMilliseconds(0));
+                    FindInFile(candidate.path, last_searchSettings, resultList, solutionDir);
+                }
+            });
+            if (finish != null)
+                finish();
+            return;
+        }
+
+
+
         private List<Document> GetOpenDocuments()
         {
             List<Document> result = new List<Document>();
@@ -422,6 +450,26 @@ namespace VSFindTool
             }
             return result;
         }
+
+        private void GetCandidatesFromLocation(string parentDirPath, List<Candidate> result)
+        {
+            /*List<Candidate> result = new List<Candidate>();
+            foreach (ProjectItem item in project.ProjectItems)
+            {
+                GetCandidates(item, result, Path.GetDirectoryName(project.FullName));
+            }
+            return result;*/
+
+            foreach(string filePath in Directory.GetFiles(parentDirPath)){
+                result.Add(new Candidate() { path = filePath });
+            }
+            foreach (string dirPath in Directory.GetDirectories(parentDirPath))
+            {
+                GetCandidatesFromLocation(dirPath, result);
+            }
+
+        }
+
 
         private void GetCandidates(ProjectItem item, List<Candidate> result, string parentPath)
         {
