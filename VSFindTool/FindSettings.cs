@@ -149,23 +149,32 @@ namespace VSFindTool
         public void FillWraperPanel(WrapPanel infoWrapPanel)
         {
             infoWrapPanel.Children.Clear();
+
+            //WholeWord
             if (chkWholeWord)
                 AddExtraBold(AddLabel("W", infoWrapPanel));
             else
                 AddLabel("w", infoWrapPanel);
+
+            //Form
             if (chkForm)
-                AddExtraBold(AddLabel("W", infoWrapPanel));
+                AddExtraBold(AddLabel("F", infoWrapPanel));
             else
-                AddLabel("w", infoWrapPanel);
+                AddLabel("f", infoWrapPanel);
+
+            //CharCase
             if (chkCase)
                 AddExtraBold(AddLabel("C", infoWrapPanel));
             else
                 AddLabel("c", infoWrapPanel);
+
+            //RegExp
             if (chkRegExp)
                 AddExtraBold(AddLabel("R", infoWrapPanel));
             else
                 AddLabel("r", infoWrapPanel);
 
+            //separator
             AddExtraBold(AddLabel(" | ", infoWrapPanel));
 
             if (rbCurrDoc)
@@ -177,6 +186,7 @@ namespace VSFindTool
             else if (rbSolution)
                 AddLabel("Solution", infoWrapPanel);
 
+            //separator
             AddExtraBold(AddLabel(" | ", infoWrapPanel));
 
             AddLabel("`" + tbPhrase + "`", infoWrapPanel);

@@ -302,7 +302,7 @@ namespace VSFindTool
 
         private void BtnAddSnapshot_Click(object sender, RoutedEventArgs e)
         {
-            AddSmapshotTab();
+            AddSmapshotTab(last_LabelInfo.Content == null ? "" : last_LabelInfo.Content.ToString());
             //TODO dodać na zakładkę nowe obiekty
             //todo dodać skrót wlaczający tool na pierwszą zakładkę
         }

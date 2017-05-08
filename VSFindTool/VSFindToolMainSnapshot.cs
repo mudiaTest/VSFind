@@ -32,9 +32,17 @@ namespace VSFindTool
             //TreeView treetv = (TreeView)this.FindName(snapshotTag + "_tvResultFlatTree");
             CopyItems(last_tvResultFlatTree.Items, flattv.Items, findSettings, tbPreview);
             CopyItems(last_tvResultTree.Items, treetv.Items, findSettings, tbPreview);
+            dictTVData[flattv] = new TVData()
+            {
+                longDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName)
+            };
+            dictTVData[treetv] = new TVData()
+            {
+                longDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName)
+            };
         }
 
-        private void AddSmapshotTab()
+        private void AddSmapshotTab(string infoContent)
         {
             string snapshotNumber = (tbcMain.Items.Count - 2).ToString();
             string snapshotTag = GetSnapshotTag(snapshotNumber);
@@ -53,6 +61,10 @@ namespace VSFindTool
             {
                 Background = this.FindResource(SystemColors.ControlLightBrushKey) as Brush
             };
+            grid.RowDefinitions.Add(new RowDefinition()
+            {
+                Height = new GridLength(20, GridUnitType.Pixel)
+            });
             grid.RowDefinitions.Add(new RowDefinition()
             {
                 Height = new GridLength(20, GridUnitType.Pixel)
@@ -85,6 +97,16 @@ namespace VSFindTool
             //Set snapshot tab as selected
             //tbcMain.SelectedItem = newTab;
 
+            //Result summary
+            Label infoLabel = new Label()
+            {
+                Name = snapshotTag + "labelInfo",
+                Padding = new Thickness(5, 2, 5, 5),
+                Content = infoContent
+            };
+            Grid.SetRow(infoLabel, 0);
+            Grid.SetColumnSpan(infoLabel, 2);
+
             //Info Wraper
             WrapPanel infoWrapPanel = new WrapPanel()
             {
@@ -94,6 +116,7 @@ namespace VSFindTool
                 HorizontalAlignment = HorizontalAlignment.Left
             };
             grid.Children.Add(infoWrapPanel);
+            Grid.SetRow(infoWrapPanel, 1);
             Grid.SetColumn(infoWrapPanel, 0);
             last_searchSettings.FillWraperPanel(infoWrapPanel);
 
@@ -111,7 +134,7 @@ namespace VSFindTool
                 Width = new GridLength(33, GridUnitType.Pixel)
             });
             grid.Children.Add(navGrid);
-            Grid.SetRow(navGrid, 1);
+            Grid.SetRow(navGrid, 2);
 
             //upper menu wrap panel
             WrapPanel upperMenuWrapPanel = new WrapPanel()
@@ -189,6 +212,21 @@ namespace VSFindTool
             };
             upperMenuWrapPanel.Children.Add(btnUnExpAll);
 
+
+            //toggle button Flat/Tree
+            ToggleButton tbShortDir = new ToggleButton()
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(5, 0, 0, 0),
+                Padding = new Thickness(3, 1, 3, 1),
+                Width = 40,
+                BorderBrush = this.FindResource(SystemColors.ControlDarkBrushKey) as Brush,
+                Height = 21,
+                Content = "Short"
+            };
+
+            upperMenuWrapPanel.Children.Add(tbShortDir);
+
             //Button Find again              
             Button btnFindAgain = new Button()
             {
@@ -223,7 +261,7 @@ namespace VSFindTool
                 HorizontalContentAlignment = HorizontalAlignment.Stretch
             };
             grid.Children.Add(flattv);
-            Grid.SetRow(flattv, 2);
+            Grid.SetRow(flattv, 3);
             Grid.SetColumnSpan(flattv, 1);
 
             //add Tree view
@@ -233,7 +271,7 @@ namespace VSFindTool
                 HorizontalContentAlignment = HorizontalAlignment.Stretch
             };
             grid.Children.Add(treetv);
-            Grid.SetRow(treetv, 3);
+            Grid.SetRow(treetv, 4);
             Grid.SetColumnSpan(treetv, 2);
 
             TextBox tbPreview = new TextBox()
@@ -241,7 +279,7 @@ namespace VSFindTool
                 Name = snapshotTag + "_TBPreview",
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
             };
-            Grid.SetRow(tbPreview, 4);
+            Grid.SetRow(tbPreview, 5);
             Grid.SetColumnSpan(tbPreview, 2);
 
             //Events
@@ -269,6 +307,20 @@ namespace VSFindTool
                 findSettings.Remove(snapshotTag);
             };
 
+            tbShortDir.Checked += (o, e) =>
+            {
+                 (o as ToggleButton).Foreground = Brushes.Red;
+                 SetHeaderShortLong(flattv, flattv.Items, true);
+                 SetHeaderShortLong(treetv, treetv.Items, true);
+            };
+
+            tbShortDir.Unchecked += (o, e) =>
+            {
+                (o as ToggleButton).ClearValue(ToggleButton.ForegroundProperty);
+                SetHeaderShortLong(flattv, flattv.Items, false);
+                SetHeaderShortLong(treetv, treetv.Items, false);
+            };
+
             //Copy settings for snapshot            
             findSettings.Add(snapshotTag, last_searchSettings.GetCopy());
 
@@ -277,6 +329,9 @@ namespace VSFindTool
             //Expand new views
             SetExpandAllInLvl(flattv.Items, true);
             SetExpandAllInLvl(treetv.Items, true);
+
+            //Snapshot views are filled from last views, so it's important to set short/long button also.
+            tbShortDir.IsChecked = last_shortDir.IsChecked;
         }
 
         private string GetSnapshotTag(int number)

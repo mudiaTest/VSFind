@@ -56,14 +56,14 @@
                                     <ColumnDefinition Width="88*"/>
                                     <ColumnDefinition Width="125*"/>
                                 </Grid.ColumnDefinitions>
-                                <RadioButton Grid.Row="0" Grid.Column="0" x:Name="rbCurrDoc" Content="Current Doc." HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" IsChecked="True" Grid.RowSpan="6" Width="83"/>
-                                <RadioButton Grid.Row="1" Grid.Column="0" x:Name="rbOpenDocs" Content="Open Docs" HorizontalAlignment="Left" VerticalAlignment="Top" Height="16" Width="75"/>
-                                <RadioButton Grid.Row="2" Grid.Column="0" x:Name="rbProject" Content="Project" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="16" Width="53"/>
-                                <RadioButton Grid.Row="3" Grid.Column="0" x:Name="rbSolution" Content="Solution" HorizontalAlignment="Left" VerticalAlignment="Top" Height="16" Width="60"/>
+                                <RadioButton Grid.Row="0" Grid.Column="0" x:Name="rbCurrDoc" Content="Current Doc." HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" IsChecked="True" Grid.RowSpan="6"/>
+                                <RadioButton Grid.Row="1" Grid.Column="0" x:Name="rbOpenDocs" Content="Open Docs" HorizontalAlignment="Left" VerticalAlignment="Top" Height="16"/>
+                                <RadioButton Grid.Row="2" Grid.Column="0" x:Name="rbProject" Content="Project" HorizontalAlignment="Left" Margin="0,0,0,1"/>
+                                <RadioButton Grid.Row="3" Grid.Column="0" x:Name="rbSolution" Content="Solution" HorizontalAlignment="Left" VerticalAlignment="Top" Height="16"/>
                                 <!--<RadioButton Grid.Row="4" Grid.Column="1" x:Name="rbPrjectExt" Content="Project+Ext" HorizontalAlignment="Left" VerticalAlignment="Top" IsEnabled="False"/>-->
                                 <!--<RadioButton Grid.Row="5" Grid.Column="1" x:Name="rbSolutionExt" Content="Solution+Ext" HorizontalAlignment="Left" VerticalAlignment="Top" IsEnabled="False"/>-->
-                                <RadioButton Grid.Row="4" Grid.Column="0" x:Name="rbSelection" Content="Selection" HorizontalAlignment="Left" VerticalAlignment="Top" IsEnabled="False" Height="16" Width="64"/>
-                                <RadioButton Grid.Row="5" Grid.Column="0" x:Name="rbLocation" Content="Lacation" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="RbLocation_Checked" Unchecked="RbLocation_Unchecked" Height="16" Width="60"/>
+                                <RadioButton Grid.Row="4" Grid.Column="0" x:Name="rbSelection" Content="Selection" HorizontalAlignment="Left" IsEnabled="False" Margin="0,0,0,1"/>
+                                <RadioButton Grid.Row="5" Grid.Column="0" x:Name="rbLocation" Content="Lacation" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="RbLocation_Checked" Unchecked="RbLocation_Unchecked" Height="16"/>
                                 <Grid Grid.Row="6" Grid.ColumnSpan="2">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition/>
@@ -96,7 +96,7 @@
                         <RowDefinition x:Name="last_preview" Height="100"/>
                     </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Grid.ColumnSpan="2" x:Name="last_LabelInfo" Content="kkk" Padding="5,2,5,5"/>
+                    <Label Grid.Row="0" Grid.ColumnSpan="2" x:Name="last_LabelInfo" Padding="5,2,5,5"/>
                     <WrapPanel Grid.Row="1" Grid.ColumnSpan="2" x:Name="last_infoWrapPanel" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left">
                     </WrapPanel>
 
@@ -109,7 +109,7 @@
                             <ToggleButton x:Name="last_tbFlatTree" Content = "Tree" HorizontalAlignment = "Center" Padding="3,1" Width="34" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Checked="Tb_Checked" Unchecked="Tb_Unchecked" Margin="5,0,0,0" Height="21" VerticalAlignment="Center" />
                             <Button x:Name="btnExpAll" Width="21" Content="+" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-5,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="1,1" Click="BtnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />
                             <Button x:Name="btnUnExpAll" Width="21" Content="-" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-5,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="1,1" Click="BtnUnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                            <ToggleButton x:Name="last_shortDir" Content = "Short" HorizontalAlignment = "Center" Padding="3,1" Width="34" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Margin="5,0,0,0" Height="21" VerticalAlignment="Center" Checked="Last_shortDir_Checked" Unchecked="Last_shortDir_Unchecked" />
+                            <ToggleButton x:Name="last_shortDir" Content = "Short" HorizontalAlignment = "Center" Padding="3,1" Width="40" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Margin="5,0,0,0" Height="21" VerticalAlignment="Center" Checked="Last_shortDir_Checked" Unchecked="Last_shortDir_Unchecked" />
                         </WrapPanel>
                         <Button x:Name="btnAddSnapshot" Grid.Column="1" Content="Snapshot" Margin="0" Width="70" Padding="3,1,3,0" IsCancel="True" Click="BtnAddSnapshot_Click" HorizontalAlignment="Center" VerticalAlignment="Center" Height="21"/>
                     </Grid>
