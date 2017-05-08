@@ -243,7 +243,8 @@ namespace VSFindTool
             Grid.SetRow(treetv, 3);
             Grid.SetColumnSpan(treetv, 2);
 
-            TextBox tbPreview = new TextBox(){
+            TextBox tbPreview = new TextBox()
+            {
                 Name = snapshotTag + "_TBPreview",
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
             };

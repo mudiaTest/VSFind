@@ -6,13 +6,22 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+//using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
 using Microsoft.VisualStudio.Shell;
 using EnvDTE;
 using System.IO;
 using System.Diagnostics;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.ComponentModelHost;
-using System.Windows.Media;
 
 namespace VSFindTool
 {
@@ -25,14 +34,15 @@ namespace VSFindTool
     /// <summary>
     /// Interaction logic for VSFindToolMainFormControl.
     /// </summary>
-    public partial class VSFindToolMainFormControl : UserControl
+    public partial class VSFindToolMainFormControl : System.Windows.Controls.UserControl
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="VSFindToolMainFormControl"/> class.
         /// </summary>
         public VSFindToolMainForm parentToolWindow;
         public EnvDTE.Window LastDocWindow;
-        EnvDTE80.DTE2 dte {
+        EnvDTE80.DTE2 dte
+        {
             get
             {
                 return ((VSFindToolPackage)parentToolWindow.Package).dte2;
@@ -57,7 +67,7 @@ namespace VSFindTool
 
         public VSFindToolMainFormControl()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             last_shortDir.IsChecked = true;
         }
 
@@ -83,7 +93,7 @@ namespace VSFindTool
                     selection.SelectAll();
                     int lastLine = selection.CurrentLine;
                     selection.MoveToLineAndOffset(Math.Max(1, resultLine.lineInFileNumbe.Value - 2), 1, false);
-                    selection.MoveToLineAndOffset(Math.Min(lastLine, resultLine.lineInFileNumbe.Value + 4), 1, true); 
+                    selection.MoveToLineAndOffset(Math.Min(lastLine, resultLine.lineInFileNumbe.Value + 4), 1, true);
                     selection.EndOfLine(true);
                     dictTBPreview[(TreeViewItem)src].Text = selection.Text;
 
@@ -92,8 +102,8 @@ namespace VSFindTool
                         Debug.Assert(false, "Brak obsługi RegExp");
                     else
                     {
-                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value+1, resultLine.textInLineNumer+1, false);
-                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value+1, resultLine.textInLineNumer+settings.tbPhrase.Length+1, true);
+                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value + 1, resultLine.textInLineNumer + 1, false);
+                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value + 1, resultLine.textInLineNumer + settings.tbPhrase.Length + 1, true);
                     }
                     //Add action to set focus no doc window after finishing all action in queue (currenty there should be only double click event) 
                     Action showAction = () => docWindow.Activate();
