@@ -93,18 +93,20 @@ namespace VSFindTool
 
         public FindSettings GetCopy()
         {
-            FindSettings result = new FindSettings();
-            result.tbPhrase = tbPhrase;
-            result.chkWholeWord = chkWholeWord;
-            result.chkForm = chkForm;
-            result.chkCase = chkCase;
-            result.chkRegExp = chkRegExp;
-            result.rbCurrDoc = rbCurrDoc;
-            result.rbOpenDocs = rbOpenDocs;
-            result.rbProject = rbProject;
-            result.rbSolution = rbSolution;
-            result.action = action;
-            result.location = location;
+            FindSettings result = new FindSettings()
+            {
+                tbPhrase = tbPhrase,
+                chkWholeWord = chkWholeWord,
+                chkForm = chkForm,
+                chkCase = chkCase,
+                chkRegExp = chkRegExp,
+                rbCurrDoc = rbCurrDoc,
+                rbOpenDocs = rbOpenDocs,
+                rbProject = rbProject,
+                rbSolution = rbSolution,
+                action = action,
+                location = location
+            };
             return result;
         }
 

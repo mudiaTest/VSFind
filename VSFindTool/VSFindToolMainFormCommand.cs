@@ -85,9 +85,11 @@ namespace VSFindTool
         /// <param name="package">Owner package, not null.</param>
         public static void Initialize(Package package)
         {
-            Instance = new VSFindToolMainFormCommand(package);
-            Instance.dte2 = ((VSFindToolPackage)package).dte2;
-            Instance.textManager = ((VSFindToolPackage)package).textManager;
+            Instance = new VSFindToolMainFormCommand(package)
+            {
+                dte2 = ((VSFindToolPackage)package).dte2,
+                textManager = ((VSFindToolPackage)package).textManager
+            };
         }
 
         /// <summary>

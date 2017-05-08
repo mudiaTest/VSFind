@@ -28,7 +28,7 @@ namespace VSFindTool
         /// </summary>
         public VSFindToolMainForm parentToolWindow;
         public EnvDTE.Window LastDocWindow;
-        EnvDTE80.DTE2 dte
+        EnvDTE80.DTE2 Dte
         {
             get
             {
@@ -43,7 +43,7 @@ namespace VSFindTool
             }
         }*/
         Dictionary<string, FindSettings> findSettings = new Dictionary<string, FindSettings>();
-        IVsTextManager textManager
+        IVsTextManager TextManager
         {
             get
             {
@@ -71,10 +71,10 @@ namespace VSFindTool
         {
             ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
             FindSettings settings = dictSearchSettings[(TreeViewItem)src];
-            if (dte != null)
+            if (Dte != null)
             {
-                EnvDTE.Window docWindow = dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
-                TextSelection selection = ((EnvDTE.TextSelection)dte.ActiveDocument.Selection);
+                EnvDTE.Window docWindow = Dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
+                TextSelection selection = ((EnvDTE.TextSelection)Dte.ActiveDocument.Selection);
                 if (selection != null)
                 {
                     selection.SelectAll();
@@ -131,7 +131,7 @@ namespace VSFindTool
 
             dictTVData[tvResultTree] = new TVData()
             {
-                longDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName)
+                longDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName)
             };
 
             tvResultTree.Items.Clear();
@@ -186,7 +186,7 @@ namespace VSFindTool
 
             dictTVData[tvResultFlatTree] = new TVData()
             {
-                longDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName)
+                longDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName)
             };
 
             tvResultFlatTree.Items.Clear();
@@ -286,51 +286,51 @@ namespace VSFindTool
             }
         }
 
-        private void tb_Checked(object sender, RoutedEventArgs e)
+        private void Tb_Checked(object sender, RoutedEventArgs e)
         {
             last_rowTree.Height = new GridLength(1, GridUnitType.Star);
             last_rowFlat.Height = new GridLength(0);
             last_tbFlatTree.Foreground = Brushes.Red;
         }
 
-        private void tb_Unchecked(object sender, RoutedEventArgs e)
+        private void Tb_Unchecked(object sender, RoutedEventArgs e)
         {
             last_rowTree.Height = new GridLength(0);
             last_rowFlat.Height = new GridLength(1, GridUnitType.Star);
             last_tbFlatTree.ClearValue(ToggleButton.ForegroundProperty);
         }
 
-        private void btnAddSnapshot_Click(object sender, RoutedEventArgs e)
+        private void BtnAddSnapshot_Click(object sender, RoutedEventArgs e)
         {
             AddSmapshotTab();
             //TODO dodać na zakładkę nowe obiekty
             //todo dodać skrót wlaczający tool na pierwszą zakładkę
         }
 
-        private void btnFind_Click(object sender, RoutedEventArgs e)
+        private void BtnFind_Click(object sender, RoutedEventArgs e)
         {
             StartSearch();
         }
 
-        private void btnUnExpAll_Click(object sender, RoutedEventArgs e)
+        private void BtnUnExpAll_Click(object sender, RoutedEventArgs e)
         {
             SetExpandAllInLvl(last_tvResultFlatTree.Items, false);
             SetExpandAllInLvl(last_tvResultTree.Items, false);
         }
 
-        private void btnExpAll_Click(object sender, RoutedEventArgs e)
+        private void BtnExpAll_Click(object sender, RoutedEventArgs e)
         {
             SetExpandAllInLvl(last_tvResultFlatTree.Items, true);
             SetExpandAllInLvl(last_tvResultTree.Items, true);
         }
 
-        private void rbLocation_Click(object sender, RoutedEventArgs e)
+        private void RbLocation_Click(object sender, RoutedEventArgs e)
         {
             tbLocation.IsEnabled = rbLocation.IsChecked == true;
             btnGetLocation.IsEnabled = rbLocation.IsChecked == true;
         }
 
-        private void btnGetLocation_Click(object sender, RoutedEventArgs e)
+        private void BtnGetLocation_Click(object sender, RoutedEventArgs e)
         {
             System.Windows.Forms.FolderBrowserDialog dlg = new System.Windows.Forms.FolderBrowserDialog();
             if (tbLocation.Text != "" && Directory.Exists(tbLocation.Text))
@@ -339,26 +339,26 @@ namespace VSFindTool
                 tbLocation.Text = dlg.SelectedPath;
         }
 
-        private void rbLocation_Checked(object sender, RoutedEventArgs e)
+        private void RbLocation_Checked(object sender, RoutedEventArgs e)
         {
             tbLocation.IsEnabled = true;
             btnGetLocation.IsEnabled = true;
         }
 
-        private void rbLocation_Unchecked(object sender, RoutedEventArgs e)
+        private void RbLocation_Unchecked(object sender, RoutedEventArgs e)
         {
             tbLocation.IsEnabled = false;
             btnGetLocation.IsEnabled = false;
         }
 
-        private void last_shortDir_Checked(object sender, RoutedEventArgs e)
+        private void Last_shortDir_Checked(object sender, RoutedEventArgs e)
         {
             SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, true);
             SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, true);
             last_shortDir.Foreground = Brushes.Red;
         }
 
-        private void last_shortDir_Unchecked(object sender, RoutedEventArgs e)
+        private void Last_shortDir_Unchecked(object sender, RoutedEventArgs e)
         {
             SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, false);
             SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, false);

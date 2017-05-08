@@ -40,15 +40,15 @@ namespace VSFindTool
         internal ITextStructureNavigatorSelectorService TextStructureNavigatorSelector { get; set; }
 
         [Import]
-        public ITextDocumentFactoryService textDocumentFactory { get; set; }
+        public ITextDocumentFactoryService TextDocumentFactory { get; set; }
 
 
         Connect c = new Connect();
 
         public string GetFindResults2Content()
         {
-            var findWindow1 = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults1);
-            var findWindow = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
+            var findWindow1 = Dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults1);
+            var findWindow = Dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
             findWindow.Activate();
             var selection = findWindow.Selection as EnvDTE.TextSelection;
             selection.SelectAll();
@@ -82,13 +82,13 @@ namespace VSFindTool
 
         public void HideFindResult2Window()
         {
-            var findWindow = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
+            var findWindow = Dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
             findWindow.Visible = false;
         }
 
         public void BringBackFindResult2Value()
         {
-            var findWindow = dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
+            var findWindow = Dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
             var selection = findWindow.Selection as EnvDTE.TextSelection;
             selection.StartOfDocument();
             selection.Delete(2);
@@ -139,10 +139,10 @@ namespace VSFindTool
                 last_LabelInfo.Content = info;
             };
 
-            if (dte.Solution.FullName != "")
+            if (Dte.Solution.FullName != "")
             {
                 
-                string solutionDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName);
+                string solutionDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName);
                 if (last_searchSettings.rbCurrDoc)
                 {
                     FindInDocument(LastDocWindow.Document, last_searchSettings, resultList, errList, solutionDir, LastDocWindow.Document.FullName);
@@ -193,9 +193,9 @@ namespace VSFindTool
             //Select last active document
             if (rbCurrDoc.IsChecked == true)
             {
-                if (dte.ActiveDocument != null && dte.ActiveDocument.ActiveWindow != null)
+                if (Dte.ActiveDocument != null && Dte.ActiveDocument.ActiveWindow != null)
                 {
-                    dte.ActiveDocument.ActiveWindow.Activate();
+                    Dte.ActiveDocument.ActiveWindow.Activate();
                 }
                 else if (LastDocWindow != null)
                 {
@@ -220,7 +220,7 @@ namespace VSFindTool
 
         private async void FindInProjects(IProgress<string> progress, FinishDelegate finish, FindSettings settings, List<ResultLineData> resultList, string solutionDir)
         {
-            foreach (Project project in dte.Solution.Projects)
+            foreach (Project project in Dte.Solution.Projects)
             {
                 await FindInProject(progress, null, project, last_searchSettings, resultList, solutionDir);
                 //await System.Threading.Tasks.Task.Delay(TimeSpan.FromMilliseconds(1));
@@ -243,7 +243,7 @@ namespace VSFindTool
                         progress.Report(String.Format("Searching {0}/{1}", loop, candidates.Count));
                     //await System.Threading.Tasks.Task.Delay(TimeSpan.FromMilliseconds(0));
                     asDocument = false;
-                    foreach (EnvDTE.Window window in dte.Windows)
+                    foreach (EnvDTE.Window window in Dte.Windows)
                     {
                         if (window.Document != null)
                         {
@@ -386,7 +386,7 @@ namespace VSFindTool
         private List<Document> GetOpenDocuments()
         {
             List<Document> result = new List<Document>();
-            foreach (EnvDTE.Window window in dte.Windows)
+            foreach (EnvDTE.Window window in Dte.Windows)
             {
                 if (window.Document != null)
                     result.Add(window.Document);
@@ -396,14 +396,14 @@ namespace VSFindTool
 
         private Project GetActiveProject()
         {
-            if (dte.Solution.Projects.Count == 1)
+            if (Dte.Solution.Projects.Count == 1)
             {
-                foreach (Project project in dte.Solution.Projects)
+                foreach (Project project in Dte.Solution.Projects)
                     return project;
             }
             else
             {
-                Array activeSolutionProjects = dte.ActiveSolutionProjects as Array;
+                Array activeSolutionProjects = Dte.ActiveSolutionProjects as Array;
                 if (activeSolutionProjects != null && activeSolutionProjects.Length > 0)
                     return activeSolutionProjects.GetValue(0) as Project;
                 else
