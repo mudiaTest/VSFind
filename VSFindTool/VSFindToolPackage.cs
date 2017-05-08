@@ -4,28 +4,14 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-using System;
-using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Utilities;//Install-Package Microsoft.VisualStudio.Utilities - from paket manager console
-
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.Win32;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
-using System.Threading.Tasks;
-
 using Microsoft.VisualStudio.ComponentModelHost;
-//using Microsoft.VisualStudio.Tools.Office.Runtime.Interop;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace VSFindTool
 {
@@ -76,7 +62,7 @@ namespace VSFindTool
         private DteInitializer dteInitializer;
         public EnvDTE.Window LastDocWindow = null;
         //internal IOleServiceProvider oleServiceProvider;
-        public void m_WindowActivatedEvent(EnvDTE.Window GotFocus, EnvDTE.Window LostFocus)
+        public void M_WindowActivatedEvent(EnvDTE.Window GotFocus, EnvDTE.Window LostFocus)
         {
             EnvDTE.DTE dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));   
             foreach (EnvDTE.Document doc in dte.Documents)
@@ -93,7 +79,7 @@ namespace VSFindTool
             }
         }
 
-        public void m_WindowClosingEvent(EnvDTE.Window Window)
+        public void M_WindowClosingEvent(EnvDTE.Window Window)
         {
             if (LastDocWindow == Window)
               LastDocWindow = null;
@@ -105,8 +91,8 @@ namespace VSFindTool
             if (dte2 != null)
             {
                 var m_WindowEvents = dte2.Events.WindowEvents;
-                m_WindowEvents.WindowActivated += new EnvDTE._dispWindowEvents_WindowActivatedEventHandler(m_WindowActivatedEvent);
-                m_WindowEvents.WindowClosing += new EnvDTE._dispWindowEvents_WindowClosingEventHandler(m_WindowClosingEvent);
+                m_WindowEvents.WindowActivated += new EnvDTE._dispWindowEvents_WindowActivatedEventHandler(M_WindowActivatedEvent);
+                m_WindowEvents.WindowClosing += new EnvDTE._dispWindowEvents_WindowClosingEventHandler(M_WindowClosingEvent);
             }
         }
         #region Package Members

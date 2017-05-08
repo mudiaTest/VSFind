@@ -1,35 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
-using EnvDTE;
-using EnvDTE80;
-using System.IO;
-using System.Diagnostics;
-using VSHierarchyAddin;
-using Extensibility;
-
-using System.ComponentModel.Composition; //[Import]
-using System.Threading;
+﻿using EnvDTE;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Classification;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations; //ITextSearchService, ITextStructureNavigatorSelectorService
-using Microsoft.VisualStudio.Text.Tagging;
-using System.Windows.Media;
-using System.Collections.ObjectModel;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.Shell;
-
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition; //[Import]
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using VSHierarchyAddin;
 
 namespace VSFindTool
 {
-    using System.Diagnostics.CodeAnalysis;
-    using System.Windows;
     using System.Windows.Controls;
 
     /// <summary>
@@ -110,7 +93,6 @@ namespace VSFindTool
             selection.StartOfDocument();
             selection.Delete(2);
             /*Doesn't work*/
-            var i = 0;
         }
 
         public void MoveResultToTextBox()
@@ -169,7 +151,6 @@ namespace VSFindTool
                 else if (last_searchSettings.rbOpenDocs)
                 {
                     List<Candidate> candidates = GetCandidates(GetActiveProject());
-                    int index;
                     foreach (Document document in GetOpenDocuments())
                     {
                         Candidate candidate = candidates.First<Candidate>((e => e.path.ToLower() == document.FullName.ToLower())); ;
@@ -415,10 +396,6 @@ namespace VSFindTool
 
         private Project GetActiveProject()
         {
-            foreach (Project project in dte.Solution.Projects)
-            {
-                var i = 0;
-            }
             if (dte.Solution.Projects.Count == 1)
             {
                 foreach (Project project in dte.Solution.Projects)

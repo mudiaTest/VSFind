@@ -11,7 +11,6 @@ namespace VSFindTool
     class Candidate
     {
         internal string path = "";
-        internal ProjectItem item;
         internal string FileName
         {
             get 

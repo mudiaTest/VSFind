@@ -52,7 +52,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Candidate.cs" />
-    <Compile Include="Class2.cs" />
     <Compile Include="Connect.cs" />
     <Compile Include="ErrData.cs" />
     <Compile Include="FindSettings.cs" />
