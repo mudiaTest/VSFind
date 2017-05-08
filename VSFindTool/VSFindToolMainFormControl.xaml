@@ -72,8 +72,6 @@
                                     <TextBox Name="tbLocation" TextWrapping="Wrap" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEnabled="False"/>
                                     <Button Name="btnGetLocation"  Content=". . ." Grid.Column="1" Margin="0" Width="25" HorizontalAlignment="Center" IsEnabled="False" Click="btnGetLocation_Click"/>
                                 </Grid>
-                                
-
                                 <CheckBox Grid.Row="0" Grid.Column="1" x:Name="chkCase" Content="Match Case"/>
                                 <CheckBox Grid.Row="1" Grid.Column="1" x:Name="chkWholeWord" Content="Match Whole Word"/>
                                 <CheckBox Grid.Row="2" Grid.Column="1" x:Name="chkForm" Content="Search Form Files" IsEnabled="False"/>
