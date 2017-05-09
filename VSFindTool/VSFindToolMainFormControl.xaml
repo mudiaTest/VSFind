@@ -6,9 +6,12 @@
              Background="{DynamicResource VsBrush.Window}"
              Foreground="{DynamicResource VsBrush.WindowText}"
              mc:Ignorable="d" d:DesignWidth="225"
-             Name="MyToolWindow" Height="344">
-    <Grid>
-        <TabControl x:Name="tbcMain" Margin="0">
+             Name="MyToolWindow">
+    <Grid UseLayoutRounding="False">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <TabControl Grid.Row="0" x:Name="tbcMain" Margin="0" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
             <TabItem x:Name="tbiSearch" Header="Search">
                 <Grid Background="#FFE5E5E5" Margin="0">
                     <StackPanel Margin="0">

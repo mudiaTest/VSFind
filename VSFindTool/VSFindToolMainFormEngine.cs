@@ -387,7 +387,7 @@ namespace VSFindTool
         }
 
 
-        private async System.Threading.Tasks.Task FindInLocation(IProgress<string> progress, FinishDelegate finish, Project project, FindSettings settings, List<ResultLineData> resultList, string solutionDir)
+        private async System.Threading.Tasks.Task FindInLocation(IProgress<string> progress, FinishDelegate finish, FindSettings settings, List<ResultLineData> resultList, string solutionDir)
         {
             await System.Threading.Tasks.Task.Run(() =>
             {

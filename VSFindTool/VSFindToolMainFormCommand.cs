@@ -21,6 +21,7 @@ namespace VSFindTool
         /// Command ID.
         /// </summary>
         public const int CommandId = 0x0100;
+        public const int vs2 = 0x0101;
 
         /// <summary>
         /// Command menu group (command set GUID).
@@ -57,6 +58,15 @@ namespace VSFindTool
                 var menuItem = new MenuCommand(this.ShowToolWindow, menuCommandID);
                 commandService.AddCommand(menuItem);
             }
+
+            OleMenuCommandService commandService2 = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+            if (commandService2 != null)
+            {
+                var menuCommandID = new CommandID(CommandSet, vs2);
+                var menuItem = new MenuCommand(this.FocusToolWindow, menuCommandID);
+                commandService2.AddCommand(menuItem);
+            }
+
         }
 
         /// <summary>
@@ -110,6 +120,21 @@ namespace VSFindTool
 
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());            
+        }
+
+        private void FocusToolWindow(object sender, EventArgs e)
+        {
+            // Get the instance number 0 of this tool window. This window is single instance so this instance
+            // is actually the only one.
+            // The last flag is set to true so that if the tool window does not exists it will be created.
+            ToolWindowPane window = this.package.FindToolWindow(typeof(VSFindToolMainForm), 0, true);            
+            if ((null == window) || (null == window.Frame))
+            {
+                throw new NotSupportedException("Cannot create tool window");
+            }
+            IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
+            ((VSFindToolMainFormControl)((VSFindToolMainForm)window).Content).DoFocus();
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
     }
 }

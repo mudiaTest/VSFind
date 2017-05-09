@@ -28,6 +28,7 @@ namespace VSFindTool
         /// </summary>
         public VSFindToolMainForm parentToolWindow;
         public EnvDTE.Window LastDocWindow;
+        internal string OuterSelectedText;
         EnvDTE80.DTE2 Dte
         {
             get
@@ -363,6 +364,17 @@ namespace VSFindTool
             SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, false);
             SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, false);
             last_shortDir.ClearValue(ToggleButton.ForegroundProperty);
+        }
+
+        internal void DoFocus()
+        {
+            EnvDTE.Window window = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
+            if (window != null) {
+                EnvDTE.TextSelection selection = window.Selection as EnvDTE.TextSelection;
+                if (selection != null && selection.Text != "")
+                    tbPhrase.Text = selection.Text;
+            }
+            tbiSearch.Focus();
         }
     }
 }

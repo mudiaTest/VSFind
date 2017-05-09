@@ -60,11 +60,12 @@ namespace VSFindTool
         internal IComponentModel componentModel;
         internal IVsTextManager textManager;
         private DteInitializer dteInitializer;
-        public EnvDTE.Window LastDocWindow = null;
+        internal EnvDTE.Window LastDocWindow = null;
+        internal string OuterSelectedText = "";
         //internal IOleServiceProvider oleServiceProvider;
         public void M_WindowActivatedEvent(EnvDTE.Window GotFocus, EnvDTE.Window LostFocus)
         {
-            EnvDTE.DTE dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));   
+            EnvDTE.DTE dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
             foreach (EnvDTE.Document doc in dte.Documents)
             {
                 foreach (EnvDTE.Window docWindow in doc.Windows)
