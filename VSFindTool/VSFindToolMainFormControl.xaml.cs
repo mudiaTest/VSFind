@@ -28,7 +28,7 @@ namespace VSFindTool
         /// </summary>
         public VSFindToolMainForm parentToolWindow;
         public EnvDTE.Window LastDocWindow;
-        internal string OuterSelectedText;
+        //internal string OuterSelectedText;
         EnvDTE80.DTE2 Dte
         {
             get
@@ -68,61 +68,28 @@ namespace VSFindTool
         [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Default event handler naming pattern")]
 
 
-        public void OpenResultDocLine(object src, EventArgs args)
+        /*Shortcut actions*/
+        internal void DoFocus()
         {
-            ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
-            FindSettings settings = dictSearchSettings[(TreeViewItem)src];
-            if (Dte != null)
+            EnvDTE.Window window = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
+            if (window != null)
             {
-                EnvDTE.Window docWindow = Dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
-                TextSelection selection = ((EnvDTE.TextSelection)Dte.ActiveDocument.Selection);
-                if (selection != null)
-                {
-                    selection.SelectAll();
-                    int lastLine = selection.CurrentLine;
-                    selection.MoveToLineAndOffset(Math.Max(1, resultLine.lineInFileNumbe.Value - 2), 1, false);
-                    selection.MoveToLineAndOffset(Math.Min(lastLine, resultLine.lineInFileNumbe.Value + 4), 1, true);
-                    selection.EndOfLine(true);
-                    dictTBPreview[(TreeViewItem)src].Text = selection.Text;
-
-                    selection.GotoLine(resultLine.lineInFileNumbe.Value, false);
-                    if (settings.chkRegExp == true)
-                        Debug.Assert(false, "Brak obsługi RegExp");
-                    else
-                    {
-                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value + 1, resultLine.textInLineNumer + 1, false);
-                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value + 1, resultLine.textInLineNumer + settings.tbPhrase.Length + 1, true);
-                    }
-                    //Add action to set focus no doc window after finishing all action in queue (currenty there should be only double click event) 
-                    Action showAction = () => docWindow.Activate();
-                    this.Dispatcher.BeginInvoke(showAction);
-                }
+                EnvDTE.TextSelection selection = window.Selection as EnvDTE.TextSelection;
+                if (selection != null && selection.Text != "")
+                    tbPhrase.Text = selection.Text;
             }
-            else
-                Debug.Assert(false, "Brak DTE");
+            tbiSearch.IsSelected = true; //use instwad of "tbcMain.SelectedIndex = 0;"
+            System.Windows.Input.FocusManager.SetFocusedElement(tbiSearch, tbPhrase); //use instead of "tbPhrase.Focus();"
+
         }
 
-        public void PreviewResultDoc(object src, EventArgs args)
+        internal void ShowResults()
         {
-            ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
-            FindSettings settings = dictSearchSettings[(TreeViewItem)src];
-            TextBox tbPreview = dictTBPreview[(TreeViewItem)src];
-            tbPreview.Text = "";
-            int lineNumber = 0;
-            using (var reader = new StreamReader(resultLine.linePath))
-            {
-                string line;
-                while (lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
-                {
-                    lineNumber++;
-                    line = reader.ReadLine();
-                    if (lineNumber >= Math.Max(0, resultLine.lineInFileNumbe.Value - 2) && lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
-                        tbPreview.AppendText((tbPreview.Text != "" ? Environment.NewLine : "") + line);
-                }
-            }
+            tbiLastResult.IsSelected = true;
         }
 
 
+        /*Filling and actions of result TreeViews*/
         internal void MoveResultToTreeList(TreeView tvResultTree, FindSettings last_searchSettings, TextBox tbPreview)
         {
             ItemCollection treeItemColleaction;
@@ -140,7 +107,7 @@ namespace VSFindTool
             foreach (ResultLineData resultLineData in resultList)
             {
                 treeItemColleaction = tvResultTree.Items;
-                treeItem = null; 
+                treeItem = null;
                 pathAgg = "";
                 for (int i = 0; i < resultLineData.pathPartsList.Count; i++)
                 {
@@ -236,7 +203,7 @@ namespace VSFindTool
             TVData tvData = dictTVData[treeView];
             if (blShort)
             {
-                foreach(TreeViewItem item in collection)
+                foreach (TreeViewItem item in collection)
                 {
                     if (item.Items.Count != 0)
                     {
@@ -287,6 +254,63 @@ namespace VSFindTool
             }
         }
 
+
+        public void OpenResultDocLine(object src, EventArgs args)
+        {
+            ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
+            FindSettings settings = dictSearchSettings[(TreeViewItem)src];
+            if (Dte != null)
+            {
+                EnvDTE.Window docWindow = Dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
+                TextSelection selection = ((EnvDTE.TextSelection)Dte.ActiveDocument.Selection);
+                if (selection != null)
+                {
+                    selection.SelectAll();
+                    int lastLine = selection.CurrentLine;
+                    selection.MoveToLineAndOffset(Math.Max(1, resultLine.lineInFileNumbe.Value - 2), 1, false);
+                    selection.MoveToLineAndOffset(Math.Min(lastLine, resultLine.lineInFileNumbe.Value + 4), 1, true);
+                    selection.EndOfLine(true);
+                    dictTBPreview[(TreeViewItem)src].Text = selection.Text;
+
+                    selection.GotoLine(resultLine.lineInFileNumbe.Value, false);
+                    if (settings.chkRegExp == true)
+                        Debug.Assert(false, "Brak obsługi RegExp");
+                    else
+                    {
+                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value + 1, resultLine.textInLineNumer + 1, false);
+                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value + 1, resultLine.textInLineNumer + settings.tbPhrase.Length + 1, true);
+                    }
+                    //Add action to set focus no doc window after finishing all action in queue (currenty there should be only double click event) 
+                    Action showAction = () => docWindow.Activate();
+                    this.Dispatcher.BeginInvoke(showAction);
+                }
+            }
+            else
+                Debug.Assert(false, "Brak DTE");
+        }
+
+        public void PreviewResultDoc(object src, EventArgs args)
+        {
+            ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
+            FindSettings settings = dictSearchSettings[(TreeViewItem)src];
+            TextBox tbPreview = dictTBPreview[(TreeViewItem)src];
+            tbPreview.Text = "";
+            int lineNumber = 0;
+            using (var reader = new StreamReader(resultLine.linePath))
+            {
+                string line;
+                while (lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
+                {
+                    lineNumber++;
+                    line = reader.ReadLine();
+                    if (lineNumber >= Math.Max(0, resultLine.lineInFileNumbe.Value - 2) && lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
+                        tbPreview.AppendText((tbPreview.Text != "" ? Environment.NewLine : "") + line);
+                }
+            }
+        }
+
+
+        /*Events*/
         private void Tb_Checked(object sender, RoutedEventArgs e)
         {
             last_rowTree.Height = new GridLength(1, GridUnitType.Star);
@@ -366,15 +390,10 @@ namespace VSFindTool
             last_shortDir.ClearValue(ToggleButton.ForegroundProperty);
         }
 
-        internal void DoFocus()
+        private void tbPhrase_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            EnvDTE.Window window = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
-            if (window != null) {
-                EnvDTE.TextSelection selection = window.Selection as EnvDTE.TextSelection;
-                if (selection != null && selection.Text != "")
-                    tbPhrase.Text = selection.Text;
-            }
-            tbiSearch.Focus();
+            if (e.Key == System.Windows.Input.Key.Enter)
+                StartSearch();
         }
     }
 }

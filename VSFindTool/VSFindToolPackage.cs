@@ -38,6 +38,7 @@ namespace VSFindTool
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(VSFindToolMainForm))]
+    [ProvideAutoLoad(UIContextGuids80.SolutionExists)]
     public sealed class VSFindToolPackage : Package
     {
         /// <summary>
@@ -61,11 +62,17 @@ namespace VSFindTool
         internal IVsTextManager textManager;
         private DteInitializer dteInitializer;
         internal EnvDTE.Window LastDocWindow = null;
-        internal string OuterSelectedText = "";
-        //internal IOleServiceProvider oleServiceProvider;
+        //internal string OuterSelectedText = "";
         public void M_WindowActivatedEvent(EnvDTE.Window GotFocus, EnvDTE.Window LostFocus)
         {
             EnvDTE.DTE dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
+            
+            /*EnvDTE.TextSelection selection = LostFocus.Selection as EnvDTE.TextSelection;
+            if (selection != null)
+                OuterSelectedText = selection.Text;
+            else
+                OuterSelectedText = "";*/
+
             foreach (EnvDTE.Document doc in dte.Documents)
             {
                 foreach (EnvDTE.Window docWindow in doc.Windows)
@@ -127,15 +134,9 @@ namespace VSFindTool
                 componentModel = (IComponentModel)GetService(typeof(SComponentModel));
             }
 
-            //if (oleServiceProvider = null)
-            //{
-            //    oleServiceProvider = GetService(typeof(IOleServiceProvider));
-            //}
-
             if (this.dte2 == null) // The IDE is not yet fully initialized
             {
                 shellService = GetService(typeof(SVsShell)) as IVsShell;
-               // IContentTypeRegistryService service3 = this.GetService<IContentTypeRegistryService>();
                 
                 this.dteInitializer = new DteInitializer(shellService, this.InitializeDTE);
             }

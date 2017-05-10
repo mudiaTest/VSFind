@@ -21,7 +21,8 @@ namespace VSFindTool
         /// Command ID.
         /// </summary>
         public const int CommandId = 0x0100;
-        public const int vs2 = 0x0101;
+        public const int VSFindToolGetFocus = 0x0101;
+        public const int VSFindToolShowResults = 0x0102;
 
         /// <summary>
         /// Command menu group (command set GUID).
@@ -59,12 +60,20 @@ namespace VSFindTool
                 commandService.AddCommand(menuItem);
             }
 
-            OleMenuCommandService commandService2 = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            if (commandService2 != null)
+            OleMenuCommandService commandServiceFocus = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+            if (commandServiceFocus != null)
             {
-                var menuCommandID = new CommandID(CommandSet, vs2);
+                var menuCommandID = new CommandID(CommandSet, VSFindToolGetFocus);
                 var menuItem = new MenuCommand(this.FocusToolWindow, menuCommandID);
-                commandService2.AddCommand(menuItem);
+                commandServiceFocus.AddCommand(menuItem);
+            }
+
+            OleMenuCommandService commandServiceResults = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+            if (commandServiceResults != null)
+            {
+                var menuCommandID = new CommandID(CommandSet, VSFindToolShowResults);
+                var menuItem = new MenuCommand(this.ResultToolWindow, menuCommandID);
+                commandServiceResults.AddCommand(menuItem);
             }
 
         }
@@ -133,8 +142,23 @@ namespace VSFindTool
                 throw new NotSupportedException("Cannot create tool window");
             }
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
-            ((VSFindToolMainFormControl)((VSFindToolMainForm)window).Content).DoFocus();
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
+            ((VSFindToolMainFormControl)((VSFindToolMainForm)window).Content).DoFocus();
+        }
+
+        private void ResultToolWindow(object sender, EventArgs e)
+        {
+            // Get the instance number 0 of this tool window. This window is single instance so this instance
+            // is actually the only one.
+            // The last flag is set to true so that if the tool window does not exists it will be created.
+            ToolWindowPane window = this.package.FindToolWindow(typeof(VSFindToolMainForm), 0, true);
+            if ((null == window) || (null == window.Frame))
+            {
+                throw new NotSupportedException("Cannot create tool window");
+            }
+            IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
+            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
+            ((VSFindToolMainFormControl)((VSFindToolMainForm)window).Content).ShowResults();
         }
     }
 }

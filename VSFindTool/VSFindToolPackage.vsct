@@ -51,14 +51,26 @@
       </Button>
 
       <!--Invisible button used to add possition to keybinding-->
-      <Button guid="guidVSFindToolPackageCmdSet" id="vs2" priority="0x0101" type="Button">
+      <Button guid="guidVSFindToolPackageCmdSet" id="VSFindToolGetFocus" priority="0x0101" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
+        <Icon guid="guidImages" id="bmpPic1" />
         <CommandFlag>DefaultInvisible</CommandFlag>
-        <CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>VSFindToolMainForm.Focus</ButtonText>
         </Strings>        
       </Button>
+
+      <!--Invisible button used to add possition to keybinding-->
+      <Button guid="guidVSFindToolPackageCmdSet" id="VSFindToolShowResults" priority="0x0102" type="Button">
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1"/>
+        <Icon guid="guidImages" id="bmpPic1" />
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <!--<CommandFlag>DynamicVisibility</CommandFlag>--> <!--właczenie powoduje pojawienie się w menu po tym jak zostanie użyte-->
+        <Strings>
+          <ButtonText>VSFindToolMainForm.Results</ButtonText>
+        </Strings>
+      </Button>
+      
     </Buttons>
 
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
@@ -79,7 +91,8 @@
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidVSFindToolPackageCmdSet" value="{bd0f02b8-4e7f-466e-87d7-c970f5981465}">
       <IDSymbol name="VSFindToolMainFormCommandId" value="0x0100" />
-      <IDSymbol name="vs2" value="0x0101" />
+      <IDSymbol name="VSFindToolGetFocus" value="0x0101" />
+      <IDSymbol name="VSFindToolShowResults" value="0x0102" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{d0e383d3-28af-46eb-abba-043ac3226e69}" >

@@ -6,7 +6,7 @@
              Background="{DynamicResource VsBrush.Window}"
              Foreground="{DynamicResource VsBrush.WindowText}"
              mc:Ignorable="d" d:DesignWidth="225"
-             Name="MyToolWindow" Height="210">
+             Name="MyToolWindow" MinHeight="250">
     <Grid UseLayoutRounding="False" Margin="0,0,0,-11">
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -20,7 +20,7 @@
                                 <ColumnDefinition/>
                                 <ColumnDefinition Width="30"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Row="0" Grid.Column="0" x:Name="tbPhrase" TextWrapping="Wrap" Text="public" BorderThickness="1" Margin="0">
+                            <TextBox Grid.Row="0" Grid.Column="0" x:Name="tbPhrase" TextWrapping="Wrap" Text="public" BorderThickness="1" Margin="0" KeyUp="tbPhrase_KeyUp">
                                 <TextBox.BorderBrush>
                                     <LinearGradientBrush EndPoint="0,20" MappingMode="Absolute" StartPoint="0,0">
                                         <GradientStop Color="#FFABADB3" Offset="0.05"/>
