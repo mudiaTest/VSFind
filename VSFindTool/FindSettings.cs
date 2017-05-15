@@ -23,6 +23,7 @@ namespace VSFindTool
         internal bool rbSolution;
         internal bool rbLocation;
         internal string tbLocation;
+        internal string tbfileFilter;
         
         public string ToLabelString()
         {
@@ -56,6 +57,8 @@ namespace VSFindTool
                 result += " [Project] ";
             else if (rbSolution)
                 result += " [Solution] ";
+            else if (rbLocation)
+                result += " [" + tbLocation + " / " + tbfileFilter + "] ";
 
             result += "'" + tbPhrase + "'";
 
@@ -121,6 +124,8 @@ namespace VSFindTool
                 AddLabel("Project", infoWrapPanel);
             else if (rbSolution)
                 AddLabel("Solution", infoWrapPanel);
+            else if (rbLocation)
+                AddLabel(tbLocation + " / " + tbfileFilter, infoWrapPanel);
 
             //separator
             AddExtraBold(AddLabel(" | ", infoWrapPanel));
@@ -142,7 +147,8 @@ namespace VSFindTool
                 rbProject = rbProject,
                 rbSolution = rbSolution,
                 rbLocation = rbLocation,
-                tbLocation = tbLocation
+                tbLocation = tbLocation,
+                tbfileFilter = tbfileFilter
             };
         }
 
@@ -164,6 +170,7 @@ namespace VSFindTool
             form.rbSolution.IsChecked = rbSolution;
             form.rbLocation.IsChecked = rbLocation;
             form.tbLocation.Text = tbLocation;
+            form.SetTbfileFilter(tbfileFilter);
         }
     }
 }

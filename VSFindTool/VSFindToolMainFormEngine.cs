@@ -394,7 +394,7 @@ namespace VSFindTool
                 bool asDocument = false;
                 int loop = 0;
                 List<Candidate> candidates = new List<Candidate>();
-                GetCandidatesFromLocation(settings.tbLocation, candidates);
+                GetCandidatesFromLocation(settings.tbLocation, candidates, settings.);
                 foreach (Candidate candidate in candidates)
                 {
                     loop++;

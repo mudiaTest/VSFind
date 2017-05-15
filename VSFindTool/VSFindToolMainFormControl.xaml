@@ -69,8 +69,8 @@
                                     </Grid.ColumnDefinitions>
 
                                     <ComboBox Grid.Column="0" Name="cbFileMask" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEditable="True" Height="18" Margin="0" Padding="0"/>
-                                    <Button Grid.Column="1" Name="btnAddFileMasks" Content="+" Margin="0" Width="25" HorizontalAlignment="Center" Click="BtnGetLocation_Click" Padding="1,-2,1,1" Height="18"/>
-                                    <Button Grid.Column="2" Name="btnDelFileMasks" Content="-" Margin="0" Width="25" HorizontalAlignment="Center" Click="BtnGetLocation_Click" Padding="1,-2,1,1" Height="18"/>
+                                    <Button Grid.Column="1" Name="btnAddFileMasks" Content="+" Margin="0" Width="25" HorizontalAlignment="Center" Padding="1,-2,1,1" Height="18" Click="btnAddFileMasks_Click"/>
+                                    <Button Grid.Column="2" Name="btnDelFileMasks" Content="-" Margin="0" Width="25" HorizontalAlignment="Center" Padding="1,-2,1,1" Height="18" Click="btnDelFileMasks_Click"/>
                                 </Grid>
                                 
                                 <CheckBox Grid.Row="0" Grid.Column="1" x:Name="chkCase" Content="Match Case"/>

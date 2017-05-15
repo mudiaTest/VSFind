@@ -57,6 +57,7 @@ namespace VSFindTool
         {
             InitializeComponent();
             last_shortDir.IsChecked = true;
+            FileMask.FillCB(cbFileMask);
         }
 
         /// <summary>
@@ -310,6 +311,21 @@ namespace VSFindTool
         }
 
 
+        /**/
+        public void SetTbfileFilter(string value)
+        {
+            cbFileMask.SelectedValue = 0;
+            foreach (FileMaskItem item in cbFileMask.Items)
+            {
+                if (item.Value == value)
+                {
+                    cbFileMask.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+
         /*Events*/
         private void Tb_Checked(object sender, RoutedEventArgs e)
         {
@@ -368,12 +384,18 @@ namespace VSFindTool
         {
             tbLocation.IsEnabled = true;
             btnGetLocation.IsEnabled = true;
+            cbFileMask.IsEnabled = true;
+            btnAddFileMasks.IsEnabled = true;
+            btnDelFileMasks.IsEnabled = true;
         }
 
         private void RbLocation_Unchecked(object sender, RoutedEventArgs e)
         {
             tbLocation.IsEnabled = false;
             btnGetLocation.IsEnabled = false;
+            cbFileMask.IsEnabled = false;
+            btnAddFileMasks.IsEnabled = false;
+            btnDelFileMasks.IsEnabled = false;
         }
 
         private void Last_shortDir_Checked(object sender, RoutedEventArgs e)
@@ -394,6 +416,19 @@ namespace VSFindTool
         {
             if (e.Key == System.Windows.Input.Key.Enter)
                 StartSearch();
+        }
+
+        private void btnAddFileMasks_Click(object sender, RoutedEventArgs e)
+        {
+            FileMask.AddToRegistry(cbFileMask.Text);
+            FileMask.FillCB(cbFileMask);
+            cbFileMask.SelectedIndex = cbFileMask.Items.Count;
+        }
+
+        private void btnDelFileMasks_Click(object sender, RoutedEventArgs e)
+        { 
+            FileMask.DelFromRegistry( ((FileMaskItem)cbFileMask.SelectedItem).Key );
+            FileMask.FillCB(cbFileMask);
         }
     }
 }
