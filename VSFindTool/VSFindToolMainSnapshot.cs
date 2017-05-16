@@ -67,10 +67,6 @@ namespace VSFindTool
             });
             grid.RowDefinitions.Add(new RowDefinition()
             {
-                Height = new GridLength(20, GridUnitType.Pixel)
-            });
-            grid.RowDefinitions.Add(new RowDefinition()
-            {
                 Height = new GridLength(30, GridUnitType.Pixel)
             });
             RowDefinition rowFlat = new RowDefinition()
@@ -92,20 +88,14 @@ namespace VSFindTool
                 Name = snapshotTag + "_preview",
                 Height = new GridLength(100, GridUnitType.Pixel)
             });
+            grid.RowDefinitions.Add(new RowDefinition()
+            {
+                Height = new GridLength(20, GridUnitType.Pixel)
+            });
             //add grid as the main element in tab
             newTab.Content = grid;
             //Set snapshot tab as selected
             //tbcMain.SelectedItem = newTab;
-
-            //Result summary
-            Label infoLabel = new Label()
-            {
-                Name = snapshotTag + "labelInfo",
-                Padding = new Thickness(5, 2, 5, 5),
-                Content = infoContent
-            };
-            Grid.SetRow(infoLabel, 0);
-            Grid.SetColumnSpan(infoLabel, 2);
 
             //Info Wraper
             WrapPanel infoWrapPanel = new WrapPanel()
@@ -116,7 +106,7 @@ namespace VSFindTool
                 HorizontalAlignment = HorizontalAlignment.Left
             };
             grid.Children.Add(infoWrapPanel);
-            Grid.SetRow(infoWrapPanel, 1);
+            Grid.SetRow(infoWrapPanel, 0);
             Grid.SetColumn(infoWrapPanel, 0);
             last_searchSettings.FillWraperPanel(infoWrapPanel);
 
@@ -134,7 +124,7 @@ namespace VSFindTool
                 Width = new GridLength(33, GridUnitType.Pixel)
             });
             grid.Children.Add(navGrid);
-            Grid.SetRow(navGrid, 2);
+            Grid.SetRow(navGrid, 1);
 
             //upper menu wrap panel
             WrapPanel upperMenuWrapPanel = new WrapPanel()
@@ -261,7 +251,7 @@ namespace VSFindTool
                 HorizontalContentAlignment = HorizontalAlignment.Stretch
             };
             grid.Children.Add(flattv);
-            Grid.SetRow(flattv, 3);
+            Grid.SetRow(flattv, 2);
             Grid.SetColumnSpan(flattv, 1);
 
             //add Tree view
@@ -271,7 +261,7 @@ namespace VSFindTool
                 HorizontalContentAlignment = HorizontalAlignment.Stretch
             };
             grid.Children.Add(treetv);
-            Grid.SetRow(treetv, 4);
+            Grid.SetRow(treetv, 3);
             Grid.SetColumnSpan(treetv, 2);
 
             TextBox tbPreview = new TextBox()
@@ -279,8 +269,19 @@ namespace VSFindTool
                 Name = snapshotTag + "_TBPreview",
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
             };
-            Grid.SetRow(tbPreview, 5);
+            Grid.SetRow(tbPreview, 4);
             Grid.SetColumnSpan(tbPreview, 2);
+
+
+            //Result summary
+            Label infoLabel = new Label()
+            {
+                Name = snapshotTag + "labelInfo",
+                Padding = new Thickness(5, 2, 5, 5),
+                Content = infoContent
+            };
+            Grid.SetRow(infoLabel, 5);
+            Grid.SetColumnSpan(infoLabel, 2);
 
             //Events
             btnExpAll.Click += (o, e) =>

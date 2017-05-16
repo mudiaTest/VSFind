@@ -234,6 +234,7 @@ namespace VSFindTool
         }
 
 
+
         private async System.Threading.Tasks.Task FindInProject(IProgress<string> progress, FinishDelegate finish, Project project, FindSettings settings, List<ResultLineData> resultList, string solutionDir)
         {
             await System.Threading.Tasks.Task.Run(() =>
@@ -397,7 +398,7 @@ namespace VSFindTool
                 List<Candidate> candidates = new List<Candidate>();
 
                 List<string> filterList = new List<string>();
-                foreach(string filter in settings.tbfileFilter.Split(',').ToList())
+                foreach(string filter in settings.tbfileFilter.Split(';').ToList())
                 {
                     filterList.Add(filter.Replace(".", "\\.").Replace("*", ".*")+"$");
                 }
@@ -406,17 +407,16 @@ namespace VSFindTool
                 foreach (Candidate candidate in candidates)
                 {
                     loop++;
-                  /*if (progress != null)
+                    if (progress != null)
                         progress.Report(String.Format("Searching {0}/{1}", loop, candidates.Count));
                     //await System.Threading.Tasks.Task.Delay(TimeSpan.FromMilliseconds(0));
-                    FindInFile(candidate.path, last_searchSettings, resultList, solutionDir);*/
+                    FindInFile(candidate.path, last_searchSettings, resultList, solutionDir);
                 }
             });
             if (finish != null)
                 finish();
             return;
         }
-
 
 
         private List<Document> GetOpenDocuments()

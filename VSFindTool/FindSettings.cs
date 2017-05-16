@@ -89,6 +89,10 @@ namespace VSFindTool
         {
             infoWrapPanel.Children.Clear();
 
+            AddLabel("`" + tbPhrase + "`", infoWrapPanel);
+            //separator
+            AddExtraBold(AddLabel(" | ", infoWrapPanel));
+
             //WholeWord
             if (chkWholeWord)
                 AddExtraBold(AddLabel("W", infoWrapPanel));
@@ -125,12 +129,11 @@ namespace VSFindTool
             else if (rbSolution)
                 AddLabel("Solution", infoWrapPanel);
             else if (rbLocation)
-                AddLabel(tbLocation + " / " + tbfileFilter, infoWrapPanel);
-
-            //separator
-            AddExtraBold(AddLabel(" | ", infoWrapPanel));
-
-            AddLabel("`" + tbPhrase + "`", infoWrapPanel);
+            {
+                AddLabel(tbLocation, infoWrapPanel);
+                AddExtraBold(AddLabel(" | ", infoWrapPanel));
+                AddLabel(tbfileFilter, infoWrapPanel);
+            }            
         }
 
         public FindSettings GetCopy()
@@ -170,7 +173,7 @@ namespace VSFindTool
             form.rbSolution.IsChecked = rbSolution;
             form.rbLocation.IsChecked = rbLocation;
             form.tbLocation.Text = tbLocation;
-            form.SetTbfileFilter(tbfileFilter);
+            form.SetTbFileFilter(tbfileFilter);
         }
     }
 }

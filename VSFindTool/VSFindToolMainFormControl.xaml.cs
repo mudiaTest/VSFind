@@ -312,8 +312,8 @@ namespace VSFindTool
         }
 
 
-        /**/
-        public void SetTbfileFilter(string value)
+        /*Set settings*/
+        public void SetTbFileFilter(string value)
         {
             cbFileMask.SelectedValue = 0;
             foreach (FileMaskItem item in cbFileMask.Items)
