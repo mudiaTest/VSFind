@@ -194,6 +194,7 @@ namespace VSFindTool
             last_searchSettings.rbSolution = rbSolution.IsChecked == true;
             last_searchSettings.rbLocation = rbLocation.IsChecked == true;
             last_searchSettings.tbLocation = tbLocation.Text;
+            last_searchSettings.tbfileFilter = cbFileMask.Text;
             //Select last active document
             if (rbCurrDoc.IsChecked == true)
             {
@@ -394,14 +395,21 @@ namespace VSFindTool
                 bool asDocument = false;
                 int loop = 0;
                 List<Candidate> candidates = new List<Candidate>();
-                GetCandidatesFromLocation(settings.tbLocation, candidates, settings.);
+
+                List<string> filterList = new List<string>();
+                foreach(string filter in settings.tbfileFilter.Split(',').ToList())
+                {
+                    filterList.Add(filter.Replace(".", "\\.").Replace("*", ".*")+"$");
+                }
+
+                GetCandidatesFromLocation(settings.tbLocation, candidates, filterList);
                 foreach (Candidate candidate in candidates)
                 {
                     loop++;
-                    if (progress != null)
+                  /*if (progress != null)
                         progress.Report(String.Format("Searching {0}/{1}", loop, candidates.Count));
                     //await System.Threading.Tasks.Task.Delay(TimeSpan.FromMilliseconds(0));
-                    FindInFile(candidate.path, last_searchSettings, resultList, solutionDir);
+                    FindInFile(candidate.path, last_searchSettings, resultList, solutionDir);*/
                 }
             });
             if (finish != null)
@@ -451,21 +459,26 @@ namespace VSFindTool
             return result;
         }
 
-        private void GetCandidatesFromLocation(string parentDirPath, List<Candidate> result)
+        private void GetCandidatesFromLocation(string parentDirPath, List<Candidate> result, List<string> fileFilters)
         {
-            /*List<Candidate> result = new List<Candidate>();
-            foreach (ProjectItem item in project.ProjectItems)
+            foreach(string filePath in Directory.GetFiles(parentDirPath))
             {
-                GetCandidates(item, result, Path.GetDirectoryName(project.FullName));
-            }
-            return result;*/
-
-            foreach(string filePath in Directory.GetFiles(parentDirPath)){
-                result.Add(new Candidate() { path = filePath });
+                bool blAdd = false;
+                foreach(string filter in fileFilters)
+                {
+                    if (Regex.IsMatch(Path.GetFileName(filePath), filter, RegexOptions.IgnoreCase))
+                    {
+                        blAdd = true;
+                        break;
+                    }
+                }
+               
+                if (blAdd)
+                    result.Add(new Candidate() { path = filePath });
             }
             foreach (string dirPath in Directory.GetDirectories(parentDirPath))
             {
-                GetCandidatesFromLocation(dirPath, result);
+                GetCandidatesFromLocation(dirPath, result, fileFilters);
             }
 
         }

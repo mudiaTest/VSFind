@@ -58,8 +58,8 @@
                                         <ColumnDefinition/>
                                         <ColumnDefinition Width="30"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBox Name="tbLocation" TextWrapping="Wrap" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Height="18"/>
-                                    <Button Name="btnGetLocation" Content=". . ." Grid.Column="1" Margin="0" Width="25" HorizontalAlignment="Center" Click="BtnGetLocation_Click" Height="18"/>
+                                    <TextBox Name="tbLocation" TextWrapping="Wrap" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Height="18" IsEnabled="False"/>
+                                    <Button Name="btnGetLocation" Content=". . ." Grid.Column="1" Margin="0" Width="25" HorizontalAlignment="Center" Click="BtnGetLocation_Click" Height="18" IsEnabled="False"/>
                                 </Grid>
                                 <Grid Grid.Row="7" Grid.ColumnSpan="2">
                                     <Grid.ColumnDefinitions>
@@ -68,9 +68,9 @@
                                         <ColumnDefinition Width="28"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <ComboBox Grid.Column="0" Name="cbFileMask" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEditable="True" Height="18" Margin="0" Padding="0"/>
-                                    <Button Grid.Column="1" Name="btnAddFileMasks" Content="+" Margin="0" Width="25" HorizontalAlignment="Center" Padding="1,-2,1,1" Height="18" Click="btnAddFileMasks_Click"/>
-                                    <Button Grid.Column="2" Name="btnDelFileMasks" Content="-" Margin="0" Width="25" HorizontalAlignment="Center" Padding="1,-2,1,1" Height="18" Click="btnDelFileMasks_Click"/>
+                                    <ComboBox Grid.Column="0" Name="cbFileMask" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEditable="True" Height="18" Margin="0" Padding="0" IsEnabled="False"/>
+                                    <Button Grid.Column="1" Name="btnAddFileMasks" Content="+" Margin="0" Width="25" HorizontalAlignment="Center" Padding="1,-2,1,1" Height="18" Click="btnAddFileMasks_Click" IsEnabled="False"/>
+                                    <Button Grid.Column="2" Name="btnDelFileMasks" Content="-" Margin="0" Width="25" HorizontalAlignment="Center" Padding="1,-2,1,1" Height="18" Click="btnDelFileMasks_Click" IsEnabled="False"/>
                                 </Grid>
                                 
                                 <CheckBox Grid.Row="0" Grid.Column="1" x:Name="chkCase" Content="Match Case"/>

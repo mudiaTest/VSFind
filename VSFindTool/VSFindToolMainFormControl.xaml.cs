@@ -58,6 +58,7 @@ namespace VSFindTool
             InitializeComponent();
             last_shortDir.IsChecked = true;
             FileMask.FillCB(cbFileMask);
+            cbFileMask.SelectedIndex = 0;
         }
 
         /// <summary>
