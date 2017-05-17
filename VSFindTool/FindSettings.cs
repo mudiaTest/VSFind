@@ -66,76 +66,6 @@ namespace VSFindTool
             return result;
         }
 
-        private Label AddLabel(string text, WrapPanel infoWrapPanel)
-        {
-            Label lbl = new Label() { Content = text, Padding = new Thickness(2, 0, 1, 0), Margin = new Thickness(0, 2, 0, 0) };
-            infoWrapPanel.Children.Add(lbl);
-            return lbl;
-        }
-
-        private Label AddBold(Label lbl)
-        {
-            lbl.FontWeight = FontWeights.Bold;
-            return lbl;
-        }
-
-        private Label AddExtraBold(Label lbl)
-        {
-            lbl.FontWeight = FontWeights.ExtraBold;
-            return lbl;
-        }
-
-        public void FillWraperPanel(WrapPanel infoWrapPanel)
-        {
-            infoWrapPanel.Children.Clear();
-
-            AddLabel("`" + tbPhrase + "`", infoWrapPanel);
-            //separator
-            AddExtraBold(AddLabel(" | ", infoWrapPanel));
-
-            //WholeWord
-            if (chkWholeWord)
-                AddExtraBold(AddLabel("W", infoWrapPanel));
-            else
-                AddLabel("w", infoWrapPanel);
-
-            //Form
-            if (chkForm)
-                AddExtraBold(AddLabel("F", infoWrapPanel));
-            else
-                AddLabel("f", infoWrapPanel);
-
-            //CharCase
-            if (chkCase)
-                AddExtraBold(AddLabel("C", infoWrapPanel));
-            else
-                AddLabel("c", infoWrapPanel);
-
-            //RegExp
-            if (chkRegExp)
-                AddExtraBold(AddLabel("R", infoWrapPanel));
-            else
-                AddLabel("r", infoWrapPanel);
-
-            //separator
-            AddExtraBold(AddLabel(" | ", infoWrapPanel));
-
-            if (rbCurrDoc)
-                AddLabel("CurDocum", infoWrapPanel);
-            else if (rbOpenDocs)
-                AddLabel("Opened", infoWrapPanel);
-            else if (rbProject)
-                AddLabel("Project", infoWrapPanel);
-            else if (rbSolution)
-                AddLabel("Solution", infoWrapPanel);
-            else if (rbLocation)
-            {
-                AddLabel(tbLocation, infoWrapPanel);
-                AddExtraBold(AddLabel(" | ", infoWrapPanel));
-                AddLabel(tbfileFilter, infoWrapPanel);
-            }            
-        }
-
         public FindSettings GetCopy()
         {
             return new FindSettings()
@@ -174,6 +104,6 @@ namespace VSFindTool
             form.rbLocation.IsChecked = rbLocation;
             form.tbLocation.Text = tbLocation;
             form.SetTbFileFilter(tbfileFilter);
-        }
+        }        
     }
 }

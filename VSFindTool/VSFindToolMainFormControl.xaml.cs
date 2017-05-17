@@ -43,7 +43,9 @@ namespace VSFindTool
                 return ((IComponentModel)parentToolWindow.Package).componentModel;
             }
         }*/
+
         Dictionary<string, FindSettings> findSettings = new Dictionary<string, FindSettings>();
+
         IVsTextManager TextManager
         {
             get
@@ -56,9 +58,15 @@ namespace VSFindTool
         public VSFindToolMainFormControl()
         {
             InitializeComponent();
+            Init();
+        }
+
+        internal void Init()
+        {
             last_shortDir.IsChecked = true;
             FileMask.FillCB(cbFileMask);
             cbFileMask.SelectedIndex = 0;
+            dictTBPreview.Add(last_searchSettings, last_TBPreview);
         }
 
         /// <summary>
@@ -68,6 +76,7 @@ namespace VSFindTool
         /// <param name="e">The event args.</param>
         [SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions", Justification = "Sample code")]
         [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Default event handler naming pattern")]
+
 
 
         /*Shortcut actions*/
@@ -89,6 +98,7 @@ namespace VSFindTool
         {
             tbiLastResult.IsSelected = true;
         }
+
 
 
         /*Filling and actions of result TreeViews*/
@@ -137,8 +147,7 @@ namespace VSFindTool
                         leafItem.MouseDoubleClick += OpenResultDocLine;
                         leafItem.MouseUp += PreviewResultDoc;
                         dictResultLines.Add(leafItem, resultLineData);
-                        dictSearchSettings.Add(leafItem, last_searchSettings);
-                        dictTBPreview.Add(leafItem, tbPreview);
+                        dictSearchSettings.Add(leafItem, last_searchSettings);                        
                         treeItemColleaction.Add(leafItem);
                     }
                 }
@@ -153,13 +162,14 @@ namespace VSFindTool
         {
             TreeViewItem treeItem;
             TreeViewItem leafItem;
-
+            
             dictTVData[tvResultFlatTree] = new TVData()
             {
                 longDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName)
             };
 
-            tvResultFlatTree.Items.Clear();
+            tvResultFlatTree.Items.Clear();        
+
             foreach (ResultLineData resultLineData in resultList)
             {
                 treeItem = GetItem(tvResultFlatTree.Items, resultLineData.linePath);
@@ -178,7 +188,6 @@ namespace VSFindTool
                 this.Focusable = false;
                 dictResultLines.Add(leafItem, resultLineData);
                 dictSearchSettings.Add(leafItem, last_searchSettings);
-                dictTBPreview.Add(leafItem, tbPreview);
                 treeItem.Items.Add(leafItem);
             }
             SetExpandAllInLvl(tvResultFlatTree.Items, true);
@@ -272,7 +281,7 @@ namespace VSFindTool
                     selection.MoveToLineAndOffset(Math.Max(1, resultLine.lineInFileNumbe.Value - 2), 1, false);
                     selection.MoveToLineAndOffset(Math.Min(lastLine, resultLine.lineInFileNumbe.Value + 4), 1, true);
                     selection.EndOfLine(true);
-                    dictTBPreview[(TreeViewItem)src].Text = selection.Text;
+                    dictTBPreview[settings].Text = selection.Text;
 
                     selection.GotoLine(resultLine.lineInFileNumbe.Value, false);
                     if (settings.chkRegExp == true)
@@ -295,7 +304,7 @@ namespace VSFindTool
         {
             ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
             FindSettings settings = dictSearchSettings[(TreeViewItem)src];
-            TextBox tbPreview = dictTBPreview[(TreeViewItem)src];
+            TextBox tbPreview = dictTBPreview[settings];
             tbPreview.Text = "";
             int lineNumber = 0;
             using (var reader = new StreamReader(resultLine.linePath))
@@ -312,6 +321,85 @@ namespace VSFindTool
         }
 
 
+
+        /*Fill settings and summary*/
+        internal void FillResultSummary(Label lbl, ResultSummary resultSummary)
+        {
+            lbl.Content = "Searched files: " + resultSummary.searchedFiles.ToString() + "; Found results: " + resultSummary.foundResults.ToString();
+        }
+
+        private Label AddLabel(string text, WrapPanel infoWrapPanel)
+        {
+            Label lbl = new Label() { Content = text, Padding = new Thickness(2, 0, 1, 0), Margin = new Thickness(0, 2, 0, 0) };
+            infoWrapPanel.Children.Add(lbl);
+            return lbl;
+        }
+
+        private Label AddBold(Label lbl)
+        {
+            lbl.FontWeight = FontWeights.Bold;
+            return lbl;
+        }
+
+        private Label AddExtraBold(Label lbl)
+        {
+            lbl.FontWeight = FontWeights.ExtraBold;
+            return lbl;
+        }
+
+        internal void FillWraperPanel(FindSettings settings, WrapPanel infoWrapPanel)
+        {
+            infoWrapPanel.Children.Clear();
+
+            AddLabel("`" + settings.tbPhrase + "`", infoWrapPanel);
+            //separator
+            AddExtraBold(AddLabel(" | ", infoWrapPanel));
+
+            //WholeWord
+            if (settings.chkWholeWord)
+                AddExtraBold(AddLabel("W", infoWrapPanel));
+            else
+                AddLabel("w", infoWrapPanel);
+
+            //Form
+            if (settings.chkForm)
+                AddExtraBold(AddLabel("F", infoWrapPanel));
+            else
+                AddLabel("f", infoWrapPanel);
+
+            //CharCase
+            if (settings.chkCase)
+                AddExtraBold(AddLabel("C", infoWrapPanel));
+            else
+                AddLabel("c", infoWrapPanel);
+
+            //RegExp
+            if (settings.chkRegExp)
+                AddExtraBold(AddLabel("R", infoWrapPanel));
+            else
+                AddLabel("r", infoWrapPanel);
+
+            //separator
+            AddExtraBold(AddLabel(" | ", infoWrapPanel));
+
+            if (settings.rbCurrDoc)
+                AddLabel("CurDocum", infoWrapPanel);
+            else if (settings.rbOpenDocs)
+                AddLabel("Opened", infoWrapPanel);
+            else if (settings.rbProject)
+                AddLabel("Project", infoWrapPanel);
+            else if (settings.rbSolution)
+                AddLabel("Solution", infoWrapPanel);
+            else if (settings.rbLocation)
+            {
+                AddLabel(settings.tbLocation, infoWrapPanel);
+                AddExtraBold(AddLabel(" | ", infoWrapPanel));
+                AddLabel(settings.tbfileFilter, infoWrapPanel);
+            }
+        }
+
+
+
         /*Set settings*/
         public void SetTbFileFilter(string value)
         {
@@ -325,6 +413,7 @@ namespace VSFindTool
                 }
             }
         }
+
 
 
         /*Events*/

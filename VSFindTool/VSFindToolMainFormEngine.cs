@@ -29,8 +29,9 @@ namespace VSFindTool
         FindSettings last_searchSettings = new FindSettings();
         Dictionary<TreeViewItem, ResultLineData> dictResultLines = new Dictionary<TreeViewItem, ResultLineData>();
         Dictionary<TreeViewItem, FindSettings> dictSearchSettings = new Dictionary<TreeViewItem, FindSettings>();
-        Dictionary<TreeViewItem, TextBox> dictTBPreview = new Dictionary<TreeViewItem, TextBox>();
+        Dictionary<FindSettings, TextBox> dictTBPreview = new Dictionary<FindSettings, TextBox>();
         Dictionary<TreeView, TVData> dictTVData = new Dictionary<TreeView, TVData>();
+        Dictionary<FindSettings, ResultSummary> dictResultSummary = new Dictionary<FindSettings, ResultSummary>();
 
 
         [Import]
@@ -44,6 +45,7 @@ namespace VSFindTool
 
 
         Connect c = new Connect();
+
 
         public string GetFindResults2Content()
         {
@@ -101,6 +103,14 @@ namespace VSFindTool
         }
 
 
+        private ResultSummary GetResultSummary(FindSettings settings)
+        {
+            if (!dictResultSummary.ContainsKey(settings))
+                dictResultSummary.Add(settings, new ResultSummary());
+            return dictResultSummary[settings];
+        }
+
+
         private TreeViewItem GetItem(ItemCollection colleation, string pathPart)
         {
             foreach (TreeViewItem item in colleation)
@@ -116,7 +126,8 @@ namespace VSFindTool
         {
             lock (threadLock)
             {
-                last_searchSettings.FillWraperPanel(last_infoWrapPanel);
+                FillWraperPanel(last_searchSettings, last_infoWrapPanel);
+                FillResultSummary(last_LabelInfo, GetResultSummary(last_searchSettings));
                 MoveResultToTreeList(last_tvResultTree, last_searchSettings, last_TBPreview);
                 MoveResultToFlatTreeList(last_tvResultFlatTree, last_searchSettings, last_TBPreview);
                 SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, last_shortDir.IsChecked.Value);
@@ -139,6 +150,8 @@ namespace VSFindTool
                 last_LabelInfo.Content = info;
             };
 
+            dictResultSummary.Remove(last_searchSettings);
+
             if (Dte.Solution.FullName != "")
             {
                 
@@ -151,10 +164,22 @@ namespace VSFindTool
                 else if (last_searchSettings.rbOpenDocs)
                 {
                     List<Candidate> candidates = GetCandidates(GetActiveProject());
-                    foreach (Document document in GetOpenDocuments())
+                    foreach (SearchSource searchSource in GetOpenDocuments())
                     {
-                        Candidate candidate = candidates.First<Candidate>((e => e.path.ToLower() == document.FullName.ToLower())); ;
-                        FindInDocument(document, last_searchSettings, resultList, errList, solutionDir, candidate.path);
+                        if (searchSource.document != null) {
+                            Candidate candidate = candidates.FirstOrDefault<Candidate>((e => e.path.ToLower() == searchSource.document.FullName.ToLower()));
+                            if (candidate != null)
+                                FindInDocument(searchSource.document, last_searchSettings, resultList, errList, solutionDir, candidate.path);
+                        }
+                        else if(searchSource.windowContent != "")
+                        {
+                            Debug.Assert(false, "You shouldnt be here.");
+                            FindInSelection(searchSource.windowContent, last_searchSettings, resultList, errList, solutionDir, "dummy");
+                        }
+                        else
+                        {
+                            Debug.Assert(false, "You shouldnt be here also.");
+                        }
                     }
                     Finish();
                 }
@@ -292,7 +317,23 @@ namespace VSFindTool
         private void FindInDocument(Document document, FindSettings settings, List<ResultLineData> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
         {
             int lineIndex = 0;
+            GetResultSummary(settings).searchedFiles++;
             List<string> resList = GetDocumentContent(document, errList).Replace("\n\r", "\n").Split('\n').ToList<string>();
+            foreach (string line in resList)
+            {
+                LineToResultList(line, settings, resultList, solutionDir, bulkPath, lineIndex);
+                lineIndex++;
+            }
+        }
+
+        private void FindInSelection(string selection, FindSettings settings, List<ResultLineData> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
+        {
+            int lineIndex = 0;
+            GetResultSummary(settings).searchedFiles++;
+
+            List<string> resList = selection.Replace("\r\n", "\n").Split('\n').ToList();
+            //List <string> resList = GetDocumentContent(document, errList).Replace("\n\r", "\n").Split('\n').ToList<string>();
+
             foreach (string line in resList)
             {
                 LineToResultList(line, settings, resultList, solutionDir, bulkPath, lineIndex);
@@ -305,6 +346,7 @@ namespace VSFindTool
             StreamReader stream = new StreamReader(path, Encoding.Default);
             string line = stream.ReadLine();
             int lineIndex = 0;
+            GetResultSummary(settings).searchedFiles++;
             while (!stream.EndOfStream)
             {
                 LineToResultList(line, settings, resultList, solutionDir, path, lineIndex);
@@ -355,6 +397,7 @@ namespace VSFindTool
                 lock (threadLock)
                 {
                     resultList.Add(resultLineData);
+                    GetResultSummary(settings).foundResults++;
                 }
                 indexInLine++;
             }
@@ -419,13 +462,44 @@ namespace VSFindTool
         }
 
 
-        private List<Document> GetOpenDocuments()
+        private List<SearchSource> GetOpenDocuments()
         {
-            List<Document> result = new List<Document>();
+            SearchSource searchSource;
+            List<SearchSource> result = new List<SearchSource>();
+            EnvDTE.TextSelection selection = null;
             foreach (EnvDTE.Window window in Dte.Windows)
             {
                 if (window.Document != null)
-                    result.Add(window.Document);
+                {
+                    searchSource = new SearchSource();
+                    if (window.Caption == Path.GetFileName(window.Document.FullName))
+                    {
+                        searchSource.document = window.Document;
+                        if (!result.Exists(e => e.document.FullName == window.Document.FullName))
+                            result.Add(searchSource);
+                    }
+                    else
+                    {
+                        /*
+                        selection = null;
+                        try
+                        {
+                            selection = window.Selection as EnvDTE.TextSelection;
+                        }
+                        catch
+                        {
+                            selection = null;
+                        }
+                        if (selection != null)
+                        {
+                            selection.SelectAll();
+                            searchSource.window = window;
+                            searchSource.windowContent = selection.Text;
+                        }
+                        result.Add(searchSource);*/
+                    }
+
+                }
             }
             return result;
         }

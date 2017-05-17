@@ -20,7 +20,9 @@ namespace VSFindTool
                     newItem.MouseUp += PreviewResultDoc;
                 }
                 dictSearchSettings.Add(newItem, findSettings);
-                dictTBPreview.Add(newItem, tbPreview);
+                //only leafs
+                if (item.Items.Count == 0)
+                    dictResultLines.Add(newItem, dictResultLines[item].GetCopy());
                 newItem.FontWeight = item.FontWeight;  //FontWeights.Bold - FontWeights is a static class, so it's ok
                 CopyItems(item.Items, newItem.Items, findSettings, tbPreview);
             }
@@ -30,6 +32,8 @@ namespace VSFindTool
         {
             //TreeView flattv = (TreeView)this.FindName(snapshotTag + "_tvResultFlatTree");
             //TreeView treetv = (TreeView)this.FindName(snapshotTag + "_tvResultFlatTree");
+            dictTBPreview.Add(findSettings, tbPreview);
+
             CopyItems(last_tvResultFlatTree.Items, flattv.Items, findSettings, tbPreview);
             CopyItems(last_tvResultTree.Items, treetv.Items, findSettings, tbPreview);
             dictTVData[flattv] = new TVData()
@@ -61,14 +65,17 @@ namespace VSFindTool
             {
                 Background = this.FindResource(SystemColors.ControlLightBrushKey) as Brush
             };
+
             grid.RowDefinitions.Add(new RowDefinition()
             {
                 Height = new GridLength(20, GridUnitType.Pixel)
             });
+
             grid.RowDefinitions.Add(new RowDefinition()
             {
                 Height = new GridLength(30, GridUnitType.Pixel)
             });
+
             RowDefinition rowFlat = new RowDefinition()
             {
                 Name = snapshotTag + "_rowFlat",
@@ -88,10 +95,12 @@ namespace VSFindTool
                 Name = snapshotTag + "_preview",
                 Height = new GridLength(100, GridUnitType.Pixel)
             });
+
             grid.RowDefinitions.Add(new RowDefinition()
             {
                 Height = new GridLength(20, GridUnitType.Pixel)
             });
+
             //add grid as the main element in tab
             newTab.Content = grid;
             //Set snapshot tab as selected
@@ -108,7 +117,7 @@ namespace VSFindTool
             grid.Children.Add(infoWrapPanel);
             Grid.SetRow(infoWrapPanel, 0);
             Grid.SetColumn(infoWrapPanel, 0);
-            last_searchSettings.FillWraperPanel(infoWrapPanel);
+            FillWraperPanel(last_searchSettings, infoWrapPanel);
 
             //navigator
             Grid navGrid = new Grid()
@@ -264,11 +273,13 @@ namespace VSFindTool
             Grid.SetRow(treetv, 3);
             Grid.SetColumnSpan(treetv, 2);
 
+            //add preview
             TextBox tbPreview = new TextBox()
             {
                 Name = snapshotTag + "_TBPreview",
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Auto
             };
+            grid.Children.Add(tbPreview);
             Grid.SetRow(tbPreview, 4);
             Grid.SetColumnSpan(tbPreview, 2);
 
@@ -280,6 +291,8 @@ namespace VSFindTool
                 Padding = new Thickness(5, 2, 5, 5),
                 Content = infoContent
             };
+
+            grid.Children.Add(infoLabel);
             Grid.SetRow(infoLabel, 5);
             Grid.SetColumnSpan(infoLabel, 2);
 
@@ -322,11 +335,24 @@ namespace VSFindTool
                 SetHeaderShortLong(treetv, treetv.Items, false);
             };
 
-            //Copy settings for snapshot            
-            findSettings.Add(snapshotTag, last_searchSettings.GetCopy());
+
+
+            //Copy settings for snapshot
+            FindSettings snapSettings = last_searchSettings.GetCopy();
+            findSettings.Add(snapshotTag, snapSettings);
+
+
+            //Copy ResultSummary for snapshot
+            ResultSummary resultSummary = dictResultSummary[last_searchSettings].GetCopy();
+            dictResultSummary.Add(snapSettings, resultSummary);
+
 
             //Populate new TreeViews from "last"
             FillSnapshotFromLast(snapshotTag, flattv, treetv, findSettings[snapshotTag], tbPreview);
+
+            //Fill ResultSummary label
+            FillResultSummary(infoLabel, resultSummary);
+
             //Expand new views
             SetExpandAllInLvl(flattv.Items, true);
             SetExpandAllInLvl(treetv.Items, true);

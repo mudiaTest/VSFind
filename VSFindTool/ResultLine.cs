@@ -27,6 +27,22 @@ namespace VSFindTool
                 return _pathPartsList;
             }
         }
+
+        internal ResultLineData GetCopy()
+        {
+            return new ResultLineData()
+            {
+                solutionDir = solutionDir,
+                resultLineText = resultLineText,
+                linePath = linePath,
+                lineContent = lineContent,
+                lineInFileNumbe = lineInFileNumbe,
+                textInLineNumer = textInLineNumer,
+                //_pathPartsList = null,
+                textLength = textLength,
+                foundResult = foundResult
+            };
+        }
     }
 
     class TVData
