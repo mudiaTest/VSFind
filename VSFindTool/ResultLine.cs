@@ -9,7 +9,7 @@ namespace VSFindTool
 {
     class ResultLineData
     {
-        internal string solutionDir;
+        //internal string solutionDir;
         internal string resultLineText;
         internal string linePath;
         //internal List<string> linePathPartsList;
@@ -32,7 +32,7 @@ namespace VSFindTool
         {
             return new ResultLineData()
             {
-                solutionDir = solutionDir,
+                //solutionDir = solutionDir,
                 resultLineText = resultLineText,
                 linePath = linePath,
                 lineContent = lineContent,

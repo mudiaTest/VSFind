@@ -10,12 +10,24 @@ namespace VSFindTool
 {
     class Candidate
     {
-        internal string path = "";
+        internal ProjectItem item = null;
+        internal Document document = null;
+        internal string documentPath
+        {
+            get
+            {
+                if (document != null)
+                    return document.FullName;
+                else
+                    return "";
+            }
+        }
+        internal string filePath = "";
         internal string FileName
         {
             get 
             {
-                return Path.GetFileName(path);
+                return Path.GetFileName(filePath);
             }
         }
     }
