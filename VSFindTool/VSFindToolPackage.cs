@@ -4,28 +4,14 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
-using System;
-using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Utilities;//Install-Package Microsoft.VisualStudio.Utilities - from paket manager console
-
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.Win32;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
-using System.Threading.Tasks;
-
 using Microsoft.VisualStudio.ComponentModelHost;
-//using Microsoft.VisualStudio.Tools.Office.Runtime.Interop;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 namespace VSFindTool
 {
@@ -52,6 +38,7 @@ namespace VSFindTool
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(VSFindToolMainForm))]
+    [ProvideAutoLoad(UIContextGuids80.SolutionExists)]
     public sealed class VSFindToolPackage : Package
     {
         /// <summary>
@@ -74,11 +61,18 @@ namespace VSFindTool
         internal IComponentModel componentModel;
         internal IVsTextManager textManager;
         private DteInitializer dteInitializer;
-        public EnvDTE.Window LastDocWindow = null;
-        //internal IOleServiceProvider oleServiceProvider;
-        public void m_WindowActivatedEvent(EnvDTE.Window GotFocus, EnvDTE.Window LostFocus)
+        internal EnvDTE.Window LastDocWindow = null;
+        //internal string OuterSelectedText = "";
+        public void M_WindowActivatedEvent(EnvDTE.Window GotFocus, EnvDTE.Window LostFocus)
         {
-            EnvDTE.DTE dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));   
+            EnvDTE.DTE dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
+            
+            /*EnvDTE.TextSelection selection = LostFocus.Selection as EnvDTE.TextSelection;
+            if (selection != null)
+                OuterSelectedText = selection.Text;
+            else
+                OuterSelectedText = "";*/
+
             foreach (EnvDTE.Document doc in dte.Documents)
             {
                 foreach (EnvDTE.Window docWindow in doc.Windows)
@@ -93,7 +87,7 @@ namespace VSFindTool
             }
         }
 
-        public void m_WindowClosingEvent(EnvDTE.Window Window)
+        public void M_WindowClosingEvent(EnvDTE.Window Window)
         {
             if (LastDocWindow == Window)
               LastDocWindow = null;
@@ -105,8 +99,8 @@ namespace VSFindTool
             if (dte2 != null)
             {
                 var m_WindowEvents = dte2.Events.WindowEvents;
-                m_WindowEvents.WindowActivated += new EnvDTE._dispWindowEvents_WindowActivatedEventHandler(m_WindowActivatedEvent);
-                m_WindowEvents.WindowClosing += new EnvDTE._dispWindowEvents_WindowClosingEventHandler(m_WindowClosingEvent);
+                m_WindowEvents.WindowActivated += new EnvDTE._dispWindowEvents_WindowActivatedEventHandler(M_WindowActivatedEvent);
+                m_WindowEvents.WindowClosing += new EnvDTE._dispWindowEvents_WindowClosingEventHandler(M_WindowClosingEvent);
             }
         }
         #region Package Members
@@ -140,15 +134,9 @@ namespace VSFindTool
                 componentModel = (IComponentModel)GetService(typeof(SComponentModel));
             }
 
-            //if (oleServiceProvider = null)
-            //{
-            //    oleServiceProvider = GetService(typeof(IOleServiceProvider));
-            //}
-
             if (this.dte2 == null) // The IDE is not yet fully initialized
             {
                 shellService = GetService(typeof(SVsShell)) as IVsShell;
-               // IContentTypeRegistryService service3 = this.GetService<IContentTypeRegistryService>();
                 
                 this.dteInitializer = new DteInitializer(shellService, this.InitializeDTE);
             }

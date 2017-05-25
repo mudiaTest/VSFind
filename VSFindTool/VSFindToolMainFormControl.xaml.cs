@@ -3,20 +3,16 @@
 //     Copyright (c) Company.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
+using EnvDTE;
+using Microsoft.VisualStudio.TextManager.Interop;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Microsoft.VisualStudio.Shell;
-using EnvDTE;
-using System.IO;
 using System.Diagnostics;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Microsoft.VisualStudio.ComponentModelHost;
+using System.IO;
 using System.Windows.Media;
 
 namespace VSFindTool
 {
-    using System.Windows.Controls.Primitives;
     using System.Diagnostics.CodeAnalysis;
     using System.Windows;
     using System.Windows.Controls;
@@ -25,14 +21,16 @@ namespace VSFindTool
     /// <summary>
     /// Interaction logic for VSFindToolMainFormControl.
     /// </summary>
-    public partial class VSFindToolMainFormControl : UserControl
+    public partial class VSFindToolMainFormControl : System.Windows.Controls.UserControl
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="VSFindToolMainFormControl"/> class.
         /// </summary>
         public VSFindToolMainForm parentToolWindow;
         public EnvDTE.Window LastDocWindow;
-        EnvDTE80.DTE2 dte {
+        //internal string OuterSelectedText;
+        EnvDTE80.DTE2 Dte
+        {
             get
             {
                 return ((VSFindToolPackage)parentToolWindow.Package).dte2;
@@ -45,8 +43,10 @@ namespace VSFindTool
                 return ((IComponentModel)parentToolWindow.Package).componentModel;
             }
         }*/
+
         Dictionary<string, FindSettings> findSettings = new Dictionary<string, FindSettings>();
-        IVsTextManager textManager
+
+        IVsTextManager TextManager
         {
             get
             {
@@ -57,8 +57,16 @@ namespace VSFindTool
 
         public VSFindToolMainFormControl()
         {
-            this.InitializeComponent();
+            InitializeComponent();
+            Init();
+        }
+
+        internal void Init()
+        {
             last_shortDir.IsChecked = true;
+            FileMask.FillCB(cbFileMask);
+            cbFileMask.SelectedIndex = 0;
+            dictTBPreview.Add(last_searchSettings, last_TBPreview);
         }
 
         /// <summary>
@@ -70,61 +78,30 @@ namespace VSFindTool
         [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "Default event handler naming pattern")]
 
 
-        public void OpenResultDocLine(object src, EventArgs args)
-        {
-            ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
-            FindSettings settings = dictSearchSettings[(TreeViewItem)src];
-            if (dte != null)
-            {
-                EnvDTE.Window docWindow = dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
-                TextSelection selection = ((EnvDTE.TextSelection)dte.ActiveDocument.Selection);
-                if (selection != null)
-                {
-                    selection.SelectAll();
-                    int lastLine = selection.CurrentLine;
-                    selection.MoveToLineAndOffset(Math.Max(1, resultLine.lineInFileNumbe.Value - 2), 1, false);
-                    selection.MoveToLineAndOffset(Math.Min(lastLine, resultLine.lineInFileNumbe.Value + 4), 1, true); 
-                    selection.EndOfLine(true);
-                    dictTBPreview[(TreeViewItem)src].Text = selection.Text;
 
-                    selection.GotoLine(resultLine.lineInFileNumbe.Value, false);
-                    if (settings.chkRegExp == true)
-                        Debug.Assert(false, "Brak obsługi RegExp");
-                    else
-                    {
-                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value+1, resultLine.textInLineNumer+1, false);
-                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value+1, resultLine.textInLineNumer+settings.tbPhrase.Length+1, true);
-                    }
-                    //Add action to set focus no doc window after finishing all action in queue (currenty there should be only double click event) 
-                    Action showAction = () => docWindow.Activate();
-                    this.Dispatcher.BeginInvoke(showAction);
-                }
+        /*Shortcut actions*/
+        internal void DoFocus()
+        {
+            EnvDTE.Window window = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
+            if (window != null)
+            {
+                EnvDTE.TextSelection selection = window.Selection as EnvDTE.TextSelection;
+                if (selection != null && selection.Text != "")
+                    tbPhrase.Text = selection.Text;
             }
-            else
-                Debug.Assert(false, "Brak DTE");
+            tbiSearch.IsSelected = true; //use instwad of "tbcMain.SelectedIndex = 0;"
+            System.Windows.Input.FocusManager.SetFocusedElement(tbiSearch, tbPhrase); //use instead of "tbPhrase.Focus();"
+
         }
 
-        public void PreviewResultDoc(object src, EventArgs args)
+        internal void ShowResults()
         {
-            ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
-            FindSettings settings = dictSearchSettings[(TreeViewItem)src];
-            TextBox tbPreview = dictTBPreview[(TreeViewItem)src];
-            tbPreview.Text = "";
-            int lineNumber = 0;
-            using (var reader = new StreamReader(resultLine.linePath))
-            {
-                string line;
-                while (lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
-                {
-                    lineNumber++;
-                    line = reader.ReadLine();
-                    if (lineNumber >= Math.Max(0, resultLine.lineInFileNumbe.Value - 2) && lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
-                        tbPreview.AppendText((tbPreview.Text != "" ? Environment.NewLine : "") + line);
-                }
-            }
+            tbiLastResult.IsSelected = true;
         }
 
 
+
+        /*Filling and actions of result TreeViews*/
         internal void MoveResultToTreeList(TreeView tvResultTree, FindSettings last_searchSettings, TextBox tbPreview)
         {
             ItemCollection treeItemColleaction;
@@ -134,7 +111,7 @@ namespace VSFindTool
 
             dictTVData[tvResultTree] = new TVData()
             {
-                longDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName)
+                longDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName)
             };
 
             tvResultTree.Items.Clear();
@@ -142,7 +119,7 @@ namespace VSFindTool
             foreach (ResultLineData resultLineData in resultList)
             {
                 treeItemColleaction = tvResultTree.Items;
-                treeItem = null; 
+                treeItem = null;
                 pathAgg = "";
                 for (int i = 0; i < resultLineData.pathPartsList.Count; i++)
                 {
@@ -170,8 +147,7 @@ namespace VSFindTool
                         leafItem.MouseDoubleClick += OpenResultDocLine;
                         leafItem.MouseUp += PreviewResultDoc;
                         dictResultLines.Add(leafItem, resultLineData);
-                        dictSearchSettings.Add(leafItem, last_searchSettings);
-                        dictTBPreview.Add(leafItem, tbPreview);
+                        dictSearchSettings.Add(leafItem, last_searchSettings);                        
                         treeItemColleaction.Add(leafItem);
                     }
                 }
@@ -186,13 +162,14 @@ namespace VSFindTool
         {
             TreeViewItem treeItem;
             TreeViewItem leafItem;
-
+            
             dictTVData[tvResultFlatTree] = new TVData()
             {
-                longDir = System.IO.Path.GetDirectoryName(dte.Solution.FullName)
+                longDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName)
             };
 
-            tvResultFlatTree.Items.Clear();
+            tvResultFlatTree.Items.Clear();        
+
             foreach (ResultLineData resultLineData in resultList)
             {
                 treeItem = GetItem(tvResultFlatTree.Items, resultLineData.linePath);
@@ -211,7 +188,6 @@ namespace VSFindTool
                 this.Focusable = false;
                 dictResultLines.Add(leafItem, resultLineData);
                 dictSearchSettings.Add(leafItem, last_searchSettings);
-                dictTBPreview.Add(leafItem, tbPreview);
                 treeItem.Items.Add(leafItem);
             }
             SetExpandAllInLvl(tvResultFlatTree.Items, true);
@@ -238,7 +214,7 @@ namespace VSFindTool
             TVData tvData = dictTVData[treeView];
             if (blShort)
             {
-                foreach(TreeViewItem item in collection)
+                foreach (TreeViewItem item in collection)
                 {
                     if (item.Items.Count != 0)
                     {
@@ -289,51 +265,203 @@ namespace VSFindTool
             }
         }
 
-        private void tb_Checked(object sender, RoutedEventArgs e)
+
+        public void OpenResultDocLine(object src, EventArgs args)
+        {
+            ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
+            FindSettings settings = dictSearchSettings[(TreeViewItem)src];
+            if (Dte != null)
+            {
+                EnvDTE.Window docWindow = Dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
+                TextSelection selection = ((EnvDTE.TextSelection)Dte.ActiveDocument.Selection);
+                if (selection != null)
+                {
+                    selection.SelectAll();
+                    int lastLine = selection.CurrentLine;
+                    selection.MoveToLineAndOffset(Math.Max(1, resultLine.lineInFileNumbe.Value - 2), 1, false);
+                    selection.MoveToLineAndOffset(Math.Min(lastLine, resultLine.lineInFileNumbe.Value + 4), 1, true);
+                    selection.EndOfLine(true);
+                    dictTBPreview[settings].Text = selection.Text;
+
+                    selection.GotoLine(resultLine.lineInFileNumbe.Value, false);
+                    if (settings.chkRegExp == true)
+                        Debug.Assert(false, "Brak obsługi RegExp");
+                    else
+                    {
+                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value + 1, resultLine.textInLineNumer + 1, false);
+                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value + 1, resultLine.textInLineNumer + settings.tbPhrase.Length + 1, true);
+                    }
+                    //Add action to set focus no doc window after finishing all action in queue (currenty there should be only double click event) 
+                    Action showAction = () => docWindow.Activate();
+                    this.Dispatcher.BeginInvoke(showAction);
+                }
+            }
+            else
+                Debug.Assert(false, "Brak DTE");
+        }
+
+        public void PreviewResultDoc(object src, EventArgs args)
+        {
+            ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
+            FindSettings settings = dictSearchSettings[(TreeViewItem)src];
+            TextBox tbPreview = dictTBPreview[settings];
+            tbPreview.Text = "";
+            int lineNumber = 0;
+            using (var reader = new StreamReader(resultLine.linePath))
+            {
+                string line;
+                while (lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
+                {
+                    lineNumber++;
+                    line = reader.ReadLine();
+                    if (lineNumber >= Math.Max(0, resultLine.lineInFileNumbe.Value - 2) && lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
+                        tbPreview.AppendText((tbPreview.Text != "" ? Environment.NewLine : "") + line);
+                }
+            }
+        }
+
+
+
+        /*Fill settings and summary*/
+        internal void FillResultSummary(Label lbl, ResultSummary resultSummary)
+        {
+            lbl.Content = "Searched files: " + resultSummary.searchedFiles.ToString() + "; Found results: " + resultSummary.foundResults.ToString();
+        }
+
+        private Label AddLabel(string text, WrapPanel infoWrapPanel)
+        {
+            Label lbl = new Label() { Content = text, Padding = new Thickness(2, 0, 1, 0), Margin = new Thickness(0, 2, 0, 0) };
+            infoWrapPanel.Children.Add(lbl);
+            return lbl;
+        }
+
+        private Label AddBold(Label lbl)
+        {
+            lbl.FontWeight = FontWeights.Bold;
+            return lbl;
+        }
+
+        private Label AddExtraBold(Label lbl)
+        {
+            lbl.FontWeight = FontWeights.ExtraBold;
+            return lbl;
+        }
+
+        internal void FillWraperPanel(FindSettings settings, WrapPanel infoWrapPanel)
+        {
+            infoWrapPanel.Children.Clear();
+
+            AddLabel("`" + settings.tbPhrase + "`", infoWrapPanel);
+            //separator
+            AddExtraBold(AddLabel(" | ", infoWrapPanel));
+
+            //WholeWord
+            if (settings.chkWholeWord)
+                AddExtraBold(AddLabel("W", infoWrapPanel));
+            else
+                AddLabel("w", infoWrapPanel);
+
+            //Form
+            if (settings.chkForm)
+                AddExtraBold(AddLabel("F", infoWrapPanel));
+            else
+                AddLabel("f", infoWrapPanel);
+
+            //CharCase
+            if (settings.chkCase)
+                AddExtraBold(AddLabel("C", infoWrapPanel));
+            else
+                AddLabel("c", infoWrapPanel);
+
+            //RegExp
+            if (settings.chkRegExp)
+                AddExtraBold(AddLabel("R", infoWrapPanel));
+            else
+                AddLabel("r", infoWrapPanel);
+
+            //separator
+            AddExtraBold(AddLabel(" | ", infoWrapPanel));
+
+            if (settings.rbCurrDoc)
+                AddLabel("CurDocum", infoWrapPanel);
+            else if (settings.rbOpenDocs)
+                AddLabel("Opened", infoWrapPanel);
+            else if (settings.rbProject)
+                AddLabel("Project", infoWrapPanel);
+            else if (settings.rbSolution)
+                AddLabel("Solution", infoWrapPanel);
+            else if (settings.rbLocation)
+            {
+                AddLabel(settings.tbLocation, infoWrapPanel);
+                AddExtraBold(AddLabel(" | ", infoWrapPanel));
+                AddLabel(settings.tbfileFilter, infoWrapPanel);
+            }
+        }
+
+
+
+        /*Set settings*/
+        public void SetTbFileFilter(string value)
+        {
+            cbFileMask.SelectedValue = 0;
+            foreach (FileMaskItem item in cbFileMask.Items)
+            {
+                if (item.Value == value)
+                {
+                    cbFileMask.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+
+
+        /*Events*/
+        private void Tb_Checked(object sender, RoutedEventArgs e)
         {
             last_rowTree.Height = new GridLength(1, GridUnitType.Star);
             last_rowFlat.Height = new GridLength(0);
             last_tbFlatTree.Foreground = Brushes.Red;
         }
 
-        private void tb_Unchecked(object sender, RoutedEventArgs e)
+        private void Tb_Unchecked(object sender, RoutedEventArgs e)
         {
             last_rowTree.Height = new GridLength(0);
             last_rowFlat.Height = new GridLength(1, GridUnitType.Star);
             last_tbFlatTree.ClearValue(ToggleButton.ForegroundProperty);
         }
 
-        private void btnAddSnapshot_Click(object sender, RoutedEventArgs e)
+        private void BtnAddSnapshot_Click(object sender, RoutedEventArgs e)
         {
-            AddSmapshotTab();
+            AddSmapshotTab(last_LabelInfo.Content == null ? "" : last_LabelInfo.Content.ToString());
             //TODO dodać na zakładkę nowe obiekty
             //todo dodać skrót wlaczający tool na pierwszą zakładkę
         }
 
-        private void btnFind_Click(object sender, RoutedEventArgs e)
+        private void BtnFind_Click(object sender, RoutedEventArgs e)
         {
             StartSearch();
         }
 
-        private void btnUnExpAll_Click(object sender, RoutedEventArgs e)
+        private void BtnUnExpAll_Click(object sender, RoutedEventArgs e)
         {
             SetExpandAllInLvl(last_tvResultFlatTree.Items, false);
             SetExpandAllInLvl(last_tvResultTree.Items, false);
         }
 
-        private void btnExpAll_Click(object sender, RoutedEventArgs e)
+        private void BtnExpAll_Click(object sender, RoutedEventArgs e)
         {
             SetExpandAllInLvl(last_tvResultFlatTree.Items, true);
             SetExpandAllInLvl(last_tvResultTree.Items, true);
         }
 
-        private void rbLocation_Click(object sender, RoutedEventArgs e)
+        private void RbLocation_Click(object sender, RoutedEventArgs e)
         {
             tbLocation.IsEnabled = rbLocation.IsChecked == true;
             btnGetLocation.IsEnabled = rbLocation.IsChecked == true;
         }
 
-        private void btnGetLocation_Click(object sender, RoutedEventArgs e)
+        private void BtnGetLocation_Click(object sender, RoutedEventArgs e)
         {
             System.Windows.Forms.FolderBrowserDialog dlg = new System.Windows.Forms.FolderBrowserDialog();
             if (tbLocation.Text != "" && Directory.Exists(tbLocation.Text))
@@ -342,30 +470,57 @@ namespace VSFindTool
                 tbLocation.Text = dlg.SelectedPath;
         }
 
-        private void rbLocation_Checked(object sender, RoutedEventArgs e)
+        private void RbLocation_Checked(object sender, RoutedEventArgs e)
         {
             tbLocation.IsEnabled = true;
             btnGetLocation.IsEnabled = true;
+            cbFileMask.IsEnabled = true;
+            btnAddFileMasks.IsEnabled = true;
+            btnDelFileMasks.IsEnabled = true;
+            chkForm.IsEnabled = false;
         }
 
-        private void rbLocation_Unchecked(object sender, RoutedEventArgs e)
+        private void RbLocation_Unchecked(object sender, RoutedEventArgs e)
         {
             tbLocation.IsEnabled = false;
             btnGetLocation.IsEnabled = false;
+            cbFileMask.IsEnabled = false;
+            btnAddFileMasks.IsEnabled = false;
+            btnDelFileMasks.IsEnabled = false;
+            chkForm.IsEnabled = true;
         }
 
-        private void last_shortDir_Checked(object sender, RoutedEventArgs e)
+        private void Last_shortDir_Checked(object sender, RoutedEventArgs e)
         {
             SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, true);
             SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, true);
             last_shortDir.Foreground = Brushes.Red;
         }
 
-        private void last_shortDir_Unchecked(object sender, RoutedEventArgs e)
+        private void Last_shortDir_Unchecked(object sender, RoutedEventArgs e)
         {
             SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, false);
             SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, false);
             last_shortDir.ClearValue(ToggleButton.ForegroundProperty);
+        }
+
+        private void tbPhrase_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Enter)
+                StartSearch();
+        }
+
+        private void btnAddFileMasks_Click(object sender, RoutedEventArgs e)
+        {
+            FileMask.AddToRegistry(cbFileMask.Text);
+            FileMask.FillCB(cbFileMask);
+            cbFileMask.SelectedIndex = cbFileMask.Items.Count;
+        }
+
+        private void btnDelFileMasks_Click(object sender, RoutedEventArgs e)
+        { 
+            FileMask.DelFromRegistry( ((FileMaskItem)cbFileMask.SelectedItem).Key );
+            FileMask.FillCB(cbFileMask);
         }
     }
 }
