@@ -477,6 +477,7 @@ namespace VSFindTool
             cbFileMask.IsEnabled = true;
             btnAddFileMasks.IsEnabled = true;
             btnDelFileMasks.IsEnabled = true;
+            chkForm.IsEnabled = false;
         }
 
         private void RbLocation_Unchecked(object sender, RoutedEventArgs e)
@@ -486,6 +487,7 @@ namespace VSFindTool
             cbFileMask.IsEnabled = false;
             btnAddFileMasks.IsEnabled = false;
             btnDelFileMasks.IsEnabled = false;
+            chkForm.IsEnabled = true;
         }
 
         private void Last_shortDir_Checked(object sender, RoutedEventArgs e)
