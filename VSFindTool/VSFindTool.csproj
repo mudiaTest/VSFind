@@ -140,8 +140,10 @@
     <Compile Include="Class2.cs" />
     <Compile Include="Connect.cs" />
     <Compile Include="ErrData.cs" />
+    <Compile Include="FileMask.cs" />
     <Compile Include="FindSettings.cs" />
     <Compile Include="ResultLine.cs" />
+    <Compile Include="ResultSummary.cs" />
     <Compile Include="VSFindToolMainFormControl.xaml.cs">
       <DependentUpon>VSFindToolMainFormControl.xaml</DependentUpon>
     </Compile>

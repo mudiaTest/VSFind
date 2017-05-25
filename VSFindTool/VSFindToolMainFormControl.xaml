@@ -5,10 +5,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              Background="{DynamicResource VsBrush.Window}"
              Foreground="{DynamicResource VsBrush.WindowText}"
-             mc:Ignorable="d" d:DesignWidth="225"
-             Name="MyToolWindow" Height="344">
-    <Grid>
-        <TabControl x:Name="tbcMain" Margin="0">
+             mc:Ignorable="d" d:DesignWidth="270"
+             Name="MyToolWindow" MinHeight="250">
+    <Grid UseLayoutRounding="False" Margin="0,0,0,-11">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <TabControl Grid.Row="0" x:Name="tbcMain" Margin="0,0,0,10" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
             <TabItem x:Name="tbiSearch" Header="Search">
                 <Grid Background="#FFE5E5E5" Margin="0">
                     <StackPanel Margin="0">
@@ -17,7 +20,7 @@
                                 <ColumnDefinition/>
                                 <ColumnDefinition Width="30"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Row="0" Grid.Column="0" x:Name="tbPhrase" TextWrapping="Wrap" Text="public" BorderThickness="1" Margin="0">
+                            <TextBox Grid.Row="0" Grid.Column="0" x:Name="tbPhrase" TextWrapping="Wrap" Text="Publicc" BorderThickness="1" Margin="0" KeyUp="tbPhrase_KeyUp">
                                 <TextBox.BorderBrush>
                                     <LinearGradientBrush EndPoint="0,20" MappingMode="Absolute" StartPoint="0,0">
                                         <GradientStop Color="#FFABADB3" Offset="0.05"/>
@@ -26,57 +29,53 @@
                                     </LinearGradientBrush>
                                 </TextBox.BorderBrush>
                             </TextBox>
-                            <!--<Button Grid.Column="1" Content="&gt;&gt;" x:Name="lll" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0" Click="btnFind_Click_1"/>-->
-                            <Button Grid.Row="0" Grid.Column="1" Content="&gt;&gt;" x:Name="kkkk" RenderTransformOrigin="-0.32,7.767" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0" Click="btnFind_Click"/>
+                            <Button Grid.Row="0" Grid.Column="1" Content="&gt;&gt;" x:Name="kkkk" RenderTransformOrigin="-0.32,7.767" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0" Click="BtnFind_Click"/>
                         </Grid>
-                        <!--<Expander Header="Find options2" BorderBrush="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Margin="0,0,0,5" IsExpanded="True">
-                            <Grid Margin="0,5,0,0" Height="60">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                </Grid.RowDefinitions>
-                                <CheckBox x:Name="chkCase" Content="Match Case"/>
-                                <CheckBox x:Name="chkWholeWord" Content="Match Whole Word" Grid.Row="1"/>
-                                <CheckBox x:Name="chkRegExp" Content="Match Regular Expressions" Grid.Row="2" IsEnabled="False"/>
-                            </Grid>
-                        </Expander>-->
                         <Expander Header="Options" BorderBrush="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" IsExpanded="True">
-                            <Grid VerticalAlignment="Top" Height="123" Margin="0,2,0,0">
+                            <Grid VerticalAlignment="Top" Margin="0,5,0,0">
                                 <Grid.RowDefinitions>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
+                                    <RowDefinition Height="20"/>
+                                    <RowDefinition Height="20"/>
+                                    <RowDefinition Height="20"/>
+                                    <RowDefinition Height="20"/>
+                                    <RowDefinition Height="20"/>
+                                    <RowDefinition Height="20"/>
+                                    <RowDefinition Height="22"/>
+                                    <RowDefinition Height="22"/>
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="88*"/>
-                                    <ColumnDefinition Width="125*"/>
+                                    <ColumnDefinition Width="60*"/>
+                                    <ColumnDefinition Width="71*"/>
                                 </Grid.ColumnDefinitions>
-                                <RadioButton Grid.Row="0" Grid.Column="0" x:Name="rbCurrDoc" Content="Current Doc." HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" IsChecked="True" Grid.RowSpan="6" Width="83"/>
-                                <RadioButton Grid.Row="1" Grid.Column="0" x:Name="rbOpenDocs" Content="Open Docs" HorizontalAlignment="Left" VerticalAlignment="Top" Height="16" Width="75"/>
-                                <RadioButton Grid.Row="2" Grid.Column="0" x:Name="rbProject" Content="Project" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="16" Width="53"/>
-                                <RadioButton Grid.Row="3" Grid.Column="0" x:Name="rbSolution" Content="Solution" HorizontalAlignment="Left" VerticalAlignment="Top" Height="16" Width="60"/>
-                                <!--<RadioButton Grid.Row="4" Grid.Column="1" x:Name="rbPrjectExt" Content="Project+Ext" HorizontalAlignment="Left" VerticalAlignment="Top" IsEnabled="False"/>-->
-                                <!--<RadioButton Grid.Row="5" Grid.Column="1" x:Name="rbSolutionExt" Content="Solution+Ext" HorizontalAlignment="Left" VerticalAlignment="Top" IsEnabled="False"/>-->
-                                <RadioButton Grid.Row="4" Grid.Column="0" x:Name="rbSelection" Content="Selection" HorizontalAlignment="Left" VerticalAlignment="Top" IsEnabled="False" Height="16" Width="64"/>
-                                <RadioButton Grid.Row="5" Grid.Column="0" x:Name="rbLocation" Content="Lacation" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="rbLocation_Checked" Unchecked="rbLocation_Unchecked" Height="16" Width="60"/>
+                                <RadioButton Grid.Row="0" Grid.Column="0" x:Name="rbCurrDoc" Content="Current Doc." HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" IsChecked="True" Grid.RowSpan="5" Width="86" Margin="5,0,0,0"/>
+                                <RadioButton Grid.Row="1" Grid.Column="0" x:Name="rbOpenDocs" Content="Open Docs" HorizontalAlignment="Left" VerticalAlignment="Top" Height="16" Width="78" Margin="5,0,0,0"/>
+                                <RadioButton Grid.Row="2" Grid.Column="0" x:Name="rbProject" Content="Project" HorizontalAlignment="Left" Margin="5,0,0,1" Width="56"/>
+                                <RadioButton Grid.Row="3" Grid.Column="0" x:Name="rbSolution" Content="Solution" HorizontalAlignment="Left" VerticalAlignment="Top" Height="16" Width="63" Margin="5,0,0,0"/>
+                                <RadioButton Grid.Row="4" Grid.Column="0" x:Name="rbSelection" Content="Selection" HorizontalAlignment="Left" IsEnabled="False" Margin="5,0,0,1" Width="67"/>
+                                <RadioButton Grid.Row="5" Grid.Column="0" x:Name="rbLocation" Content="Lacation" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="RbLocation_Checked" Unchecked="RbLocation_Unchecked" Height="16" Width="63" Margin="5,0,0,0"/>
                                 <Grid Grid.Row="6" Grid.ColumnSpan="2">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition/>
                                         <ColumnDefinition Width="30"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBox Name="tbLocation" TextWrapping="Wrap" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEnabled="False"/>
-                                    <Button Name="btnGetLocation"  Content=". . ." Grid.Column="1" Margin="0" Width="25" HorizontalAlignment="Center" IsEnabled="False" Click="btnGetLocation_Click"/>
+                                    <TextBox Name="tbLocation" TextWrapping="Wrap" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Height="18" IsEnabled="False"/>
+                                    <Button Name="btnGetLocation" Content=". . ." Grid.Column="1" Margin="0" Width="25" HorizontalAlignment="Center" Click="BtnGetLocation_Click" Height="18" IsEnabled="False"/>
                                 </Grid>
-                                
+                                <Grid Grid.Row="7" Grid.ColumnSpan="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition/>
+                                        <ColumnDefinition Width="30"/>
+                                        <ColumnDefinition Width="28"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <ComboBox Grid.Column="0" Name="cbFileMask" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEditable="True" Height="18" Margin="0" Padding="0" IsEnabled="False"/>
+                                    <Button Grid.Column="1" Name="btnAddFileMasks" Content="+" Margin="0" Width="25" HorizontalAlignment="Center" Padding="1,-2,1,1" Height="18" Click="btnAddFileMasks_Click" IsEnabled="False"/>
+                                    <Button Grid.Column="2" Name="btnDelFileMasks" Content="-" Margin="0" Width="25" HorizontalAlignment="Center" Padding="1,-2,1,1" Height="18" Click="btnDelFileMasks_Click" IsEnabled="False"/>
+                                </Grid>
 
                                 <CheckBox Grid.Row="0" Grid.Column="1" x:Name="chkCase" Content="Match Case"/>
                                 <CheckBox Grid.Row="1" Grid.Column="1" x:Name="chkWholeWord" Content="Match Whole Word"/>
-                                <CheckBox Grid.Row="2" Grid.Column="1" x:Name="chkForm" Content="Search Form Files" IsEnabled="False"/>
+                                <CheckBox Grid.Row="2" Grid.Column="1" x:Name="chkForm" Content="Search Form Files"/>
                                 <CheckBox Grid.Row="3" Grid.Column="1" x:Name="chkRegExp" Content="Use RegExp"/>
                             </Grid>
                         </Expander>
@@ -91,35 +90,36 @@
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="20"/>
-                        <RowDefinition Height="20"/>
                         <RowDefinition Height="30"/>
                         <RowDefinition x:Name="last_rowFlat"/>
                         <RowDefinition x:Name="last_rowTree" Height="0"/>
                         <RowDefinition x:Name="last_preview" Height="100"/>
+                        <RowDefinition Height="20"/>
                     </Grid.RowDefinitions>
 
-                    <Label Grid.Row="0" Grid.ColumnSpan="2" Name="last_LabelInfo" Content="kkk" Padding="5,2,5,5"/>
-                    <WrapPanel Grid.Row="1" Grid.ColumnSpan="2" x:Name="last_infoWrapPanel" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left">
+                    
+                    <WrapPanel Grid.Row="0" Grid.ColumnSpan="2" x:Name="last_infoWrapPanel" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left">
                     </WrapPanel>
 
-                    <Grid Grid.Row="2" Grid.ColumnSpan="2">
+                    <Grid Grid.Row="1" Grid.ColumnSpan="2">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition Width="72"/>
                         </Grid.ColumnDefinitions>
                         <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0">
-                            <ToggleButton x:Name="last_tbFlatTree" Content = "Tree" HorizontalAlignment = "Center" Padding="3,1" Width="34" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Checked="tb_Checked" Unchecked="tb_Unchecked" Margin="5,0,0,0" Height="21" VerticalAlignment="Center" />
-                            <Button x:Name="btnExpAll" Width="21" Content="+" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-5,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="1,1" Click="btnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                            <Button x:Name="btnUnExpAll" Width="21" Content="-" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-5,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="1,1" Click="btnUnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />
-                            <ToggleButton x:Name="last_shortDir" Content = "Short" HorizontalAlignment = "Center" Padding="3,1" Width="34" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Margin="5,0,0,0" Height="21" VerticalAlignment="Center" Checked="last_shortDir_Checked" Unchecked="last_shortDir_Unchecked" />
+                            <ToggleButton x:Name="last_tbFlatTree" Content = "Tree" HorizontalAlignment = "Center" Padding="3,1" Width="34" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Checked="Tb_Checked" Unchecked="Tb_Unchecked" Margin="5,0,0,0" Height="21" VerticalAlignment="Center" />
+                            <Button x:Name="btnExpAll" Width="21" Content="+" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-5,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="1,1" Click="BtnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            <Button x:Name="btnUnExpAll" Width="21" Content="-" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-5,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="1,1" Click="BtnUnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                            <ToggleButton x:Name="last_shortDir" Content = "Short" HorizontalAlignment = "Center" Padding="3,1" Width="40" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Margin="5,0,0,0" Height="21" VerticalAlignment="Center" Checked="Last_shortDir_Checked" Unchecked="Last_shortDir_Unchecked" />
                         </WrapPanel>
-                        <Button x:Name="btnAddSnapshot" Grid.Column="1" Content="Snapshot" Margin="0" Width="70" Padding="3,1,3,0" IsCancel="True" Click="btnAddSnapshot_Click" HorizontalAlignment="Center" VerticalAlignment="Center" Height="21"/>
+                        <Button x:Name="btnAddSnapshot" Grid.Column="1" Content="Snapshot" Margin="0" Width="70" Padding="3,1,3,0" IsCancel="True" Click="BtnAddSnapshot_Click" HorizontalAlignment="Center" VerticalAlignment="Center" Height="21"/>
                     </Grid>
 
-                    <TreeView Grid.Row="3" Grid.ColumnSpan="2" x:Name="last_tvResultFlatTree" HorizontalContentAlignment="Stretch"/>
-                    <TreeView Grid.Row="4" Grid.ColumnSpan="2" x:Name="last_tvResultTree" HorizontalContentAlignment="Stretch"/>
-                    <TextBox Grid.Row="5" Grid.ColumnSpan="2" Name="last_TBPreview" HorizontalScrollBarVisibility="Auto"/>
-                </Grid>
+                    <TreeView Grid.Row="2" Grid.ColumnSpan="2" x:Name="last_tvResultFlatTree" HorizontalContentAlignment="Stretch"/>
+                    <TreeView Grid.Row="3" Grid.ColumnSpan="2" x:Name="last_tvResultTree" HorizontalContentAlignment="Stretch"/>
+                    <TextBox Grid.Row="4" Grid.ColumnSpan="2" Name="last_TBPreview" HorizontalScrollBarVisibility="Auto"/>
+                    <Label Grid.Row="5" Grid.ColumnSpan="2" x:Name="last_LabelInfo" Padding="5,2,5,5" Content="www"/>
+</Grid>
             </TabItem>
         </TabControl>
     </Grid>
