@@ -255,8 +255,18 @@ namespace VSFindTool
             };
 
             dictResultSummary.Remove(last_searchSettings);
-
-            if (Dte.Solution.FullName != "")
+            
+            if (last_searchSettings.rbLocation)
+            {
+                if (!Directory.Exists(last_searchSettings.tbLocation))
+                {
+                    System.Windows.Forms.MessageBox.Show(String.Format("Podania ścieżka '{0}' jest pusta lub nie wskazuje na istniejący katalog.", last_searchSettings.tbLocation));
+                    return;
+                }
+                FindInLocation(progress, Finish, last_searchSettings, resultList, "");
+                tbiLastResult.Focus();
+            }
+            else if (Dte.Solution.FullName != "")
             {
 
                 string solutionDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName);
@@ -317,13 +327,11 @@ namespace VSFindTool
                 }
                 tbiLastResult.Focus();
             }
-            
-            if (last_searchSettings.rbLocation)
+            else
             {
-                FindInLocation(progress, Finish, last_searchSettings, resultList, "");
-                tbiLastResult.Focus();
+                System.Windows.Forms.MessageBox.Show("The solution is no opened.");
+                return;
             }
-            
         }
 
         private void StartSearch()
