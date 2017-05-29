@@ -7,7 +7,7 @@ using System.IO;
 
 namespace VSFindTool
 {
-    class ResultLineData
+    class ResultItem
     {
         //May not correspon to actual file when the document is dirty!
         internal string linePath; //path to file with the line
@@ -28,9 +28,9 @@ namespace VSFindTool
             }
         }
 
-        internal ResultLineData GetCopy()
+        internal ResultItem GetCopy()
         {
-            return new ResultLineData()
+            return new ResultItem()
             {
                 linePath = linePath,
                 lineContent = lineContent,

@@ -22,6 +22,7 @@ namespace VSFindTool
         internal bool rbProject;
         internal bool rbSolution;
         internal bool rbLocation;
+        internal bool rbLastResults;
         internal string tbLocation;
         internal string tbfileFilter;
 
@@ -75,6 +76,8 @@ namespace VSFindTool
                 result += " [Solution] ";
             else if (rbLocation)
                 result += " [" + tbLocation + " / " + tbfileFilter + "] ";
+            else if (rbLastResults)
+                result += " [LastRes]";
 
             result += "'" + tbPhrase + "'";
 
@@ -96,6 +99,7 @@ namespace VSFindTool
                 rbProject = rbProject,
                 rbSolution = rbSolution,
                 rbLocation = rbLocation,
+                rbLastResults = rbLastResults,
                 tbLocation = tbLocation,
                 tbfileFilter = tbfileFilter
             };
@@ -118,6 +122,7 @@ namespace VSFindTool
             form.rbProject.IsChecked = rbProject;
             form.rbSolution.IsChecked = rbSolution;
             form.rbLocation.IsChecked = rbLocation;
+            form.rbLastResults.IsChecked = rbLastResults;
             form.tbLocation.Text = tbLocation;
             form.SetTbFileFilter(tbfileFilter);
         }        

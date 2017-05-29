@@ -112,35 +112,35 @@ namespace VSFindTool
 
             tvResultTree.Items.Clear();
 
-            foreach (ResultLineData resultLineData in resultList)
+            foreach (ResultItem resultItem in resultList)
             {
                 treeItemColleaction = tvResultTree.Items;
                 treeItem = null;
                 pathAgg = "";
-                for (int i = 0; i < resultLineData.PathPartsList.Count; i++)
+                for (int i = 0; i < resultItem.PathPartsList.Count; i++)
                 {
                     if (pathAgg == "")
-                        pathAgg = resultLineData.PathPartsList[i];
+                        pathAgg = resultItem.PathPartsList[i];
                     else
-                        pathAgg = pathAgg + @"\" + resultLineData.PathPartsList[i];
+                        pathAgg = pathAgg + @"\" + resultItem.PathPartsList[i];
                     if (Directory.Exists(pathAgg) || File.Exists(pathAgg))
                     {
-                        treeItem = GetItem(treeItemColleaction, resultLineData.PathPartsList[i]);
+                        treeItem = GetItem(treeItemColleaction, resultItem.PathPartsList[i]);
                         if (treeItem == null)
                         {
                             treeItem = new TreeViewItem() {
-                                Header = resultLineData.PathPartsList[i],
+                                Header = resultItem.PathPartsList[i],
                                 FontWeight = FontWeights.Bold
                             };
                             treeItemColleaction.Add(treeItem);
                         }
                         treeItemColleaction = treeItem.Items;
                     }
-                    if (i == resultLineData.PathPartsList.Count - 1)
+                    if (i == resultItem.PathPartsList.Count - 1)
                     {
                         leafItem = new TreeViewItem()
                         {
-                            Header = "(" + resultLineData.lineNumber.ToString() + @"/" + resultLineData.resultOffset.ToString() + ") : " + resultLineData.lineContent.Trim(),
+                            Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + resultItem.lineContent.Trim(),
                             FontWeight = FontWeights.Normal
                         };
                         leafItem.MouseDoubleClick += OpenResultDocLine;
@@ -148,7 +148,7 @@ namespace VSFindTool
                         leafItem.MouseRightButtonUp += ShowResultTreeContextMenu;
                         //leafItem.ContextMenu = (ContextMenu)this.Resources["TVContextMenu"];
                        // leafItem.ContextMenu = new ContextMenu();
-                        dictResultLines.Add(leafItem, resultLineData);
+                        dictResultLines.Add(leafItem, resultItem);
                         dictSearchSettings.Add(leafItem, last_searchSettings);                        
                         treeItemColleaction.Add(leafItem);
                     }
@@ -172,24 +172,24 @@ namespace VSFindTool
 
             tvResultFlatTree.Items.Clear();        
 
-            foreach (ResultLineData resultLineData in resultList)
+            foreach (ResultItem resultItem in resultList)
             {
-                treeItem = GetItem(tvResultFlatTree.Items, resultLineData.linePath);
+                treeItem = GetItem(tvResultFlatTree.Items, resultItem.linePath);
                 if (treeItem == null)
                 {
-                    treeItem = new TreeViewItem() { Header = resultLineData.linePath, FontWeight = FontWeights.Bold };
+                    treeItem = new TreeViewItem() { Header = resultItem.linePath, FontWeight = FontWeights.Bold };
                     tvResultFlatTree.Items.Add(treeItem);
                 }
                 leafItem = new TreeViewItem()
                 {
-                    Header = "(" + resultLineData.lineNumber.ToString() + @"/" + resultLineData.resultOffset.ToString() + ") : " + resultLineData.lineContent.Trim(),
+                    Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + resultItem.lineContent.Trim(),
                     FontWeight = FontWeights.Normal
                 };
                 leafItem.MouseDoubleClick += OpenResultDocLine;
                 leafItem.MouseUp += PreviewResultDoc;
                 leafItem.MouseRightButtonUp += ShowResultTreeContextMenu;
                 this.Focusable = false;
-                dictResultLines.Add(leafItem, resultLineData);
+                dictResultLines.Add(leafItem, resultItem);
                 dictSearchSettings.Add(leafItem, last_searchSettings);
                 treeItem.Items.Add(leafItem);
             }
@@ -271,7 +271,7 @@ namespace VSFindTool
 
         public void OpenResultDocLine(object src, EventArgs args)
         {
-            ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
+            ResultItem resultLine = dictResultLines[(TreeViewItem)src];
             FindSettings settings = dictSearchSettings[(TreeViewItem)src];
             if (Dte != null)
             {
@@ -305,7 +305,7 @@ namespace VSFindTool
 
         public void PreviewResultDoc(object src, EventArgs args)
         {
-            ResultLineData resultLine = dictResultLines[(TreeViewItem)src];
+            ResultItem resultLine = dictResultLines[(TreeViewItem)src];
             FindSettings settings = dictSearchSettings[(TreeViewItem)src];
             TextBox tbPreview = dictTBPreview[settings];
             tbPreview.Text = "";
@@ -325,8 +325,9 @@ namespace VSFindTool
 
         public void OpenInFolder(object src, EventArgs args)
         {
-            TreeViewItem item = (TreeViewItem)src;
-            item.Header = "ooo";
+            string app = "explorer.exe";
+            string selectFile = "/select, \"" + dictResultLines[dictContextMenu[(MenuItem)src]].linePath + "\"";
+            System.Diagnostics.Process.Start(app, selectFile);
         }
 
         public void ShowResultTreeContextMenu(object src, EventArgs args)
@@ -340,20 +341,19 @@ namespace VSFindTool
                 cm = new ContextMenu();
 
                 mi = new MenuItem();
-                mi.Header = "pos1";
+                mi.Header = "Open in containing folder";
                 mi.Click += OpenInFolder;
-                cm.Items.Add(mi);
-
-                mi = new MenuItem();
-                mi.Header = "pos2";
                 cm.Items.Add(mi);
 
                 item.ContextMenu = cm;
                 cm.PlacementTarget = item;
+
+                dictContextMenu.Add(mi, item);
             }
             cm = item.ContextMenu;
             cm.IsOpen = true;
         }
+
 
 
         /*Fill settings and summary*/
@@ -430,6 +430,8 @@ namespace VSFindTool
                 AddExtraBold(AddLabel(" | ", infoWrapPanel));
                 AddLabel(settings.tbfileFilter, infoWrapPanel);
             }
+            else if (settings.rbLastResults)            
+                AddLabel("LastRes", infoWrapPanel);            
         }
 
 
@@ -559,6 +561,16 @@ namespace VSFindTool
 
         private void last_tvResultFlatTree_MouseRightButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+        }
+
+        private void rbLastResults_Checked(object sender, RoutedEventArgs e)
+        {
+            chkForm.IsEnabled = false;
+        }
+
+        private void rbLastResults_Unchecked(object sender, RoutedEventArgs e)
+        {
+            chkForm.IsEnabled = true;
         }
     }
 }
