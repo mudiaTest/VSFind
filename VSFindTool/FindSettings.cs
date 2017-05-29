@@ -24,6 +24,22 @@ namespace VSFindTool
         internal bool rbLocation;
         internal string tbLocation;
         internal string tbfileFilter;
+
+        internal string GetPrefix()
+        {
+            if (chkWholeWord && tbPhrase.StartsWith(@"\b"))
+                return  @"\b"; // prefix = "(^|[\\s,\\.,\\,])";
+            else
+                return "";
+        }
+
+        internal string GetSufix()
+        {
+            if (chkWholeWord && tbPhrase.EndsWith(@"\b"))
+                return @"\b"; // prefix = "(^|[\\s,\\.,\\,])";
+            else
+                return "";
+        }
         
         public string ToLabelString()
         {

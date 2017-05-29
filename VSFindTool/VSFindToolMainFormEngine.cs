@@ -46,20 +46,6 @@ namespace VSFindTool
         Connect c = new Connect();
 
 
-        public string GetFindResults2Content()
-        {
-            var findWindow1 = Dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults1);
-            var findWindow = Dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
-            findWindow.Activate();
-            var selection = findWindow.Selection as EnvDTE.TextSelection;
-            selection.SelectAll();
-            var selection1 = findWindow1.Selection as EnvDTE.TextSelection;
-            selection1.SelectAll();
-            string result1 = selection1.Text;
-            string result = selection.Text;
-            return result;
-        }
-
         internal string GetItemContent(ProjectItem item, List<ErrData> errList)
         {
             if (item.Document.Selection == null)
@@ -72,7 +58,7 @@ namespace VSFindTool
                 });
                 return "";
             }
-            EnvDTE.TextSelection selection = item.Document.Selection as EnvDTE.TextSelection;
+            EnvDTE.TextSelection selection = GetSelection(item.Document);
             int line = selection.ActivePoint.Line;
             int lineCharOffset = selection.ActivePoint.LineCharOffset;
             selection.SelectAll();
@@ -93,7 +79,7 @@ namespace VSFindTool
                 });
                 return "";
             }
-            EnvDTE.TextSelection selection = document.Selection as EnvDTE.TextSelection;
+            EnvDTE.TextSelection selection = GetSelection(document);
             int line = selection.ActivePoint.Line;
             int lineCharOffset = selection.ActivePoint.LineCharOffset;
             selection.SelectAll();
@@ -108,18 +94,8 @@ namespace VSFindTool
             findWindow.Visible = false;
         }
 
-        public void BringBackFindResult2Value()
-        {
-            var findWindow = Dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
-            var selection = findWindow.Selection as EnvDTE.TextSelection;
-            selection.StartOfDocument();
-            selection.Delete(2);
-            /*Doesn't work*/
-        }
-
         public void MoveResultToTextBox()
         {
-            //tbResult.Text = GetFindResults2Content();
         }
 
 
@@ -176,13 +152,46 @@ namespace VSFindTool
                 text = text + "filePath:NIE ";
 
             //if (candidate.document != null)
-            text = text + "\n" + "docPath: " + candidate.documentPath;
+            text = text + "\n" + "docPath: " + candidate.DocumentPath;
 
             //if (candidate.filePath != "")
             text = text + "\n" + "filePath: " + candidate.filePath;
             return text + "\n\n";
         }
 
+
+        private Document GetDocumentByPath(string path)
+        {
+            Document result = null;
+            foreach (EnvDTE.Window window in Dte.Windows)
+            {
+                if (window.ProjectItem != null)
+                {
+                    if (window.ProjectItem.Document != null)
+                    {
+                        if (window.ProjectItem.Document.FullName.ToLower() == path.ToLower())
+                        {
+                            result = window.ProjectItem.Document;
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+
+        private bool ReplaceInDocument(Document document, FindSettings settings, ResultLineData result)
+        {
+            TextSelection selection = GetSelection(document);
+            selection.MoveToLineAndOffset(result.resultOffset, result.resultOffset);
+            selection.SelectLine();
+            if (selection.Text != result.lineContent)
+            {
+                Debug.Assert(false, "The line has changed: {1} in '{0}': '{2}'", result.linePath, result.resultOffset, result.lineContent);
+            }
+
+            return false;
+
+        }
 
 
         public void Finish()
@@ -195,13 +204,6 @@ namespace VSFindTool
                 MoveResultToFlatTreeList(last_tvResultFlatTree, last_searchSettings, last_TBPreview);
                 SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, last_shortDir.IsChecked.Value);
                 SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, last_shortDir.IsChecked.Value);
-                //MoveResultToTreeViewModel();
-
-                /*List<string> list = tbResult.Text.Split('\n').ToList<string>();
-                if (list[list.Count - 2].StartsWith("Matching lines"))
-                    BringBackFindResult2Value();
-                else
-                    HideFindResult2Window();*/
             }
         }
 
@@ -229,7 +231,7 @@ namespace VSFindTool
             }
             else
             {
-                int i = 0;
+                //int i = 0;
             }
             return candidate;
         }
@@ -450,7 +452,6 @@ namespace VSFindTool
             GetResultSummary(settings).searchedFiles++;
 
             List<string> resList = selection.Replace("\r\n", "\n").Split('\n').ToList();
-            //List <string> resList = GetDocumentContent(document, errList).Replace("\n\r", "\n").Split('\n').ToList<string>();
 
             foreach (string line in resList)
             {
@@ -473,44 +474,38 @@ namespace VSFindTool
             }
         }
 
+        private MatchCollection GetMatchesInline(string line, FindSettings settings)
+        {
+            string phrase = settings.tbPhrase;
+            string prefix = settings.GetPrefix();
+            string sufix = settings.GetSufix();
+            if (!settings.chkRegExp)
+            {
+                phrase = Regex.Escape(phrase);
+            }
+
+            if (settings.chkCase)
+                return Regex.Matches(line, prefix + phrase + sufix);
+            else
+                return Regex.Matches(line, prefix + phrase + sufix, RegexOptions.IgnoreCase);
+        }
+
         private void LineToResultList(string line, FindSettings settings, List<ResultLineData> resultList, string solutionDir, string path, int lineIndex)
         {
             ResultLineData resultLineData;
             int indexInLine = 0;
 
-            string prefix = "";
-            string sufix = "";
-            string phrase = settings.tbPhrase;
-            MatchCollection lineResults;
-
-            if (!settings.chkRegExp)
-            {
-                phrase = Regex.Escape(phrase);
-            }
-            if (settings.chkWholeWord)
-            {
-                if (!phrase.StartsWith(@"\b"))
-                    prefix = @"\b"; // prefix = "(^|[\\s,\\.,\\,])";
-                if (!phrase.EndsWith(@"\b"))
-                    sufix = @"\b"; //sufix = "($|[\\s,\\.,\\,])";
-            }
-            if (settings.chkCase)
-                lineResults = Regex.Matches(line, prefix + phrase + sufix);
-            else
-                lineResults = Regex.Matches(line, prefix + phrase + sufix, RegexOptions.IgnoreCase);
-
-            foreach (Match lineResult in lineResults)
+            foreach (Match match in GetMatchesInline(line, settings))
             {
                 resultLineData = new ResultLineData()
                 {
-                    //solutionDir = "",
-                    resultLineText = "",
                     linePath = path,
-                    lineContent = line.Trim(),
-                    lineInFileNumbe = lineIndex,
-                    textInLineNumer = lineResult.Index,
-                    textLength = lineResult.Length,
-                    foundResult = lineResult.Value
+                    lineContent = line,
+                    lineNumber = lineIndex,
+                    resultIndex = indexInLine,
+                    resultOffset = match.Index,
+                    resultLength = match.Length,
+                    resultContent = match.Value
                 };
                 lock (threadLock)
                 {
@@ -519,42 +514,12 @@ namespace VSFindTool
                 }
                 indexInLine++;
             }
-
-            /*while (indexInLine != -1)
-            {
-                if (settings.chkCase)
-                    indexInLine = line.IndexOf(settings.tbPhrase, indexInLine);
-                else
-                    indexInLine = line.ToUpper().IndexOf(settings.tbPhrase.ToUpper(), indexInLine);
-
-                
-
-                if (indexInLine != -1)
-                {
-                    resultLineData = new ResultLineData()
-                    {
-                        solutionDir = "",
-                        resultLineText = "",
-                        linePath = filePath,
-                        lineContent = line.Trim(),
-                        lineInFileNumbe = lineIndex,
-                        textInLineNumer = indexInLine
-                    };
-                    lock (threadLock)
-                    {
-                        resultList.Add(resultLineData);
-                    }
-                    indexInLine++;
-                }
-            }*/
         }
-
 
         private async System.Threading.Tasks.Task FindInLocation(IProgress<string> progress, FinishDelegate finish, FindSettings settings, List<ResultLineData> resultList, string solutionDir)
         {
             await System.Threading.Tasks.Task.Run(() =>
             {
-                bool asDocument = false;
                 int loop = 0;
 
                 Debug.Assert(Directory.Exists(settings.tbLocation), 
@@ -585,20 +550,6 @@ namespace VSFindTool
             return;
         }
 
-        private List<SearchSource> GetOpenDocuments()
-        {
-            List<SearchSource> result = new List<SearchSource>();
-            foreach (EnvDTE.Window window in Dte.Windows)
-            {
-                if (window.ProjectItem != null)
-                {
-
-                    if (!result.Exists(e => e.window.ProjectItem.Name == window.ProjectItem.Name))
-                        result.Add(new SearchSource() { window = window });                    
-                }
-            }
-            return result;
-        }
 
         private List<EnvDTE.Window> GetWindowsWithItems()
         {
@@ -680,6 +631,41 @@ namespace VSFindTool
 
         }
 
+        private EnvDTE.TextSelection GetSelection(ProjectItem item)
+        {
+            if (item.Document != null)
+            {
+                return GetSelection(item.Document);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private EnvDTE.TextSelection GetSelection(Document document)
+        {
+            if (document.Selection != null)
+            {
+                return document.Selection as EnvDTE.TextSelection;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private EnvDTE.TextSelection GetSelection(EnvDTE.Window window)
+        {
+            if (window.Selection != null)
+            {
+                return window.Selection as EnvDTE.TextSelection;
+            }
+            else
+            {
+                return null;
+            }
+        }
 
         private string GetProjectItemContent(ProjectItem item)
         {
@@ -687,7 +673,7 @@ namespace VSFindTool
             EnvDTE.TextSelection selection = null;
             try
             {
-                selection = item.Document.Selection as EnvDTE.TextSelection;
+                selection = GetSelection(item);
             }
             catch
             {
@@ -706,7 +692,6 @@ namespace VSFindTool
         //If there is no document we'll search the file
         private void GetItemCandidates(ProjectItem item, List<Candidate> result, string parentPath, bool allowNoDoc)
         {
-            EnvDTE.TextSelection selection = null;
             string itemPath = Path.Combine(parentPath, item.Name);
             Candidate candidate = null;
             Candidate existingCandidate = null;
@@ -720,7 +705,7 @@ namespace VSFindTool
             {
                 doc = item.Document;
             }
-            catch (System.Runtime.InteropServices.COMException e)
+            catch (System.Runtime.InteropServices.COMException)
             {
                 doc = null;
             }
@@ -749,7 +734,7 @@ namespace VSFindTool
 
                     existingCandidate = result.FirstOrDefault(e => (
                                                                         (e.filePath == candidate.filePath && candidate.filePath != "") ||
-                                                                        (e.documentPath == candidate.documentPath && candidate.documentPath != "")
+                                                                        (e.DocumentPath == candidate.DocumentPath && candidate.DocumentPath != "")
                                                                     )
                                                               );
                     if (existingCandidate == null)
