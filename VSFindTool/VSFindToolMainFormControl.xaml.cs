@@ -85,7 +85,7 @@ namespace VSFindTool
             EnvDTE.Window window = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
             if (window != null)
             {
-                EnvDTE.TextSelection selection = window.Selection as EnvDTE.TextSelection;
+                EnvDTE.TextSelection selection = GetSelection(window);
                 if (selection != null && selection.Text != "")
                     tbPhrase.Text = selection.Text;
             }
@@ -121,31 +121,37 @@ namespace VSFindTool
                 treeItemColleaction = tvResultTree.Items;
                 treeItem = null;
                 pathAgg = "";
-                for (int i = 0; i < resultLineData.pathPartsList.Count; i++)
+                for (int i = 0; i < resultLineData.PathPartsList.Count; i++)
                 {
                     if (pathAgg == "")
-                        pathAgg = resultLineData.pathPartsList[i];
+                        pathAgg = resultLineData.PathPartsList[i];
                     else
-                        pathAgg = pathAgg + @"\" + resultLineData.pathPartsList[i];
+                        pathAgg = pathAgg + @"\" + resultLineData.PathPartsList[i];
                     if (Directory.Exists(pathAgg) || File.Exists(pathAgg))
                     {
-                        treeItem = GetItem(treeItemColleaction, resultLineData.pathPartsList[i]);
+                        treeItem = GetItem(treeItemColleaction, resultLineData.PathPartsList[i]);
                         if (treeItem == null)
                         {
-                            treeItem = new TreeViewItem() { Header = resultLineData.pathPartsList[i], FontWeight = FontWeights.Bold };
+                            treeItem = new TreeViewItem() {
+                                Header = resultLineData.PathPartsList[i],
+                                FontWeight = FontWeights.Bold
+                            };
                             treeItemColleaction.Add(treeItem);
                         }
                         treeItemColleaction = treeItem.Items;
                     }
-                    if (i == resultLineData.pathPartsList.Count - 1)
+                    if (i == resultLineData.PathPartsList.Count - 1)
                     {
                         leafItem = new TreeViewItem()
                         {
-                            Header = "(" + resultLineData.lineInFileNumbe.ToString() + @"/" + resultLineData.textInLineNumer.ToString() + ") : " + resultLineData.lineContent,
+                            Header = "(" + resultLineData.lineNumber.ToString() + @"/" + resultLineData.resultOffset.ToString() + ") : " + resultLineData.lineContent.Trim(),
                             FontWeight = FontWeights.Normal
                         };
                         leafItem.MouseDoubleClick += OpenResultDocLine;
                         leafItem.MouseUp += PreviewResultDoc;
+                        leafItem.MouseRightButtonUp += ShowResultTreeContextMenu;
+                        //leafItem.ContextMenu = (ContextMenu)this.Resources["TVContextMenu"];
+                       // leafItem.ContextMenu = new ContextMenu();
                         dictResultLines.Add(leafItem, resultLineData);
                         dictSearchSettings.Add(leafItem, last_searchSettings);                        
                         treeItemColleaction.Add(leafItem);
@@ -180,11 +186,12 @@ namespace VSFindTool
                 }
                 leafItem = new TreeViewItem()
                 {
-                    Header = "(" + resultLineData.lineInFileNumbe.ToString() + @"/" + resultLineData.textInLineNumer.ToString() + ") : " + resultLineData.lineContent,
+                    Header = "(" + resultLineData.lineNumber.ToString() + @"/" + resultLineData.resultOffset.ToString() + ") : " + resultLineData.lineContent.Trim(),
                     FontWeight = FontWeights.Normal
                 };
                 leafItem.MouseDoubleClick += OpenResultDocLine;
                 leafItem.MouseUp += PreviewResultDoc;
+                leafItem.MouseRightButtonUp += ShowResultTreeContextMenu;
                 this.Focusable = false;
                 dictResultLines.Add(leafItem, resultLineData);
                 dictSearchSettings.Add(leafItem, last_searchSettings);
@@ -273,23 +280,23 @@ namespace VSFindTool
             if (Dte != null)
             {
                 EnvDTE.Window docWindow = Dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
-                TextSelection selection = ((EnvDTE.TextSelection)Dte.ActiveDocument.Selection);
+                TextSelection selection = GetSelection(Dte.ActiveDocument);
                 if (selection != null)
                 {
                     selection.SelectAll();
                     int lastLine = selection.CurrentLine;
-                    selection.MoveToLineAndOffset(Math.Max(1, resultLine.lineInFileNumbe.Value - 2), 1, false);
-                    selection.MoveToLineAndOffset(Math.Min(lastLine, resultLine.lineInFileNumbe.Value + 4), 1, true);
+                    selection.MoveToLineAndOffset(Math.Max(1, resultLine.lineNumber.Value - 2), 1, false);
+                    selection.MoveToLineAndOffset(Math.Min(lastLine, resultLine.lineNumber.Value + 4), 1, true);
                     selection.EndOfLine(true);
                     dictTBPreview[settings].Text = selection.Text;
 
-                    selection.GotoLine(resultLine.lineInFileNumbe.Value, false);
+                    selection.GotoLine(resultLine.lineNumber.Value, false);
                     if (settings.chkRegExp == true)
                         Debug.Assert(false, "Brak obsługi RegExp");
                     else
                     {
-                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value + 1, resultLine.textInLineNumer + 1, false);
-                        selection.MoveToLineAndOffset(resultLine.lineInFileNumbe.Value + 1, resultLine.textInLineNumer + settings.tbPhrase.Length + 1, true);
+                        selection.MoveToLineAndOffset(resultLine.lineNumber.Value + 1, resultLine.resultOffset + 1, false);
+                        selection.MoveToLineAndOffset(resultLine.lineNumber.Value + 1, resultLine.resultOffset + settings.tbPhrase.Length + 1, true);
                     }
                     //Add action to set focus no doc window after finishing all action in queue (currenty there should be only double click event) 
                     Action showAction = () => docWindow.Activate();
@@ -310,16 +317,47 @@ namespace VSFindTool
             using (var reader = new StreamReader(resultLine.linePath))
             {
                 string line;
-                while (lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
+                while (lineNumber <= Math.Max(0, resultLine.lineNumber.Value + 2))
                 {
                     lineNumber++;
                     line = reader.ReadLine();
-                    if (lineNumber >= Math.Max(0, resultLine.lineInFileNumbe.Value - 2) && lineNumber <= Math.Max(0, resultLine.lineInFileNumbe.Value + 2))
+                    if (lineNumber >= Math.Max(0, resultLine.lineNumber.Value - 2) && lineNumber <= Math.Max(0, resultLine.lineNumber.Value + 2))
                         tbPreview.AppendText((tbPreview.Text != "" ? Environment.NewLine : "") + line);
                 }
             }
         }
 
+        public void OpenInFolder(object src, EventArgs args)
+        {
+            TreeViewItem item = (TreeViewItem)src;
+            item.Header = "ooo";
+        }
+
+        public void ShowResultTreeContextMenu(object src, EventArgs args)
+        {
+            ContextMenu cm;
+            MenuItem mi;            
+            TreeViewItem item = (TreeViewItem)src;
+
+            if (item.ContextMenu == null)
+            {
+                cm = new ContextMenu();
+
+                mi = new MenuItem();
+                mi.Header = "pos1";
+                mi.Click += OpenInFolder;
+                cm.Items.Add(mi);
+
+                mi = new MenuItem();
+                mi.Header = "pos2";
+                cm.Items.Add(mi);
+
+                item.ContextMenu = cm;
+                cm.PlacementTarget = item;
+            }
+            cm = item.ContextMenu;
+            cm.IsOpen = true;
+        }
 
 
         /*Fill settings and summary*/
@@ -504,23 +542,27 @@ namespace VSFindTool
             last_shortDir.ClearValue(ToggleButton.ForegroundProperty);
         }
 
-        private void tbPhrase_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        private void TbPhrase_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (e.Key == System.Windows.Input.Key.Enter)
                 StartSearch();
         }
 
-        private void btnAddFileMasks_Click(object sender, RoutedEventArgs e)
+        private void BtnAddFileMasks_Click(object sender, RoutedEventArgs e)
         {
             FileMask.AddToRegistry(cbFileMask.Text);
             FileMask.FillCB(cbFileMask);
             cbFileMask.SelectedIndex = cbFileMask.Items.Count;
         }
 
-        private void btnDelFileMasks_Click(object sender, RoutedEventArgs e)
+        private void BtnDelFileMasks_Click(object sender, RoutedEventArgs e)
         { 
             FileMask.DelFromRegistry( ((FileMaskItem)cbFileMask.SelectedItem).Key );
             FileMask.FillCB(cbFileMask);
+        }
+
+        private void last_tvResultFlatTree_MouseRightButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
         }
     }
 }

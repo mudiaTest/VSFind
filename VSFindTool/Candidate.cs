@@ -10,12 +10,12 @@ namespace VSFindTool
 {
     class Candidate
     {
-        internal int type; //1:code file, 2:form file file, 3: other file (ie resource)
+        //internal int type; //1:code file, 2:form file file, 3: other file (ie resource)
         internal List<Candidate> subItems = new List<Candidate>();
 
         internal ProjectItem item = null;
         internal Document document = null;
-        internal string documentPath
+        internal string DocumentPath
         {
             get
             {

@@ -9,17 +9,17 @@ namespace VSFindTool
 {
     class ResultLineData
     {
-        //internal string solutionDir;
-        internal string resultLineText;
-        internal string linePath;
-        //internal List<string> linePathPartsList;
-        internal string lineContent;
-        internal int? lineInFileNumbe;
-        internal int textInLineNumer = 0;
+        //May not correspon to actual file when the document is dirty!
+        internal string linePath; //path to file with the line
+        internal string lineContent; //complete line with found result, not trimmed.
+        internal int? lineNumber; //number of line with result in file/document.  
+        internal int resultIndex; //index of result in line: 0, 1, 2...
+        internal int resultOffset; //offset of result in line;
+        internal int resultLength; //length of found result
+        internal string resultContent; //value of found result
+
         private List<string> _pathPartsList = null;
-        internal int textLength;
-        internal string foundResult;
-        internal List<string> pathPartsList
+        internal List<string> PathPartsList
         {
             get{
                 if (_pathPartsList == null)
@@ -32,15 +32,12 @@ namespace VSFindTool
         {
             return new ResultLineData()
             {
-                //solutionDir = solutionDir,
-                resultLineText = resultLineText,
                 linePath = linePath,
                 lineContent = lineContent,
-                lineInFileNumbe = lineInFileNumbe,
-                textInLineNumer = textInLineNumer,
-                //_pathPartsList = null,
-                textLength = textLength,
-                foundResult = foundResult
+                lineNumber = lineNumber,
+                resultOffset = resultOffset,
+                resultLength = resultLength,
+                resultContent = resultContent
             };
         }
     }
