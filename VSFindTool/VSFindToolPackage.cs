@@ -86,16 +86,9 @@ namespace VSFindTool
         internal IVsTextManager textManager;
         private DteInitializer dteInitializer;
         internal EnvDTE.Window LastDocWindow = null;
-        //internal string OuterSelectedText = "";
         public void M_WindowActivatedEvent(EnvDTE.Window GotFocus, EnvDTE.Window LostFocus)
         {
             EnvDTE.DTE dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
-            
-            /*EnvDTE.TextSelection selection = LostFocus.Selection as EnvDTE.TextSelection;
-            if (selection != null)
-                OuterSelectedText = selection.Text;
-            else
-                OuterSelectedText = "";*/
 
             foreach (EnvDTE.Document doc in dte.Documents)
             {
