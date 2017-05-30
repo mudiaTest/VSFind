@@ -20,20 +20,6 @@ namespace VSFindTool
     /// </summary>
     public partial class VSFindToolMainFormControl : UserControl
     {
-        private object threadLock = new object();
-
-        public delegate void FinishDelegate();
-
-        List<ResultItem> resultList = new List<ResultItem>();
-        List<ErrData> errList = new List<ErrData>();
-        FindSettings last_searchSettings = new FindSettings();
-        internal Dictionary<TreeViewItem, ResultItem> dictResultLines = new Dictionary<TreeViewItem, ResultItem>();
-        Dictionary<TreeViewItem, FindSettings> dictSearchSettings = new Dictionary<TreeViewItem, FindSettings>();
-        Dictionary<FindSettings, TextBox> dictTBPreview = new Dictionary<FindSettings, TextBox>();
-        Dictionary<TreeView, TVData> dictTVData = new Dictionary<TreeView, TVData>();
-        Dictionary<FindSettings, ResultSummary> dictResultSummary = new Dictionary<FindSettings, ResultSummary>();
-        Dictionary<MenuItem, TreeViewItem> dictContextMenu = new Dictionary<MenuItem, TreeViewItem>();
-
         [Import]
         internal ITextSearchService TextSearchService { get; set; }
 
@@ -43,63 +29,46 @@ namespace VSFindTool
         [Import]
         public ITextDocumentFactoryService TextDocumentFactory { get; set; }
 
-
         Connect c = new Connect();
 
+        private object threadLock = new object();
 
-        internal string GetItemContent(ProjectItem item, List<ErrData> errList)
-        {
-            if (item.Document.Selection == null)
-            {
-                errList.Add(new ErrData()
-                {
-                    path = item.Document.FullName,
-                    caption = item.Name,
-                    info = "No Selection object found."
-                });
-                return "";
-            }
-            EnvDTE.TextSelection selection = GetSelection(item.Document);
-            int line = selection.ActivePoint.Line;
-            int lineCharOffset = selection.ActivePoint.LineCharOffset;
-            selection.SelectAll();
-            string result = selection.Text;
-            selection.MoveToLineAndOffset(line, lineCharOffset);
-            return result;
-        }
+        public delegate void FinishDelegate();
 
-        internal string GetDocumentContent(Document document, List<ErrData> errList)
-        {
-            if (document.Selection == null)
-            {
-                errList.Add(new ErrData()
-                {
-                    path = document.FullName,
-                    caption = document.ActiveWindow != null ? document.ActiveWindow.Caption : "",
-                    info = "No Selection object found."
-                });
-                return "";
-            }
-            EnvDTE.TextSelection selection = GetSelection(document);
-            int line = selection.ActivePoint.Line;
-            int lineCharOffset = selection.ActivePoint.LineCharOffset;
-            selection.SelectAll();
-            string result = selection.Text;
-            selection.MoveToLineAndOffset(line, lineCharOffset);
-            return result;
-        }
 
-        public void HideFindResult2Window()
+        List<ResultItem> lastResultList = new List<ResultItem>();
+        List<ErrData> errList = new List<ErrData>();
+        FindSettings lastSearchSettings = new FindSettings();
+
+        // Result object for TVItem
+        Dictionary<TreeViewItem, ResultItem> dictResultLines = new Dictionary<TreeViewItem, ResultItem>();
+        
+        // Settings for TVItem
+        Dictionary<TreeViewItem, FindSettings> dictSearchSettings = new Dictionary<TreeViewItem, FindSettings>();
+            
+        // Preview TextBox for Settings
+        Dictionary<FindSettings, TextBox> dictTBPreview = new Dictionary<FindSettings, TextBox>();
+            
+        // Result summary for Settings
+        Dictionary<FindSettings, ResultSummary> dictResultSummary = new Dictionary<FindSettings, ResultSummary>();
+       
+        // Short / long path for TreeView
+        Dictionary<TreeView, TVData> dictTVData = new Dictionary<TreeView, TVData>();
+        
+        // TVItem for Context menu
+        Dictionary<MenuItem, TreeViewItem> dictContextMenu = new Dictionary<MenuItem, TreeViewItem>();
+
+
+
+
+       /* public void HideFindResult2Window()
         {
             var findWindow = Dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
             findWindow.Visible = false;
-        }
-
-        public void MoveResultToTextBox()
-        {
-        }
+        }*/
 
 
+        
         private ResultSummary GetResultSummary(FindSettings settings)
         {
             if (!dictResultSummary.ContainsKey(settings))
@@ -108,7 +77,7 @@ namespace VSFindTool
         }
 
 
-        private TreeViewItem GetItem(ItemCollection colleation, string pathPart)
+        private TreeViewItem GetTVItemByFilePath(ItemCollection colleation, string pathPart)
         {
             foreach (TreeViewItem item in colleation)
             {
@@ -119,89 +88,6 @@ namespace VSFindTool
         }
 
 
-        private void ShowCandidates(List<Candidate> candidates)
-        {
-            string text = "";
-            foreach (Candidate candidate in candidates)
-            {
-                text = text + ShowCandidate(candidate, "");
-                foreach (Candidate subCandidate in candidate.subItems)
-                {
-                    text = text + ShowCandidate(subCandidate, "->");
-                }
-            }
-            System.Windows.Forms.MessageBox.Show(text);
-        }
-
-        private string ShowCandidate(Candidate candidate, string prefix)
-        {
-            string text = prefix;
-            
-            if (candidate.item != null)
-                text = text + "item:TAK ";
-            else
-                text = text + "item:NIE ";
-
-            if (candidate.document != null)
-                text = text + "document:TAK ";
-            else
-                text = text + "document:NIE ";
-
-            if (candidate.filePath != "")
-                text = text + "filePath:TAK; ";
-            else
-                text = text + "filePath:NIE ";
-
-            //if (candidate.document != null)
-            text = text + "\n" + "docPath: " + candidate.DocumentPath;
-
-            //if (candidate.filePath != "")
-            text = text + "\n" + "filePath: " + candidate.filePath;
-            return text + "\n\n";
-        }
-
-
-        /*private Document GetDocumentByPath(string path)
-        {
-            Document result = null;
-            foreach (EnvDTE.Window window in Dte.Windows)
-            {
-                if (window.ProjectItem != null)
-                {
-                    if (window.ProjectItem.Document != null)
-                    {
-                        if (window.ProjectItem.Document.FullName.ToLower() == path.ToLower())
-                        {
-                            result = window.ProjectItem.Document;
-                        }
-                    }
-                }
-            }
-            return result;
-        }*/
-
-        private List<Candidate> GetCandidatesByPath()
-        {
-            List<Candidate> result = new List<Candidate>();
-            List<Candidate> candidatesWithDocuments = new List<Candidate>();
-            List<Candidate> candidatesInProject = new List<Candidate>();              
-            foreach (Project project in Dte.Solution.Projects)
-            {
-                candidatesInProject = GetItemCandidates(project, false);
-                candidatesWithDocuments.AddRange(candidatesInProject);
-            }
-                   
-            Candidate candidate;
-            foreach (ResultItem resultItem in resultList)
-            {
-                candidate = candidatesWithDocuments.FirstOrDefault(e => e.filePath == resultItem.linePath);
-                if (candidate == null)
-                    result.Add(candidate);
-                else
-                    result.Add(new Candidate() { filePath = resultItem.linePath });
-            }
-            return result;
-        }
 
         private bool ReplaceInDocument(Document document, FindSettings settings, ResultItem result)
         {
@@ -222,51 +108,24 @@ namespace VSFindTool
         {
             lock (threadLock)
             {
-                FillWraperPanel(last_searchSettings, last_infoWrapPanel);
-                FillResultSummary(last_LabelInfo, GetResultSummary(last_searchSettings));
-                MoveResultToTreeList(last_tvResultTree, last_searchSettings, last_TBPreview);
-                MoveResultToFlatTreeList(last_tvResultFlatTree, last_searchSettings, last_TBPreview);
+                FillWraperPanel(lastSearchSettings, last_infoWrapPanel);
+                FillResultSummary(last_LabelInfo, GetResultSummary(lastSearchSettings));
+                MoveResultToTreeList(last_tvResultTree, lastSearchSettings, last_TBPreview);
+                MoveResultToFlatTreeList(last_tvResultFlatTree, lastSearchSettings, last_TBPreview);
                 SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, last_shortDir.IsChecked.Value);
                 SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, last_shortDir.IsChecked.Value);
             }
         }
 
-        private Candidate GetCandidate(List<Candidate> candidates, ProjectItem item)
-        {
-            Candidate candidate = candidates.FirstOrDefault<Candidate>(
-                                (e => e.item == item /*e => e.filePath.ToLower() == window.ProjectItem.Document.FullName.ToLower()*/));
-            if (candidate == null)
-            {
-                foreach (Candidate tmpCandidate in candidates)
-                {
-                    foreach (Candidate subCandidate in tmpCandidate.subItems)
-                    {
-                        if (subCandidate.item == item /*subCandidate.filePath.ToLower() == window.ProjectItem.Document.FullName.ToLower()*/)
-                        {
-                            candidate = subCandidate;
-                            break;
-                        }
-                    }
-                    if (candidate != null)
-                    {
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                //int i = 0;
-            }
-            return candidate;
-        }
+
         private void FindInCandidate(Candidate candidate, string solutionDir, List<Candidate> searchedCandidates)
         {
             if (!searchedCandidates.Exists(e => e == candidate))
             {
                 if (candidate.item != null)
-                    FindInProjectItem(candidate.item, last_searchSettings, resultList, errList, solutionDir, candidate.filePath);
+                    FindInProjectItem(candidate.item, lastSearchSettings, lastResultList, errList, solutionDir, candidate.filePath);
                 else if (candidate.filePath != "")
-                    FindInFile(candidate.filePath, last_searchSettings, resultList, solutionDir);
+                    FindInFile(candidate.filePath, lastSearchSettings, lastResultList, solutionDir);
                 searchedCandidates.Add(candidate);
             }
         }
@@ -280,50 +139,58 @@ namespace VSFindTool
                 last_LabelInfo.Content = info;
             };
 
-            dictResultSummary.Remove(last_searchSettings);
+            dictResultSummary.Remove(lastSearchSettings);
             
             //Location
-            if (last_searchSettings.rbLocation)
+            if (lastSearchSettings.rbLocation)
             {
-                if (!Directory.Exists(last_searchSettings.tbLocation))
+                if (!Directory.Exists(lastSearchSettings.tbLocation))
                 {
-                    System.Windows.Forms.MessageBox.Show(String.Format("Podania ścieżka '{0}' jest pusta lub nie wskazuje na istniejący katalog.", last_searchSettings.tbLocation));
+                    System.Windows.Forms.MessageBox.Show(String.Format("Podania ścieżka '{0}' jest pusta lub nie wskazuje na istniejący katalog.", lastSearchSettings.tbLocation));
                     return;
                 }
-                FindInLocation(progress, Finish, last_searchSettings, resultList, "");
+                FindInLocation(progress, Finish, lastSearchSettings, lastResultList, "");
                 tbiLastResult.Focus();
             }
+
             //Last results
-            else if (last_searchSettings.rbLastResults)
+            else if (lastSearchSettings.rbLastResults)
             {
-
+                List<Candidate> lastResultCandidates = GetCandidatesByPath(lastResultList);
+                lastResultList.Clear();
+                ShowCandidates(lastResultCandidates);
+                foreach (Candidate candidate in lastResultCandidates)
+                {
+                    FindInCandidate(candidate, GetSolutionName(), searchedCandidates);
+                }
+                Finish();
+                tbiLastResult.Focus();
             }
-            else if (Dte.Solution.FullName != "")
-            {
 
-                string solutionDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName);
+            else if (Dte.Solution.FullName != "")
+            {                
                 //Current doc
-                if (last_searchSettings.rbCurrDoc)
+                if (lastSearchSettings.rbCurrDoc)
                 {
 
                     List<Candidate> candidates = GetItemCandidates(GetActiveProject(), true);
-                    ShowCandidates(candidates);
+                    //ShowCandidates(candidates);
                     Candidate candidate = GetCandidate(candidates, LastDocWindow.ProjectItem);
                     Debug.Assert(candidate != null, String.Format("There is no candiodate for LastDocWindow {0}: '{1}'", LastDocWindow.Caption, LastDocWindow.ProjectItem.Document.FullName));
 
-                    FindInCandidate(candidate, solutionDir, searchedCandidates);
+                    FindInCandidate(candidate, GetSolutionName(), searchedCandidates);
 
                     //search in form/recource/oteher files
-                    if (last_searchSettings.chkForm)
+                    if (lastSearchSettings.chkForm)
                         foreach (Candidate subCandidate in candidate.subItems)
-                            FindInCandidate(subCandidate, solutionDir, searchedCandidates);
+                            FindInCandidate(subCandidate, GetSolutionName(), searchedCandidates);
                     Finish();
                 }
                 //Open docs
-                else if (last_searchSettings.rbOpenDocs)
+                else if (lastSearchSettings.rbOpenDocs)
                 {
                     List<Candidate> candidates = GetItemCandidates(GetActiveProject(), true);
-                    ShowCandidates(candidates);
+                    //ShowCandidates(candidates);
                     //All opened windows should have apropriate candidate
                     foreach (EnvDTE.Window window in GetWindowsWithItems())
                     {
@@ -332,13 +199,13 @@ namespace VSFindTool
                             Candidate candidate = GetCandidate(candidates, window.ProjectItem);
                             Debug.Assert(candidate != null, String.Format("There is no candiodate for window {0}: '{1}'", window.Caption, window.ProjectItem.Document.FullName));
 
-                            FindInCandidate(candidate, solutionDir, searchedCandidates);
+                            FindInCandidate(candidate, GetSolutionName(), searchedCandidates);
 
-                            FindInProjectItem(window.ProjectItem, last_searchSettings, resultList, errList, solutionDir, candidate.filePath);
+                            FindInProjectItem(window.ProjectItem, lastSearchSettings, lastResultList, errList, GetSolutionName(), candidate.filePath);
                             //search in form/recource/oteher files
-                            if (last_searchSettings.chkForm)
+                            if (lastSearchSettings.chkForm)
                                 foreach (Candidate subCandidate in candidate.subItems)
-                                    FindInCandidate(subCandidate, solutionDir, searchedCandidates);
+                                    FindInCandidate(subCandidate, GetSolutionName(), searchedCandidates);
                         }
                         else
                         {
@@ -347,18 +214,21 @@ namespace VSFindTool
                     }
                     Finish();
                 }
+
                 //Project
-                else if (last_searchSettings.rbProject)
+                else if (lastSearchSettings.rbProject)
                 {
-                    FindInProject(progress, Finish, GetActiveProject(), last_searchSettings, resultList, solutionDir);
+                    FindInProject(progress, Finish, GetActiveProject(), lastSearchSettings, lastResultList, GetSolutionName());
                 }
+
                 //Solution
-                else if (last_searchSettings.rbSolution)
+                else if (lastSearchSettings.rbSolution)
                 {
-                    FindInProjects(progress, Finish, last_searchSettings, resultList, solutionDir);
+                    FindInProjects(progress, Finish, lastSearchSettings, lastResultList, GetSolutionName());
                 }
                 tbiLastResult.Focus();                
             }
+
             else
             {
                 System.Windows.Forms.MessageBox.Show("The solution is no opened.");
@@ -370,23 +240,9 @@ namespace VSFindTool
         {
             LastDocWindow = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
 
-            //Search phrase
-            last_searchSettings.tbPhrase = tbPhrase.Text;
+            //Remember settings
+            lastSearchSettings.Form2Settings(this);
 
-            //Find options
-            last_searchSettings.chkWholeWord = chkWholeWord.IsChecked == true;
-            last_searchSettings.chkForm = chkForm.IsChecked == true;
-            last_searchSettings.chkCase = chkCase.IsChecked == true;
-            last_searchSettings.chkRegExp = chkRegExp.IsChecked == true;
-
-            //Look in
-            last_searchSettings.rbCurrDoc = rbCurrDoc.IsChecked == true;
-            last_searchSettings.rbOpenDocs = rbOpenDocs.IsChecked == true;
-            last_searchSettings.rbProject = rbProject.IsChecked == true;
-            last_searchSettings.rbSolution = rbSolution.IsChecked == true;
-            last_searchSettings.rbLocation = rbLocation.IsChecked == true;
-            last_searchSettings.rbLastResults = rbLastResults.IsChecked == true;
-            last_searchSettings.tbfileFilter = cbFileMask.Text;
             //Select last active document
             if (rbCurrDoc.IsChecked == true)
             {
@@ -399,23 +255,20 @@ namespace VSFindTool
                     LastDocWindow.Activate();
                 }
             }
-            resultList.Clear();
+            //for rbLastResults we need lastResultList to gather candidates, co it'll be cleared later
+            if (!lastSearchSettings.rbLastResults)
+                lastResultList.Clear();
             ExecSearch();
         }
 
 
-        public void ShowStatus(string info)
-        {
-            last_LabelInfo.Content = info;
-        }
-
-
+        
 
         private async void FindInProjects(IProgress<string> progress, FinishDelegate finish, FindSettings settings, List<ResultItem> resultList, string solutionDir)
         {
             foreach (Project project in Dte.Solution.Projects)
             {
-                await FindInProject(progress, null, project, last_searchSettings, resultList, solutionDir);
+                await FindInProject(progress, null, project, lastSearchSettings, resultList, solutionDir);
                 //await System.Threading.Tasks.Task.Delay(TimeSpan.FromMilliseconds(1));
             }
             finish();
@@ -428,7 +281,7 @@ namespace VSFindTool
                 List<Candidate> searchedCandidates = new List<Candidate>();
                 int loop = 0;
                 List<Candidate> candidates = GetItemCandidates(project, true);
-                ShowCandidates(candidates);
+                //ShowCandidates(candidates);
                 foreach (Candidate candidate in candidates)
                 {
                     loop++;
@@ -439,7 +292,7 @@ namespace VSFindTool
                                         
                     Debug.Assert(candidate.item != null || candidate.filePath != "", "Wrong candidate 'candidate.item != null || candidate.filePath != '''");
                     //search in form/recource/oteher files
-                    if (last_searchSettings.chkForm)
+                    if (lastSearchSettings.chkForm)
                         foreach (Candidate subCandidate in candidate.subItems)
                             FindInCandidate(subCandidate, solutionDir, searchedCandidates);
                             
@@ -570,13 +423,14 @@ namespace VSFindTool
                     if (progress != null)
                         progress.Report(String.Format("Searching {0}/{1}", loop, candidates.Count));
                     //await System.Threading.Tasks.Task.Delay(TimeSpan.FromMilliseconds(0));
-                    FindInFile(candidate.filePath, last_searchSettings, resultList, solutionDir);
+                    FindInFile(candidate.filePath, lastSearchSettings, resultList, solutionDir);
                 }
             });
             if (finish != null)
                 finish();
             return;
         }
+
 
 
         private List<EnvDTE.Window> GetWindowsWithItems()
@@ -612,8 +466,14 @@ namespace VSFindTool
             return null;
         }
 
+        private string GetSolutionName()
+        {
+            return Dte.Solution != null ? System.IO.Path.GetDirectoryName(Dte.Solution.FullName) : "";
+        }
 
 
+
+        //Get Candidates from project
         private List<Candidate> GetItemCandidates(Project project, bool allowNoDoc)
         {
             List<Candidate> result = new List<Candidate>();
@@ -634,9 +494,20 @@ namespace VSFindTool
                 }
             }
 
+            //Checking if none candidate have different paths for file and document
+            foreach (Candidate candidate in result)
+            {
+                if (candidate.filePath != "" && 
+                    candidate.DocumentPath != "")
+                {
+                    Debug.Assert(candidate.filePath.ToLower() == candidate.DocumentPath.ToLower(), String.Format("Candidate has different paths '{0}' ; '{1}' .", candidate.filePath, candidate.DocumentPath));
+                }
+            }
+
             return result;
         }
 
+        //Fill result with Candidates from item (may have subitems)
         //Candidate will have filled document if it was opened (sometimes there may NOT be document)
         //If there is no document we'll search the file
         private void GetItemCandidates(ProjectItem item, List<Candidate> result, string parentPath, bool allowNoDoc)
@@ -659,42 +530,39 @@ namespace VSFindTool
                 doc = null;
             }
 
-            if (doc != null)
-                documentPath = doc.FullName;
-            else
-                documentPath = "";
 
+            //Trying to find existing candidate with the same filePath or documentPath : null
+            documentPath = doc != null ? doc.FullName : "";
+            existingCandidate = result.FirstOrDefault(e => (
+                                                            (e.filePath == itemPath && itemPath != "") ||
+                                                            (e.DocumentPath == documentPath && documentPath != "")
+                                                            )
+                                                        );
 
+            //If the ProjectItem has docyment or we allow candidates w/o documents
             if (allowNoDoc || (doc != null))
             {
                 candidate = new Candidate();
-                if (File.Exists(itemPath))
-                {
-                    candidate.filePath = itemPath;
-                }
+                candidate.filePath = File.Exists(itemPath) ? itemPath : "";
                 if (doc != null)
                 {
                     candidate.item = item;
                     candidate.document = doc;
                 }
 
+                //if candidate have docyment or filePath
                 if (candidate.filePath != "" || candidate.item != null)
                 {
 
-                    existingCandidate = result.FirstOrDefault(e => (
+                    /*existingCandidate = result.FirstOrDefault(e => (
                                                                         (e.filePath == candidate.filePath && candidate.filePath != "") ||
                                                                         (e.DocumentPath == candidate.DocumentPath && candidate.DocumentPath != "")
                                                                     )
-                                                              );
+                                                              );*/
                     if (existingCandidate == null)
-                    {
                         result.Add(candidate);
-                    }
                     else
-                    {
-
                         Console.WriteLine("Ommited 'GetItemCandidates / (File.Exists(itemPath))': '" + itemPath + "'");
-                    }
                 }
                 else
                 {
@@ -727,6 +595,7 @@ namespace VSFindTool
             }
         }
 
+        //Fill result with Candidates from Directory and subdirectories if they match fileFilters
         private void GetCandidatesFromLocation(string parentDirPath, List<Candidate> result, List<string> fileFilters)
         {
             foreach(string filePath in Directory.GetFiles(parentDirPath))
@@ -751,6 +620,66 @@ namespace VSFindTool
 
         }
 
+        //Get candidate from list for selected project item
+        private Candidate GetCandidate(List<Candidate> candidates, ProjectItem item)
+        {
+            Candidate candidate = candidates.FirstOrDefault<Candidate>( (e => e.item == item) );
+            if (candidate == null)
+            {
+                foreach (Candidate tmpCandidate in candidates)
+                {
+                    foreach (Candidate subCandidate in tmpCandidate.subItems)
+                    {
+                        if (subCandidate.item == item /*subCandidate.filePath.ToLower() == window.ProjectItem.Document.FullName.ToLower()*/)
+                        {
+                            candidate = subCandidate;
+                            break;
+                        }
+                    }
+                    if (candidate != null)
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                //int i = 0;
+            }
+            return candidate;
+        }
+
+        //Get full content of document of project item
+        internal string GetItemContent(ProjectItem item, List<ErrData> errList)
+        {
+            return GetDocumentContent(item.Document, errList, item.Name);
+        }
+
+        //Get full content of document
+        internal string GetDocumentContent(Document document, List<ErrData> errList, string errInfo = "")
+        {
+            if (document.Selection == null)
+            {
+                errList.Add(new ErrData()
+                {
+                    path = document.FullName,
+                    caption = errInfo != "" ? errInfo : (document.ActiveWindow != null ? document.ActiveWindow.Caption : ""),
+                    info = "No Selection object found."
+                });
+                return "";
+            }
+            EnvDTE.TextSelection selection = GetSelection(document);
+            int line = selection.ActivePoint.Line;
+            int lineCharOffset = selection.ActivePoint.LineCharOffset;
+            selection.SelectAll();
+            string result = selection.Text;
+            selection.MoveToLineAndOffset(line, lineCharOffset);
+            return result;
+        }
+
+
+
+        //Get selection of document of project item
         private EnvDTE.TextSelection GetSelection(ProjectItem item)
         {
             if (item.Document != null)
@@ -763,6 +692,7 @@ namespace VSFindTool
             }
         }
 
+        //Get selection of documen
         private EnvDTE.TextSelection GetSelection(Document document)
         {
             if (document.Selection != null)
@@ -775,6 +705,7 @@ namespace VSFindTool
             }
         }
 
+        //Get selection of document of window
         private EnvDTE.TextSelection GetSelection(EnvDTE.Window window)
         {
             if (window.Selection != null)
@@ -787,7 +718,65 @@ namespace VSFindTool
             }
         }
 
-        private string GetProjectItemContent(ProjectItem item)
+
+
+        /*private Document GetDocumentByPath(string path)
+        {
+            Document result = null;
+            foreach (EnvDTE.Window window in Dte.Windows)
+            {
+                if (window.ProjectItem != null)
+                {
+                    if (window.ProjectItem.Document != null)
+                    {
+                        if (window.ProjectItem.Document.FullName.ToLower() == path.ToLower())
+                        {
+                            result = window.ProjectItem.Document;
+                        }
+                    }
+                }
+            }
+            return result;
+        }*/
+
+        //Get candidates from result list
+        private List<Candidate> GetCandidatesByPath(List<ResultItem> resList)
+        {
+            List<Candidate> result = new List<Candidate>();
+            List<Candidate> candidatesWithDocuments = new List<Candidate>();
+            List<Candidate> candidatesInProject = new List<Candidate>();
+            foreach (Project project in Dte.Solution.Projects)
+            {
+                candidatesInProject = GetItemCandidates(project, true);
+                candidatesWithDocuments.AddRange(candidatesInProject);
+            }
+
+            Candidate candidate;
+            foreach (ResultItem resultItem in resList)
+            {
+                candidate = GetCandidateByPath(candidatesWithDocuments, resultItem.linePath);
+                if (candidate == null)
+                    candidate = new Candidate() { filePath = resultItem.linePath };
+                result.Add(candidate);
+            }
+            return result;
+        }
+
+        private Candidate GetCandidateByPath(List<Candidate> candidates, string path)
+        {
+            Candidate result = candidates.FirstOrDefault(e => e.filePath == path);
+            if (result == null)
+                foreach (Candidate candidate in candidates)
+                {
+                    result = GetCandidateByPath(candidate.subItems , path);
+                    if (result != null)
+                        break;
+                }
+            return result;
+        }
+
+        //
+        /*private string GetProjectItemContent(ProjectItem item)
         {
             string result = "";
             EnvDTE.TextSelection selection = null;
@@ -805,6 +794,6 @@ namespace VSFindTool
                 return result;
             }
             return "";
-        }
+        }*/
     }
 }

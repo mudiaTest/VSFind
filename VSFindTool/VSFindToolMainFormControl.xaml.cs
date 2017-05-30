@@ -66,7 +66,7 @@ namespace VSFindTool
             last_shortDir.IsChecked = true;
             FileMask.FillCB(cbFileMask);
             cbFileMask.SelectedIndex = 0;
-            dictTBPreview.Add(last_searchSettings, last_TBPreview);
+            dictTBPreview.Add(lastSearchSettings, last_TBPreview);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace VSFindTool
 
             tvResultTree.Items.Clear();
 
-            foreach (ResultItem resultItem in resultList)
+            foreach (ResultItem resultItem in lastResultList)
             {
                 treeItemColleaction = tvResultTree.Items;
                 treeItem = null;
@@ -129,7 +129,7 @@ namespace VSFindTool
                         pathAgg = pathAgg + @"\" + resultItem.PathPartsList[i];
                     if (Directory.Exists(pathAgg) || File.Exists(pathAgg))
                     {
-                        treeItem = GetItem(treeItemColleaction, resultItem.PathPartsList[i]);
+                        treeItem = GetTVItemByFilePath(treeItemColleaction, resultItem.PathPartsList[i]);
                         if (treeItem == null)
                         {
                             treeItem = new TreeViewItem() {
@@ -176,9 +176,9 @@ namespace VSFindTool
 
             tvResultFlatTree.Items.Clear();        
 
-            foreach (ResultItem resultItem in resultList)
+            foreach (ResultItem resultItem in lastResultList)
             {
-                treeItem = GetItem(tvResultFlatTree.Items, resultItem.linePath);
+                treeItem = GetTVItemByFilePath(tvResultFlatTree.Items, resultItem.linePath);
                 if (treeItem == null)
                 {
                     treeItem = new TreeViewItem() { Header = resultItem.linePath, FontWeight = FontWeights.Bold };
@@ -194,7 +194,7 @@ namespace VSFindTool
                 leafItem.MouseRightButtonUp += ShowResultTreeContextMenu;
                 this.Focusable = false;
                 dictResultLines.Add(leafItem, resultItem);
-                dictSearchSettings.Add(leafItem, last_searchSettings);
+                dictSearchSettings.Add(leafItem, lastSearchSettings);
                 treeItem.Items.Add(leafItem);
             }
             SetExpandAllInLvl(tvResultFlatTree.Items, true);
@@ -440,6 +440,14 @@ namespace VSFindTool
 
 
 
+        /*Fill info panel*/
+        public void ShowStatus(string info)
+        {
+            last_LabelInfo.Content = info;
+        }
+
+
+
         /*Set settings*/
         public void SetTbFileFilter(string value)
         {
@@ -575,6 +583,50 @@ namespace VSFindTool
         private void rbLastResults_Unchecked(object sender, RoutedEventArgs e)
         {
             chkForm.IsEnabled = true;
+        }
+
+
+
+        /*Show debug info*/
+        private void ShowCandidates(List<Candidate> candidates)
+        {
+            string text = "";
+            foreach (Candidate candidate in candidates)
+            {
+                text = text + ShowCandidate(candidate, "");
+                foreach (Candidate subCandidate in candidate.subItems)
+                {
+                    text = text + ShowCandidate(subCandidate, "->");
+                }
+            }
+            System.Windows.Forms.MessageBox.Show(text);
+        }
+
+        private string ShowCandidate(Candidate candidate, string prefix)
+        {
+            string text = prefix;
+
+            if (candidate.item != null)
+                text = text + "item:TAK ";
+            else
+                text = text + "item:NIE ";
+
+            if (candidate.document != null)
+                text = text + "document:TAK ";
+            else
+                text = text + "document:NIE ";
+
+            if (candidate.filePath != "")
+                text = text + "filePath:TAK; ";
+            else
+                text = text + "filePath:NIE ";
+
+            //if (candidate.document != null)
+            text = text + "\n" + "docPath: " + candidate.DocumentPath;
+
+            //if (candidate.filePath != "")
+            text = text + "\n" + "filePath: " + candidate.filePath;
+            return text + "\n\n";
         }
     }
 }

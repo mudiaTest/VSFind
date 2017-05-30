@@ -105,7 +105,7 @@ namespace VSFindTool
             };
         }
 
-        public void SetColtrols(VSFindToolMainFormControl form)
+        public void Settings2Form(VSFindToolMainFormControl form)
         {
             //Search phrase
             form.tbPhrase.Text = tbPhrase;
@@ -125,6 +125,27 @@ namespace VSFindTool
             form.rbLastResults.IsChecked = rbLastResults;
             form.tbLocation.Text = tbLocation;
             form.SetTbFileFilter(tbfileFilter);
-        }        
+        } 
+        
+        public void Form2Settings(VSFindToolMainFormControl form)
+        {
+            //Search phrase
+            tbPhrase = form.tbPhrase.Text;
+
+            //Find options
+            chkWholeWord = form.chkWholeWord.IsChecked == true;
+            chkForm = form.chkForm.IsChecked == true;
+            chkCase = form.chkCase.IsChecked == true;
+            chkRegExp = form.chkRegExp.IsChecked == true;
+
+            //Look in
+            rbCurrDoc = form.rbCurrDoc.IsChecked == true;
+            rbOpenDocs = form.rbOpenDocs.IsChecked == true;
+            rbProject = form.rbProject.IsChecked == true;
+            rbSolution = form.rbSolution.IsChecked == true;
+            rbLocation = form.rbLocation.IsChecked == true;
+            rbLastResults = form.rbLastResults.IsChecked == true;
+            tbfileFilter = form.cbFileMask.Text;
+        }
     }
 }

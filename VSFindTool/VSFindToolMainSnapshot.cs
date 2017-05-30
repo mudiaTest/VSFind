@@ -117,7 +117,7 @@ namespace VSFindTool
             grid.Children.Add(infoWrapPanel);
             Grid.SetRow(infoWrapPanel, 0);
             Grid.SetColumn(infoWrapPanel, 0);
-            FillWraperPanel(last_searchSettings, infoWrapPanel);
+            FillWraperPanel(lastSearchSettings, infoWrapPanel);
 
             //navigator
             Grid navGrid = new Grid()
@@ -311,7 +311,7 @@ namespace VSFindTool
 
             btnFindAgain.Click += (o, e) =>
             {
-                findSettings[snapshotTag].SetColtrols(this);
+                findSettings[snapshotTag].Settings2Form(this);
                 tbiSearch.Focus();
             };
 
@@ -338,12 +338,12 @@ namespace VSFindTool
 
 
             //Copy settings for snapshot
-            FindSettings snapSettings = last_searchSettings.GetCopy();
+            FindSettings snapSettings = lastSearchSettings.GetCopy();
             findSettings.Add(snapshotTag, snapSettings);
 
 
             //Copy ResultSummary for snapshot
-            ResultSummary resultSummary = dictResultSummary[last_searchSettings].GetCopy();
+            ResultSummary resultSummary = dictResultSummary[lastSearchSettings].GetCopy();
             dictResultSummary.Add(snapSettings, resultSummary);
 
 
