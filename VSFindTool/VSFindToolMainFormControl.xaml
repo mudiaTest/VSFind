@@ -56,8 +56,8 @@
                                 <RadioButton Grid.Row="1" Grid.Column="0" x:Name="rbOpenDocs" Content="Open Docs" HorizontalAlignment="Left" VerticalAlignment="Top" Height="16" Width="78" Margin="5,0,0,0"/>
                                 <RadioButton Grid.Row="2" Grid.Column="0" x:Name="rbProject" Content="Project" HorizontalAlignment="Left" Margin="5,0,0,1" Width="56"/>
                                 <RadioButton Grid.Row="3" Grid.Column="0" x:Name="rbSolution" Content="Solution" HorizontalAlignment="Left" VerticalAlignment="Top" Height="16" Width="63" Margin="5,0,0,0"/>
-                                <RadioButton Grid.Row="4" Grid.Column="0" x:Name="rbSelection" Content="Selection" HorizontalAlignment="Left" IsEnabled="False" Margin="5,0,0,1" Width="67"/>
-                                <RadioButton Grid.Row="5" Grid.Column="0" x:Name="rbLocation" Content="Lacation" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="RbLocation_Checked" Unchecked="RbLocation_Unchecked" Height="16" Width="63" Margin="5,0,0,0"/>
+                                <RadioButton Grid.Row="4" Grid.Column="0" x:Name="rbLocation" Content="Lacation" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="RbLocation_Checked" Unchecked="RbLocation_Unchecked" Height="16" Width="63" Margin="5,0,0,0"/>
+                                <RadioButton Grid.Row="5" Grid.Column="0" x:Name="rbLastResults" Content="Last results" HorizontalAlignment="Left" Margin="5,0,0,1" Width="103" Checked="rbLastResults_Checked" Unchecked="rbLastResults_Unchecked"/>
                                 <Grid Grid.Row="6" Grid.ColumnSpan="2">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition/>

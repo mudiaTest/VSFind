@@ -24,14 +24,15 @@ namespace VSFindTool
 
         public delegate void FinishDelegate();
 
-        List<ResultLineData> resultList = new List<ResultLineData>();
+        List<ResultItem> resultList = new List<ResultItem>();
         List<ErrData> errList = new List<ErrData>();
         FindSettings last_searchSettings = new FindSettings();
-        Dictionary<TreeViewItem, ResultLineData> dictResultLines = new Dictionary<TreeViewItem, ResultLineData>();
+        internal Dictionary<TreeViewItem, ResultItem> dictResultLines = new Dictionary<TreeViewItem, ResultItem>();
         Dictionary<TreeViewItem, FindSettings> dictSearchSettings = new Dictionary<TreeViewItem, FindSettings>();
         Dictionary<FindSettings, TextBox> dictTBPreview = new Dictionary<FindSettings, TextBox>();
         Dictionary<TreeView, TVData> dictTVData = new Dictionary<TreeView, TVData>();
         Dictionary<FindSettings, ResultSummary> dictResultSummary = new Dictionary<FindSettings, ResultSummary>();
+        Dictionary<MenuItem, TreeViewItem> dictContextMenu = new Dictionary<MenuItem, TreeViewItem>();
 
         [Import]
         internal ITextSearchService TextSearchService { get; set; }
@@ -160,7 +161,7 @@ namespace VSFindTool
         }
 
 
-        private Document GetDocumentByPath(string path)
+        /*private Document GetDocumentByPath(string path)
         {
             Document result = null;
             foreach (EnvDTE.Window window in Dte.Windows)
@@ -177,9 +178,32 @@ namespace VSFindTool
                 }
             }
             return result;
+        }*/
+
+        private List<Candidate> GetCandidatesByPath()
+        {
+            List<Candidate> result = new List<Candidate>();
+            List<Candidate> candidatesWithDocuments = new List<Candidate>();
+            List<Candidate> candidatesInProject = new List<Candidate>();              
+            foreach (Project project in Dte.Solution.Projects)
+            {
+                candidatesInProject = GetItemCandidates(project, false);
+                candidatesWithDocuments.AddRange(candidatesInProject);
+            }
+                   
+            Candidate candidate;
+            foreach (ResultItem resultItem in resultList)
+            {
+                candidate = candidatesWithDocuments.FirstOrDefault(e => e.filePath == resultItem.linePath);
+                if (candidate == null)
+                    result.Add(candidate);
+                else
+                    result.Add(new Candidate() { filePath = resultItem.linePath });
+            }
+            return result;
         }
 
-        private bool ReplaceInDocument(Document document, FindSettings settings, ResultLineData result)
+        private bool ReplaceInDocument(Document document, FindSettings settings, ResultItem result)
         {
             TextSelection selection = GetSelection(document);
             selection.MoveToLineAndOffset(result.resultOffset, result.resultOffset);
@@ -258,6 +282,7 @@ namespace VSFindTool
 
             dictResultSummary.Remove(last_searchSettings);
             
+            //Location
             if (last_searchSettings.rbLocation)
             {
                 if (!Directory.Exists(last_searchSettings.tbLocation))
@@ -267,6 +292,11 @@ namespace VSFindTool
                 }
                 FindInLocation(progress, Finish, last_searchSettings, resultList, "");
                 tbiLastResult.Focus();
+            }
+            //Last results
+            else if (last_searchSettings.rbLastResults)
+            {
+
             }
             else if (Dte.Solution.FullName != "")
             {
@@ -327,7 +357,7 @@ namespace VSFindTool
                 {
                     FindInProjects(progress, Finish, last_searchSettings, resultList, solutionDir);
                 }
-                tbiLastResult.Focus();
+                tbiLastResult.Focus();                
             }
             else
             {
@@ -355,7 +385,7 @@ namespace VSFindTool
             last_searchSettings.rbProject = rbProject.IsChecked == true;
             last_searchSettings.rbSolution = rbSolution.IsChecked == true;
             last_searchSettings.rbLocation = rbLocation.IsChecked == true;
-            last_searchSettings.tbLocation = tbLocation.Text;
+            last_searchSettings.rbLastResults = rbLastResults.IsChecked == true;
             last_searchSettings.tbfileFilter = cbFileMask.Text;
             //Select last active document
             if (rbCurrDoc.IsChecked == true)
@@ -381,7 +411,7 @@ namespace VSFindTool
 
 
 
-        private async void FindInProjects(IProgress<string> progress, FinishDelegate finish, FindSettings settings, List<ResultLineData> resultList, string solutionDir)
+        private async void FindInProjects(IProgress<string> progress, FinishDelegate finish, FindSettings settings, List<ResultItem> resultList, string solutionDir)
         {
             foreach (Project project in Dte.Solution.Projects)
             {
@@ -391,9 +421,7 @@ namespace VSFindTool
             finish();
         }
 
-
-
-        private async System.Threading.Tasks.Task FindInProject(IProgress<string> progress, FinishDelegate finish, Project project, FindSettings settings, List<ResultLineData> resultList, string solutionDir)
+        private async System.Threading.Tasks.Task FindInProject(IProgress<string> progress, FinishDelegate finish, Project project, FindSettings settings, List<ResultItem> resultList, string solutionDir)
         {
             await System.Threading.Tasks.Task.Run(() =>
             {
@@ -422,7 +450,7 @@ namespace VSFindTool
             return; //Task as reutl and return null is ok. If We 
         }
 
-        private void FindInDocument(Document document, FindSettings settings, List<ResultLineData> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
+        private void FindInDocument(Document document, FindSettings settings, List<ResultItem> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
         {
             int lineIndex = 0;
             GetResultSummary(settings).searchedFiles++;
@@ -434,7 +462,7 @@ namespace VSFindTool
             }
         }
 
-        private void FindInProjectItem(ProjectItem item, FindSettings settings, List<ResultLineData> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
+        private void FindInProjectItem(ProjectItem item, FindSettings settings, List<ResultItem> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
         {
             int lineIndex = 0;
             GetResultSummary(settings).searchedFiles++;
@@ -446,7 +474,7 @@ namespace VSFindTool
             }
         }
 
-        private void FindInSelection(string selection, FindSettings settings, List<ResultLineData> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
+        private void FindInSelection(string selection, FindSettings settings, List<ResultItem> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
         {
             int lineIndex = 0;
             GetResultSummary(settings).searchedFiles++;
@@ -460,7 +488,7 @@ namespace VSFindTool
             }
         }
 
-        private void FindInFile(string path, FindSettings settings, List<ResultLineData> resultList, string solutionDir)
+        private void FindInFile(string path, FindSettings settings, List<ResultItem> resultList, string solutionDir)
         {
             StreamReader stream = new StreamReader(path, Encoding.Default);
             string line = stream.ReadLine();
@@ -490,14 +518,14 @@ namespace VSFindTool
                 return Regex.Matches(line, prefix + phrase + sufix, RegexOptions.IgnoreCase);
         }
 
-        private void LineToResultList(string line, FindSettings settings, List<ResultLineData> resultList, string solutionDir, string path, int lineIndex)
+        private void LineToResultList(string line, FindSettings settings, List<ResultItem> resultList, string solutionDir, string path, int lineIndex)
         {
-            ResultLineData resultLineData;
+            ResultItem resultItem;
             int indexInLine = 0;
 
             foreach (Match match in GetMatchesInline(line, settings))
             {
-                resultLineData = new ResultLineData()
+                resultItem = new ResultItem()
                 {
                     linePath = path,
                     lineContent = line,
@@ -509,14 +537,14 @@ namespace VSFindTool
                 };
                 lock (threadLock)
                 {
-                    resultList.Add(resultLineData);
+                    resultList.Add(resultItem);
                     GetResultSummary(settings).foundResults++;
                 }
                 indexInLine++;
             }
         }
 
-        private async System.Threading.Tasks.Task FindInLocation(IProgress<string> progress, FinishDelegate finish, FindSettings settings, List<ResultLineData> resultList, string solutionDir)
+        private async System.Threading.Tasks.Task FindInLocation(IProgress<string> progress, FinishDelegate finish, FindSettings settings, List<ResultItem> resultList, string solutionDir)
         {
             await System.Threading.Tasks.Task.Run(() =>
             {
@@ -585,6 +613,7 @@ namespace VSFindTool
         }
 
 
+
         private List<Candidate> GetItemCandidates(Project project, bool allowNoDoc)
         {
             List<Candidate> result = new List<Candidate>();
@@ -593,18 +622,109 @@ namespace VSFindTool
                 GetItemCandidates(item, result, Path.GetDirectoryName(project.FullName), allowNoDoc);
             }
 
+            //Checking if none of candidates have subitems
             foreach(Candidate candidate in result)
             {
                 if (candidate.subItems.Count > 0)
                 {
                     foreach(Candidate subCandidate in candidate.subItems)
                     {
-                        Debug.Assert(subCandidate.subItems.Count == 0, String.Format("There are sibItems for candidate '{0}' .", subCandidate.filePath));
+                        Debug.Assert(subCandidate.subItems.Count == 0, String.Format("There are subItems for candidate '{0}' .", subCandidate.filePath));
                     }
                 }
             }
 
             return result;
+        }
+
+        //Candidate will have filled document if it was opened (sometimes there may NOT be document)
+        //If there is no document we'll search the file
+        private void GetItemCandidates(ProjectItem item, List<Candidate> result, string parentPath, bool allowNoDoc)
+        {
+            string itemPath = Path.Combine(parentPath, item.Name);
+            Candidate candidate = null;
+            Candidate existingCandidate = null;
+            Candidate candidateAsParent = null;
+
+            Document doc;
+            string documentPath;
+
+            //Some items doesn't have Documents (ie Properties) and throw exceptions even when we try to chech if they are equal to null
+            try
+            {
+                doc = item.Document;
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                doc = null;
+            }
+
+            if (doc != null)
+                documentPath = doc.FullName;
+            else
+                documentPath = "";
+
+
+            if (allowNoDoc || (doc != null))
+            {
+                candidate = new Candidate();
+                if (File.Exists(itemPath))
+                {
+                    candidate.filePath = itemPath;
+                }
+                if (doc != null)
+                {
+                    candidate.item = item;
+                    candidate.document = doc;
+                }
+
+                if (candidate.filePath != "" || candidate.item != null)
+                {
+
+                    existingCandidate = result.FirstOrDefault(e => (
+                                                                        (e.filePath == candidate.filePath && candidate.filePath != "") ||
+                                                                        (e.DocumentPath == candidate.DocumentPath && candidate.DocumentPath != "")
+                                                                    )
+                                                              );
+                    if (existingCandidate == null)
+                    {
+                        result.Add(candidate);
+                    }
+                    else
+                    {
+
+                        Console.WriteLine("Ommited 'GetItemCandidates / (File.Exists(itemPath))': '" + itemPath + "'");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Ommited 'GetItemCandidates / (candidate.filePath != '' || candidate.item != null)': '" + itemPath + "'");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Ommited 'GetItemCandidates / (doc != null)': '" + itemPath + "'");
+            }
+
+            if (existingCandidate != null)
+                candidateAsParent = existingCandidate;
+            else
+                candidateAsParent = candidate;
+
+            Debug.Assert(Directory.Exists(itemPath) || File.Exists(itemPath), String.Format("Item '{0}' is nither dir nor file.", item.Name));
+
+            foreach (ProjectItem subItem in item.ProjectItems)
+            {
+                //If item is directory, subitems will be independent
+                if (Directory.Exists(itemPath))
+                    GetItemCandidates(subItem, result, itemPath, allowNoDoc);
+                //If item is file, subitems wolud be form, rosurrce and oteher non-code types
+                else if (File.Exists(itemPath))
+                {
+                    Debug.Assert(candidateAsParent != null, String.Format("There is no candidateAsParent for item '{0}' .", item.Name));
+                    GetItemCandidates(subItem, candidateAsParent.subItems, parentPath, allowNoDoc);
+                }
+            }
         }
 
         private void GetCandidatesFromLocation(string parentDirPath, List<Candidate> result, List<string> fileFilters)
@@ -685,97 +805,6 @@ namespace VSFindTool
                 return result;
             }
             return "";
-        }
-
-
-        //Candidate will have filled document if it was opened (sometimes there may NOT be document)
-        //If there is no document we'll search the file
-        private void GetItemCandidates(ProjectItem item, List<Candidate> result, string parentPath, bool allowNoDoc)
-        {
-            string itemPath = Path.Combine(parentPath, item.Name);
-            Candidate candidate = null;
-            Candidate existingCandidate = null;
-            Candidate candidateAsParent = null;
-
-            Document doc;
-            string documentPath;
-
-            //Some items doesn't have Documents (ie Properties) and throw exceptions even when we try to chech if they are equal to null
-            try
-            {
-                doc = item.Document;
-            }
-            catch (System.Runtime.InteropServices.COMException)
-            {
-                doc = null;
-            }
-
-            if (doc != null)
-                documentPath = doc.FullName;
-            else
-                documentPath = "";
-
-
-            if (allowNoDoc || (doc != null) )
-            {
-                candidate = new Candidate();                
-                if (File.Exists(itemPath))
-                {
-                    candidate.filePath = itemPath;
-                }
-                if (doc != null)
-                {
-                    candidate.item = item;
-                    candidate.document = doc;
-                }
-
-                if (candidate.filePath != "" || candidate.item != null)
-                {
-
-                    existingCandidate = result.FirstOrDefault(e => (
-                                                                        (e.filePath == candidate.filePath && candidate.filePath != "") ||
-                                                                        (e.DocumentPath == candidate.DocumentPath && candidate.DocumentPath != "")
-                                                                    )
-                                                              );
-                    if (existingCandidate == null)
-                    {
-                        result.Add(candidate);
-                    }
-                    else
-                    {
-
-                        Console.WriteLine("Ommited 'GetItemCandidates / (File.Exists(itemPath))': '" + itemPath + "'");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Ommited 'GetItemCandidates / (candidate.filePath != '' || candidate.item != null)': '" + itemPath + "'");
-                }
-            }
-            else
-            {
-                Console.WriteLine("Ommited 'GetItemCandidates / (doc != null)': '" + itemPath + "'");
-            }
-
-            if (existingCandidate != null)
-                candidateAsParent = existingCandidate;
-            else
-                candidateAsParent = candidate;
-
-            Debug.Assert(Directory.Exists(itemPath) || File.Exists(itemPath), String.Format("Item '{0}' is nither dir nor file.", item.Name));
-
-            foreach (ProjectItem subItem in item.ProjectItems)
-            {
-                //If item is directory, subitems will be independent
-                if (Directory.Exists(itemPath))
-                    GetItemCandidates(subItem, result, itemPath, allowNoDoc);
-                //If item is file, subitems wolud be form, rosurrce and oteher non-code types
-                else if (File.Exists(itemPath))
-                {
-                    Debug.Assert(candidateAsParent != null, String.Format("There is no candidateAsParent for item '{0}' .", item.Name));
-                    GetItemCandidates(subItem, candidateAsParent.subItems, parentPath, allowNoDoc);
-                }               
-            }
         }
     }
 }
