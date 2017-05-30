@@ -47,10 +47,10 @@
                                     <RowDefinition Height="20"/>
                                     <RowDefinition Height="22"/>
                                     <RowDefinition Height="22"/>
+                                    <RowDefinition Height="22"/>
                                 </Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="7
-                                                      0*"/>
+                                    <ColumnDefinition Width="70*"/>
                                     <ColumnDefinition Width="71*"/>
                                 </Grid.ColumnDefinitions>
 
@@ -84,6 +84,7 @@
                                     <Button Grid.Column="1" Name="btnAddFileMasks" Content="+" Margin="4,2,2,2" Width="24" HorizontalAlignment="Center" Padding="1,-2,1,1" Height="18" Click="BtnAddFileMasks_Click" IsEnabled="False"/>
                                     <Button Grid.Column="2" Name="btnDelFileMasks" Content="-" Margin="2" Width="24" HorizontalAlignment="Center" Padding="1,-2,1,1" Height="18" Click="BtnDelFileMasks_Click" IsEnabled="False"/>
                                 </Grid>
+                                <CheckBox Name="chkSubDir" Content="Search in subdirectories" HorizontalAlignment="Left" Margin="0" Grid.Row="8" VerticalAlignment="Top" Grid.ColumnSpan="2" IsChecked="True" IsEnabled="False"/>
                             </Grid>
                         </Expander>
                     </StackPanel>

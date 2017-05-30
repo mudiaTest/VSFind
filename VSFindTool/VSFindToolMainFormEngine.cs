@@ -416,7 +416,7 @@ namespace VSFindTool
                     filterList.Add(filter.Replace(".", "\\.").Replace("*", ".*")+"$");
                 }
 
-                GetCandidatesFromLocation(settings.tbLocation, candidates, filterList);
+                GetCandidatesFromLocation(settings.tbLocation, candidates, filterList, settings.chkSubDir);
                 foreach (Candidate candidate in candidates)
                 {
                     loop++;
@@ -596,7 +596,7 @@ namespace VSFindTool
         }
 
         //Fill result with Candidates from Directory and subdirectories if they match fileFilters
-        private void GetCandidatesFromLocation(string parentDirPath, List<Candidate> result, List<string> fileFilters)
+        private void GetCandidatesFromLocation(string parentDirPath, List<Candidate> result, List<string> fileFilters, bool includeSubDirs)
         {
             foreach(string filePath in Directory.GetFiles(parentDirPath))
             {
@@ -613,11 +613,11 @@ namespace VSFindTool
                 if (blAdd)
                     result.Add(new Candidate() { filePath = filePath });
             }
-            foreach (string dirPath in Directory.GetDirectories(parentDirPath))
-            {
-                GetCandidatesFromLocation(dirPath, result, fileFilters);
-            }
-
+            if (includeSubDirs)
+                foreach (string dirPath in Directory.GetDirectories(parentDirPath))
+                {
+                    GetCandidatesFromLocation(dirPath, result, fileFilters, includeSubDirs);
+                }
         }
 
         //Get candidate from list for selected project item

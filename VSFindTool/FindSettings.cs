@@ -25,6 +25,7 @@ namespace VSFindTool
         internal bool rbLastResults;
         internal string tbLocation;
         internal string tbfileFilter;
+        internal bool chkSubDir;
 
         internal string GetPrefix()
         {
@@ -75,7 +76,7 @@ namespace VSFindTool
             else if (rbSolution)
                 result += " [Solution] ";
             else if (rbLocation)
-                result += " [" + tbLocation + " / " + tbfileFilter + "] ";
+                result += " [" + tbLocation + " / " + tbfileFilter + " / " + chkSubDir.ToString() + "] ";
             else if (rbLastResults)
                 result += " [LastRes]";
 
@@ -101,7 +102,8 @@ namespace VSFindTool
                 rbLocation = rbLocation,
                 rbLastResults = rbLastResults,
                 tbLocation = tbLocation,
-                tbfileFilter = tbfileFilter
+                tbfileFilter = tbfileFilter,
+                chkSubDir = chkSubDir
             };
         }
 
@@ -125,6 +127,7 @@ namespace VSFindTool
             form.rbLastResults.IsChecked = rbLastResults;
             form.tbLocation.Text = tbLocation;
             form.SetTbFileFilter(tbfileFilter);
+            form.chkSubDir.IsChecked = chkSubDir;
         } 
         
         public void Form2Settings(VSFindToolMainFormControl form)
@@ -145,7 +148,9 @@ namespace VSFindTool
             rbSolution = form.rbSolution.IsChecked == true;
             rbLocation = form.rbLocation.IsChecked == true;
             rbLastResults = form.rbLastResults.IsChecked == true;
+            tbLocation = form.tbLocation.Text;
             tbfileFilter = form.cbFileMask.Text;
+            chkSubDir = form.chkSubDir.IsChecked == true;
         }
     }
 }

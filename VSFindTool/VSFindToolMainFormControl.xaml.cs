@@ -433,6 +433,8 @@ namespace VSFindTool
                 AddLabel(settings.tbLocation, infoWrapPanel);
                 AddExtraBold(AddLabel(" | ", infoWrapPanel));
                 AddLabel(settings.tbfileFilter, infoWrapPanel);
+                AddExtraBold(AddLabel(" | ", infoWrapPanel));
+                AddLabel(settings.chkSubDir.ToString(), infoWrapPanel);
             }
             else if (settings.rbLastResults)            
                 AddLabel("LastRes", infoWrapPanel);            
@@ -525,6 +527,7 @@ namespace VSFindTool
             cbFileMask.IsEnabled = true;
             btnAddFileMasks.IsEnabled = true;
             btnDelFileMasks.IsEnabled = true;
+            chkSubDir.IsEnabled = true;
             chkForm.IsEnabled = false;
         }
 
@@ -535,6 +538,7 @@ namespace VSFindTool
             cbFileMask.IsEnabled = false;
             btnAddFileMasks.IsEnabled = false;
             btnDelFileMasks.IsEnabled = false;
+            chkSubDir.IsEnabled = false;
             chkForm.IsEnabled = true;
         }
 
