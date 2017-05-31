@@ -466,6 +466,18 @@ namespace VSFindTool
 
 
 
+        /*(Un)Locking possibility of searching*/
+        private void LockSearching()
+        {
+            btnFind.IsEnabled = false;
+        }
+
+        private void UnlockSearching()
+        {
+            btnFind.IsEnabled = true;
+        }
+
+
         /*Events*/
         private void Tb_Checked(object sender, RoutedEventArgs e)
         {

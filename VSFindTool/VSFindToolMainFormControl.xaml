@@ -34,7 +34,7 @@
                                     </LinearGradientBrush>
                                 </TextBox.BorderBrush>
                             </TextBox>
-                            <Button Grid.Row="0" Grid.Column="1" Content="&gt;&gt;" x:Name="kkkk" RenderTransformOrigin="-0.32,7.767" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0" Click="BtnFind_Click"/>
+                            <Button Grid.Row="0" Grid.Column="1" Content="&gt;&gt;" x:Name="btnFind" RenderTransformOrigin="-0.32,7.767" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0" Click="BtnFind_Click"/>
                         </Grid>
                         <Expander Header="Options" BorderBrush="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" IsExpanded="True">
                             <Grid VerticalAlignment="Top" Margin="0,5,0,0">
