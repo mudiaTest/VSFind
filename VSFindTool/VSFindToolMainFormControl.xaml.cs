@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Media;
+using System.Threading;
 
 namespace VSFindTool
 {
@@ -470,11 +471,17 @@ namespace VSFindTool
         private void LockSearching()
         {
             btnFind.IsEnabled = false;
+            btnAbort.IsEnabled = true;
+            btnAbort2.IsEnabled = true;
         }
 
         private void UnlockSearching()
         {
             btnFind.IsEnabled = true;
+            btnAbort.IsEnabled = false;
+            btnAbort2.IsEnabled = false;
+            if (cancellationToken.IsCancellationRequested)
+                System.Windows.Forms.MessageBox.Show("Search aborted."); 
         }
 
 
@@ -502,6 +509,8 @@ namespace VSFindTool
 
         private void BtnFind_Click(object sender, RoutedEventArgs e)
         {
+            tokenSource = new CancellationTokenSource();
+            cancellationToken = tokenSource.Token;
             StartSearch();
         }
 
@@ -601,6 +610,15 @@ namespace VSFindTool
             chkForm.IsEnabled = true;
         }
 
+        private void btnAbort_Click(object sender, RoutedEventArgs e)
+        {
+            tokenSource.Cancel();
+        }
+
+        private void btnAbort2_Click(object sender, RoutedEventArgs e)
+        {
+            tokenSource.Cancel();
+        }
 
 
         /*Show debug info*/

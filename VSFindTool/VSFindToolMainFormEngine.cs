@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using VSHierarchyAddin;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace VSFindTool
@@ -36,7 +37,6 @@ namespace VSFindTool
 
         public delegate void FinishDelegate();
 
-
         List<ResultItem> lastResultList = new List<ResultItem>();
         List<Candidate> searchedCandidates = new List<Candidate>();
         List<ErrData> errList = new List<ErrData>();
@@ -62,15 +62,19 @@ namespace VSFindTool
 
 
 
-
-       /* public void HideFindResult2Window()
-        {
-            var findWindow = Dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
-            findWindow.Visible = false;
-        }*/
+        CancellationTokenSource tokenSource;
+        CancellationToken cancellationToken;
 
 
-        
+
+        /* public void HideFindResult2Window()
+         {
+             var findWindow = Dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
+             findWindow.Visible = false;
+         }*/
+
+
+
         private ResultSummary GetResultSummary(FindSettings settings)
         {
             if (!dictResultSummary.ContainsKey(settings))
@@ -383,6 +387,8 @@ namespace VSFindTool
 
         private void FindInCandidate(Candidate candidate, string solutionDir)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return;
             if (!searchedCandidates.Exists(e => e.filePath == candidate.filePath))
             {
                 if (candidate.item != null)
@@ -395,6 +401,8 @@ namespace VSFindTool
 
         private void FindInDocument(Document document, FindSettings settings, List<ResultItem> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return;
             if (!searchedCandidates.Exists(e => e.filePath.ToLower() == bulkPath.ToLower()))
             {
                 int lineIndex = 0;
@@ -410,6 +418,8 @@ namespace VSFindTool
 
         private void FindInProjectItem(ProjectItem item, FindSettings settings, List<ResultItem> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return;
             if (!searchedCandidates.Exists(e => e.filePath.ToLower() == bulkPath.ToLower()))
             {
                 int lineIndex = 0;
@@ -425,6 +435,8 @@ namespace VSFindTool
 
         private void FindInSelection(string selection, FindSettings settings, List<ResultItem> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return;
             if (!searchedCandidates.Exists(e => e.filePath.ToLower() == bulkPath.ToLower()))
             {
                 int lineIndex = 0;
@@ -442,6 +454,8 @@ namespace VSFindTool
 
         private void FindInFile(string path, FindSettings settings, List<ResultItem> resultList, string solutionDir)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return;
             if (!searchedCandidates.Exists(e => e.filePath.ToLower() == path.ToLower()))
             {
                 StreamReader stream = new StreamReader(path, Encoding.Default);
