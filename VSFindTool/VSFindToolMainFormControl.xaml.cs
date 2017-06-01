@@ -103,10 +103,17 @@ namespace VSFindTool
 
 
         /*Filling and actions of result TreeViews*/
-        internal void MoveResultToTreeList(TreeView tvResultTree, FindSettings last_searchSettings, TextBox tbPreview)
+        internal void MoveResultToTreeList(TreeView tvResultTree, FindSettings last_searchSettings, TextBox tbPreview, List<ResultItem> resultList, bool clearTV = false)
         {
+            List<ResultItem> tmp = new List<ResultItem>();
+            foreach (ResultItem resultItem in resultList)
+            {
+                tmp.Add(resultItem.GetCopy());
+            }
+
             ItemCollection treeItemColleaction;
             string pathAgg;
+            string content = "";
             TreeViewItem treeItem;
             TreeViewItem leafItem;
 
@@ -115,9 +122,10 @@ namespace VSFindTool
                 longDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName)
             };
 
-            tvResultTree.Items.Clear();
+            if (clearTV)
+                tvResultTree.Items.Clear();
 
-            foreach (ResultItem resultItem in lastResultList)
+            foreach (ResultItem resultItem in resultList)
             {
                 treeItemColleaction = tvResultTree.Items;
                 treeItem = null;
@@ -143,9 +151,10 @@ namespace VSFindTool
                     }
                     if (i == resultItem.PathPartsList.Count - 1)
                     {
+                        content = resultItem.lineContent.Trim();
                         leafItem = new TreeViewItem()
-                        {
-                            Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + resultItem.lineContent.Trim(),
+                        {                          
+                            Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + content.Substring(0, Math.Min(resultItem.lineContent.Trim().Length - 1, 300)),
                             FontWeight = FontWeights.Normal
                         };
                         leafItem.MouseDoubleClick += OpenResultDocLine;
@@ -165,8 +174,15 @@ namespace VSFindTool
             SetExpandAllInLvl(tvResultTree.Items, true);
         }
 
-        internal void MoveResultToFlatTreeList(TreeView tvResultFlatTree, FindSettings last_searchSetting, TextBox tbPreview)
+        internal void MoveResultToFlatTreeList(TreeView tvResultFlatTree, FindSettings last_searchSetting, TextBox tbPreview, List<ResultItem> resultList, bool clearTV = false)
         {
+            List<ResultItem> tmp = new List<ResultItem>();
+            string content = "";
+            foreach (ResultItem resultItem in resultList)
+            {
+                tmp.Add(resultItem.GetCopy());
+            }
+
             TreeViewItem treeItem;
             TreeViewItem leafItem;
             
@@ -175,11 +191,13 @@ namespace VSFindTool
                 longDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName)
             };
 
-            tvResultFlatTree.Items.Clear();        
+            if (clearTV)
+                tvResultFlatTree.Items.Clear();        
 
-            foreach (ResultItem resultItem in lastResultList)
+            foreach (ResultItem resultItem in resultList)
             {
                 treeItem = GetTVItemByFilePath(tvResultFlatTree.Items, resultItem.linePath);
+                content = resultItem.lineContent.Trim();
                 if (treeItem == null)
                 {
                     treeItem = new TreeViewItem() { Header = resultItem.linePath, FontWeight = FontWeights.Bold };
@@ -187,7 +205,7 @@ namespace VSFindTool
                 }
                 leafItem = new TreeViewItem()
                 {
-                    Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + resultItem.lineContent.Trim(),
+                    Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + content.Substring(0, Math.Min(resultItem.lineContent.Trim().Length - 1, 300)),
                     FontWeight = FontWeights.Normal
                 };
                 leafItem.MouseDoubleClick += OpenResultDocLine;
@@ -200,6 +218,13 @@ namespace VSFindTool
             }
             SetExpandAllInLvl(tvResultFlatTree.Items, true);
         }
+
+        internal void ClearTV(TreeView tvResultFlatTree, TreeView tvResultTree)
+        {
+            tvResultFlatTree.Items.Clear();
+            tvResultTree.Items.Clear();
+        }
+
 
 
         internal void SetExpandAllInLvl(ItemCollection treeItemColleaction, bool value)
