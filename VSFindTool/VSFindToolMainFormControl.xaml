@@ -5,8 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              Background="{DynamicResource VsBrush.Window}"
              Foreground="{DynamicResource VsBrush.WindowText}"
-             mc:Ignorable="d" d:DesignWidth="270"
-             Name="MyToolWindow" MinHeight="250">
+             mc:Ignorable="d" d:DesignWidth="370"
+             Name="MyToolWindow" MinHeight="550">
     <UserControl.Resources>
         <ContextMenu x:Key="TVContextMenu">
             <MenuItem Header="Send" />

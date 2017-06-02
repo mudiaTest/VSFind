@@ -14,15 +14,15 @@ namespace VSFindTool
             {
                 TreeViewItem newItem = new TreeViewItem() { Header = item.Header };
                 dst.Add(newItem);
+                dictSearchSettings.Add(newItem, findSettings);
+                //only leafs
                 if (item.Items.Count == 0)
                 {
                     newItem.MouseDoubleClick += OpenResultDocLine;
                     newItem.MouseUp += PreviewResultDoc;
-                }
-                dictSearchSettings.Add(newItem, findSettings);
-                //only leafs
-                if (item.Items.Count == 0)
+                    newItem.MouseRightButtonUp += ShowResultTreeContextMenu;
                     dictResultLines.Add(newItem, dictResultLines[item].GetCopy());
+                }
                 newItem.FontWeight = item.FontWeight;  //FontWeights.Bold - FontWeights is a static class, so it's ok
                 CopyItems(item.Items, newItem.Items, findSettings, tbPreview);
             }
