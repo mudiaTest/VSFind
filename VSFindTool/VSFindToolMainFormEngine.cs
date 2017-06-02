@@ -117,11 +117,13 @@ namespace VSFindTool
                 FillResultSummary(last_LabelInfo, GetResultSummary(lastSearchSettings));
                 if (resultToTV)
                 {
-                    MoveResultToTreeList(last_tvResultTree, lastSearchSettings, last_TBPreview, lastResultList, true);
-                    MoveResultToFlatTreeList(last_tvResultFlatTree, lastSearchSettings, last_TBPreview, lastResultList, true);
+                    MoveResultToTreeList(last_tvResultTree, lastSearchSettings, last_TBPreview, lastResultList, false);
+                    MoveResultToFlatTreeList(last_tvResultFlatTree, lastSearchSettings, last_TBPreview, lastResultList, false);
+                    RebuildTVTreeList(last_tvResultTree);
                 }
-                SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, last_shortDir.IsChecked.Value);
-                SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, last_shortDir.IsChecked.Value);
+                JoinNodesWOLeafs(last_tvResultTree);
+                //SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, last_shortDir.IsChecked.Value);
+                //SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, last_shortDir.IsChecked.Value);
                 searchedCandidates.Clear();
                 UnlockSearching();
             }
@@ -141,6 +143,7 @@ namespace VSFindTool
             {
                 MoveResultToTreeList(last_tvResultTree, lastSearchSettings, last_TBPreview, list);
                 MoveResultToFlatTreeList(last_tvResultFlatTree, lastSearchSettings, last_TBPreview, list);
+                RebuildTVTreeList(last_tvResultTree);
                 foreach (ResultItem item in list)
                     lastResultList.Add(item);
                 list.Clear();

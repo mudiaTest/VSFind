@@ -103,7 +103,7 @@ namespace VSFindTool
 
 
         /*Filling and actions of result TreeViews*/
-        internal void MoveResultToTreeList(TreeView tvResultTree, FindSettings last_searchSettings, TextBox tbPreview, List<ResultItem> resultList, bool clearTV = false)
+        internal void MoveResultToTreeList(TreeView tvResultTree, FindSettings last_searchSettings, TextBox tbPreview, List<ResultItem> resultList, bool partialMode = true)
         {
             List<ResultItem> tmp = new List<ResultItem>();
             foreach (ResultItem resultItem in resultList)
@@ -122,7 +122,7 @@ namespace VSFindTool
                 longDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName)
             };
 
-            if (clearTV)
+            if (!partialMode)
                 tvResultTree.Items.Clear();
 
             foreach (ResultItem resultItem in resultList)
@@ -169,12 +169,13 @@ namespace VSFindTool
                 }
             }
 
-            foreach (TreeViewItem tmpItem in tvResultTree.Items)
-                JoinNodesWOLeafs(tmpItem);
+            if (!partialMode)
+                foreach (TreeViewItem tmpItem in tvResultTree.Items)
+                    JoinNodesWOLeafs(tmpItem);
             SetExpandAllInLvl(tvResultTree.Items, true);
         }
 
-        internal void MoveResultToFlatTreeList(TreeView tvResultFlatTree, FindSettings last_searchSetting, TextBox tbPreview, List<ResultItem> resultList, bool clearTV = false)
+        internal void MoveResultToFlatTreeList(TreeView tvResultFlatTree, FindSettings last_searchSetting, TextBox tbPreview, List<ResultItem> resultList, bool partialMode = true)
         {
             List<ResultItem> tmp = new List<ResultItem>();
             string content = "";
@@ -191,7 +192,7 @@ namespace VSFindTool
                 longDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName)
             };
 
-            if (clearTV)
+            if (!partialMode)
                 tvResultFlatTree.Items.Clear();        
 
             foreach (ResultItem resultItem in resultList)
@@ -217,6 +218,28 @@ namespace VSFindTool
                 treeItem.Items.Add(leafItem);
             }
             SetExpandAllInLvl(tvResultFlatTree.Items, true);
+        }
+
+        internal void FillTVIList(Dictionary<string, TreeViewItem> tviList, ItemCollection items)
+        {
+            foreach (TreeViewItem item in items)
+            {
+                tviList.Add(dictResultLines[item].linePath, item);
+                FillTVIList(tviList, item.Items);
+            }
+        }
+
+        internal void RebuildTVTreeList(TreeView tvResultTree)
+        {
+           /* Dictionary<string, TreeViewItem> tviList = new Dictionary<string, TreeViewItem>();
+            ItemCollection items = tvResultTree.Items;
+            TreeViewItem treeItem;
+            FillTVIList(tviList, tvResultTree.Items);
+            items.Clear();
+            foreach (KeyValuePair<string, TreeViewItem> pair in tviList)
+            {
+                if ()
+            }*/
         }
 
         internal void ClearTV(TreeView tvResultFlatTree, TreeView tvResultTree)
@@ -271,6 +294,12 @@ namespace VSFindTool
                         SetHeaderShortLong(treeView, item.Items, blShort);
                 }
             }
+        }
+
+        public void JoinNodesWOLeafs(TreeView tree)
+        {
+            foreach (TreeViewItem tmpItem in tree.Items)
+                JoinNodesWOLeafs(tmpItem);
         }
 
         public void JoinNodesWOLeafs(TreeViewItem treeItem)
