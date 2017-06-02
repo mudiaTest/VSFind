@@ -9,8 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Windows.Media;
 using System.Threading;
+using System.Windows.Media;
 
 namespace VSFindTool
 {
@@ -370,8 +370,7 @@ namespace VSFindTool
             {
                 cm = new ContextMenu();
 
-                mi = new MenuItem();
-                mi.Header = "Open in containing folder";
+                mi = new MenuItem(){ Header = "Open in containing folder" };
                 mi.Click += OpenInFolder;
                 cm.Items.Add(mi);
 
@@ -621,26 +620,26 @@ namespace VSFindTool
             FileMask.FillCB(cbFileMask);
         }
 
-        private void last_tvResultFlatTree_MouseRightButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void Last_tvResultFlatTree_MouseRightButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
         }
 
-        private void rbLastResults_Checked(object sender, RoutedEventArgs e)
+        private void RbLastResults_Checked(object sender, RoutedEventArgs e)
         {
             chkForm.IsEnabled = false;
         }
 
-        private void rbLastResults_Unchecked(object sender, RoutedEventArgs e)
+        private void RbLastResults_Unchecked(object sender, RoutedEventArgs e)
         {
             chkForm.IsEnabled = true;
         }
 
-        private void btnAbort_Click(object sender, RoutedEventArgs e)
+        private void BtnAbort_Click(object sender, RoutedEventArgs e)
         {
             tokenSource.Cancel();
         }
 
-        private void btnAbort2_Click(object sender, RoutedEventArgs e)
+        private void BtnAbort2_Click(object sender, RoutedEventArgs e)
         {
             tokenSource.Cancel();
         }

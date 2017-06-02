@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 namespace VSFindTool
 {
     using System.Windows.Controls;
+    using System.Runtime.CompilerServices;
 
     /// <summary>
     /// Interaction logic for VSFindToolMainFormControl.
@@ -241,8 +242,8 @@ namespace VSFindTool
             }
             catch
             {
-                throw;
                 UnlockSearching();
+                throw;
             }
         }
 
@@ -665,8 +666,10 @@ namespace VSFindTool
             //If the ProjectItem has docyment or we allow candidates w/o documents
             if (allowNoDoc || (doc != null))
             {
-                candidate = new Candidate();
-                candidate.filePath = File.Exists(itemPath) ? itemPath : "";
+                candidate = new Candidate()
+                {
+                    filePath = File.Exists(itemPath) ? itemPath : ""
+                };
                 if (doc != null)
                 {
                     candidate.item = item;
@@ -799,8 +802,6 @@ namespace VSFindTool
             selection.MoveToLineAndOffset(line, lineCharOffset);
             return result;
         }
-
-
 
         //Get selection of document of project item
         private EnvDTE.TextSelection GetSelection(ProjectItem item)

@@ -2,9 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             Background="{DynamicResource VsBrush.Window}"
-             Foreground="{DynamicResource VsBrush.WindowText}"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"            
              mc:Ignorable="d" d:DesignWidth="370"
              Name="MyToolWindow" MinHeight="550">
     <UserControl.Resources>
@@ -36,7 +34,7 @@
                                 </TextBox.BorderBrush>
                             </TextBox>
                             <Button Grid.Row="0" Grid.Column="1" Width="22" Content="&gt;&gt;" x:Name="btnFind" RenderTransformOrigin="-0.32,7.767" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,5,0" Click="BtnFind_Click" HorizontalContentAlignment="Center"/>
-                            <Button Grid.Row="0" Grid.Column="2" Width="22" Content="X" x:Name="btnAbort" RenderTransformOrigin="-0.32,7.767" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,5,0" IsEnabled="False" Click="btnAbort_Click"/>
+                            <Button Grid.Row="0" Grid.Column="2" Width="22" Content="X" x:Name="btnAbort" RenderTransformOrigin="-0.32,7.767" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,5,0" IsEnabled="False" Click="BtnAbort_Click"/>
                         </Grid>
                         <Expander Header="Options" BorderBrush="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" IsExpanded="True">
                             <Grid VerticalAlignment="Top" Margin="0,5,0,0">
@@ -66,7 +64,7 @@
                                 <RadioButton Grid.Row="2" Grid.Column="1" x:Name="rbProject" Content="Project" HorizontalAlignment="Left" Margin="5,0,0,1" Width="56"/>
                                 <RadioButton Grid.Row="3" Grid.Column="1" x:Name="rbSolution" Content="Solution" HorizontalAlignment="Left" VerticalAlignment="Top" Height="16" Width="63" Margin="5,0,0,0"/>
                                 <RadioButton Grid.Row="4" Grid.Column="1" x:Name="rbLocation" Content="Lacation" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="RbLocation_Checked" Unchecked="RbLocation_Unchecked" Height="16" Width="63" Margin="5,0,0,0"/>
-                                <RadioButton Grid.Row="5" Grid.Column="1" x:Name="rbLastResults" Content="Last results" HorizontalAlignment="Left" Margin="5,0,0,1" Width="103" Checked="rbLastResults_Checked" Unchecked="rbLastResults_Unchecked"/>
+                                <RadioButton Grid.Row="5" Grid.Column="1" x:Name="rbLastResults" Content="Last results" HorizontalAlignment="Left" Margin="5,0,0,1" Width="103" Checked="RbLastResults_Checked" Unchecked="RbLastResults_Unchecked"/>
                                 <Grid Grid.Row="6" Grid.ColumnSpan="2">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition/>
@@ -121,12 +119,12 @@
                             <Button x:Name="btnExpAll" Width="21" Content="+" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-4,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="1,1" Click="BtnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />
                             <Button x:Name="btnUnExpAll" Width="21" Content="-" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-4,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="1,1" Click="BtnUnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />
                             <ToggleButton x:Name="last_shortDir" Content = "Short" HorizontalAlignment = "Center" Padding="3,1" Width="40" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Margin="5,0,0,0" Height="21" VerticalAlignment="Center" Checked="Last_shortDir_Checked" Unchecked="Last_shortDir_Unchecked" />
-                            <Button Grid.Row="0" Grid.Column="2" Width="22" Content="X" x:Name="btnAbort2" RenderTransformOrigin="-0.32,7.767" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5,0,0,0" IsEnabled="False" Click="btnAbort2_Click"/>
+                            <Button Grid.Row="0" Grid.Column="2" Width="22" Content="X" x:Name="btnAbort2" RenderTransformOrigin="-0.32,7.767" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5,0,0,0" IsEnabled="False" Click="BtnAbort2_Click"/>
                         </WrapPanel>
                         <Button x:Name="btnAddSnapshot" Grid.Column="1" Content="Snapshot" Margin="0" Width="70" Padding="3,1,3,0" IsCancel="True" Click="BtnAddSnapshot_Click" HorizontalAlignment="Center" VerticalAlignment="Center" Height="21"/>
                     </Grid>
 
-                    <TreeView Grid.Row="2" Grid.ColumnSpan="2" x:Name="last_tvResultFlatTree" HorizontalContentAlignment="Stretch" MouseRightButtonUp="last_tvResultFlatTree_MouseRightButtonUp"/>
+                    <TreeView Grid.Row="2" Grid.ColumnSpan="2" x:Name="last_tvResultFlatTree" HorizontalContentAlignment="Stretch" MouseRightButtonUp="Last_tvResultFlatTree_MouseRightButtonUp"/>
                     <TreeView Grid.Row="3" Grid.ColumnSpan="2" x:Name="last_tvResultTree" HorizontalContentAlignment="Stretch"/>
                     <TextBox Grid.Row="4" Grid.ColumnSpan="2" Name="last_TBPreview" HorizontalScrollBarVisibility="Auto"/>
                     <Label Grid.Row="5" Grid.ColumnSpan="2" x:Name="last_LabelInfo" Padding="5,2,5,5" Content="www"/>
