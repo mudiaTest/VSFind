@@ -21,7 +21,7 @@ namespace VSFindTool
                     newItem.MouseDoubleClick += OpenResultDocLine;
                     newItem.MouseUp += PreviewResultDoc;
                     newItem.MouseRightButtonUp += ShowResultTreeContextMenu;
-                    dictResultLines.Add(newItem, dictResultLines[item].GetCopy());
+                    dictResultItems.Add(newItem, dictResultItems[item].GetCopy());
                 }
                 newItem.FontWeight = item.FontWeight;  //FontWeights.Bold - FontWeights is a static class, so it's ok
                 CopyItems(item.Items, newItem.Items, findSettings, tbPreview);

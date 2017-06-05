@@ -17,6 +17,8 @@ namespace VSFindTool
         internal int resultOffset; //offset of result in line;
         internal int resultLength; //length of found result
         internal string resultContent; //value of found result
+        internal bool replaced = false; //if found result has been replaced
+        internal bool belongsToLastResults = false; //does result belog to Last...TreeView
 
         private List<string> _pathPartsList = null;
         internal List<string> PathPartsList
@@ -37,7 +39,8 @@ namespace VSFindTool
                 lineNumber = lineNumber,
                 resultOffset = resultOffset,
                 resultLength = resultLength,
-                resultContent = resultContent
+                resultContent = resultContent,
+                replaced = replaced
             };
         }
     }

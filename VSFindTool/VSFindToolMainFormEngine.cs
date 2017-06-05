@@ -44,7 +44,7 @@ namespace VSFindTool
         FindSettings lastSearchSettings = new FindSettings();
 
         // Result object for TVItem
-        Dictionary<TreeViewItem, ResultItem> dictResultLines = new Dictionary<TreeViewItem, ResultItem>();
+        Dictionary<TreeViewItem, ResultItem> dictResultItems = new Dictionary<TreeViewItem, ResultItem>();
         
         // Settings for TVItem
         Dictionary<TreeViewItem, FindSettings> dictSearchSettings = new Dictionary<TreeViewItem, FindSettings>();
@@ -67,6 +67,41 @@ namespace VSFindTool
         CancellationToken cancellationToken;
 
 
+
+        internal void ClearLastResults()
+        {
+            List<TreeViewItem> keyTVList = new List<TreeViewItem>();
+
+            //dictResultItems
+            //dictSearchSettings
+            foreach (KeyValuePair<TreeViewItem, ResultItem> pair in dictResultItems)
+            {
+                if (pair.Value.belongsToLastResults)
+                    keyTVList.Add(pair.Key);
+            }
+            foreach (TreeViewItem key in keyTVList)
+            {
+                dictResultItems.Remove(key);
+                dictSearchSettings.Remove(key);
+            }
+
+            List<MenuItem> keyMIList = new List<MenuItem>();
+
+            //dictContextMenu
+            foreach (KeyValuePair<MenuItem, TreeViewItem> pair in dictContextMenu)
+            {
+                if (keyTVList.IndexOf(pair.Value) >= 0)
+                    keyMIList.Add(pair.Key);
+            }
+            foreach (MenuItem key in keyMIList)
+            {
+                dictContextMenu.Remove(key);
+            }
+
+            //dictTVData
+            dictTVData.Remove(last_tvResultFlatTree);
+            dictTVData.Remove(last_tvResultTree);
+        }
 
         /* public void HideFindResult2Window()
          {
@@ -160,7 +195,7 @@ namespace VSFindTool
                     UnlockSearching();
                     return;
                 }
-                FindInLocationAsync(progressInfo, progressResult, lastSearchSettings, /*lastResultList,*/ "");
+                FindInLocationAsync(progressInfo, progressResult, lastSearchSettings, "");
                 tbiLastResult.Focus();
             }
 
@@ -170,7 +205,7 @@ namespace VSFindTool
                 List<Candidate> lastResultCandidates = GetCandidatesByPath(lastResultList);
                 lastResultList.Clear();
                 //ShowCandidates(lastResultCandidates);
-                FindInLastResultsAsync(progressInfo, progressResult, lastResultCandidates, lastSearchSettings/*, lastResultList*/);
+                FindInLastResultsAsync(progressInfo, progressResult, lastResultCandidates, lastSearchSettings);
                 tbiLastResult.Focus();
             }
 
@@ -181,27 +216,27 @@ namespace VSFindTool
                 {
                     List<Candidate> candidates = GetItemCandidates(GetActiveProject(), true);
                     //ShowCandidates(candidates);
-                    FindInCurrentDocumentAsync(progressInfo, progressResult, candidates/*, lastResultList*/);
+                    FindInCurrentDocumentAsync(progressInfo, progressResult, candidates);
                     tbiLastResult.Focus();
                 }
                 //Open docs
                 else if (lastSearchSettings.rbOpenDocs)
                 {
                     List<Candidate> candidates = GetItemCandidates(GetActiveProject(), true);
-                    FindInOpenedDocumentsAsync(progressInfo, progressResult, candidates, lastSearchSettings/*, lastResultList*/);
+                    FindInOpenedDocumentsAsync(progressInfo, progressResult, candidates, lastSearchSettings);
                     tbiLastResult.Focus();
                 }
 
                 //Project
                 else if (lastSearchSettings.rbProject)
                 {
-                    FindInProjectAsync(progressInfo, progressResult, GetActiveProject(), lastSearchSettings, /*lastResultList,*/ GetSolutionName());
+                    FindInProjectAsync(progressInfo, progressResult, GetActiveProject(), lastSearchSettings, GetSolutionName());
                 }
 
                 //Solution
                 else if (lastSearchSettings.rbSolution)
                 {
-                    FindInProjectsAsync(progressInfo, progressResult, lastSearchSettings, /*lastResultList,*/ GetSolutionName());
+                    FindInProjectsAsync(progressInfo, progressResult, lastSearchSettings, GetSolutionName());
                 }
                 tbiLastResult.Focus();                
             }
@@ -220,6 +255,9 @@ namespace VSFindTool
             try
             {
                 LastDocWindow = ((VSFindTool.VSFindToolPackage)(this.parentToolWindow.Package)).LastDocWindow;
+
+                ClearTV(last_tvResultFlatTree, last_tvResultTree);
+                ClearLastResults();
 
                 //Remember settings
                 lastSearchSettings.Form2Settings(this);
@@ -240,7 +278,6 @@ namespace VSFindTool
                 if (!lastSearchSettings.rbLastResults)
                     lastResultList.Clear();
                 FillWraperPanel(lastSearchSettings, last_infoWrapPanel);
-                ClearTV(last_tvResultFlatTree, last_tvResultTree);
                 ExecSearch();
             }
             catch
@@ -576,20 +613,29 @@ namespace VSFindTool
 
         private Project GetActiveProject()
         {
-            if (Dte.Solution.Projects.Count == 1)
+            Project currentProject = null;
+            int projCount = 0;
+            foreach (Project project in Dte.Solution.Projects)
             {
-                foreach (Project project in Dte.Solution.Projects)
-                    return project;
+                if (project.FileName != "")
+                {
+                    currentProject = project;
+                    projCount++;
+                }
             }
+   
+            if (projCount == 1)
+                return currentProject;
             else
             {
+                currentProject = null;
                 Array activeSolutionProjects = Dte.ActiveSolutionProjects as Array;
                 if (activeSolutionProjects != null && activeSolutionProjects.Length > 0)
-                    return activeSolutionProjects.GetValue(0) as Project;
+                    currentProject = activeSolutionProjects.GetValue(0) as Project;
                 else
                     Debug.Assert(false, "Brak aktywnego projektu.");
+                return currentProject;
             }
-            return null;
         }
 
         private string GetSolutionName()
@@ -879,6 +925,14 @@ namespace VSFindTool
                         break;
                 }
             return result;
+        }
+
+        private Document GetDocumentByPath(string path)
+        {
+            foreach (EnvDTE.Document document in Dte.Documents)
+                if(document.FullName.ToLower() == path.ToLower())
+                    return document;
+            return null;
         }
     }
 }

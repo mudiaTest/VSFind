@@ -157,12 +157,13 @@ namespace VSFindTool
                             Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + content.Substring(0, Math.Min(resultItem.lineContent.Trim().Length - 1, 300)),
                             FontWeight = FontWeights.Normal
                         };
+                        resultItem.belongsToLastResults = true;
                         leafItem.MouseDoubleClick += OpenResultDocLine;
                         leafItem.MouseUp += PreviewResultDoc;
                         leafItem.MouseRightButtonUp += ShowResultTreeContextMenu;
                         //leafItem.ContextMenu = (ContextMenu)this.Resources["TVContextMenu"];
                        // leafItem.ContextMenu = new ContextMenu();
-                        dictResultLines.Add(leafItem, resultItem);
+                        dictResultItems.Add(leafItem, resultItem);
                         dictSearchSettings.Add(leafItem, last_searchSettings);                        
                         treeItemColleaction.Add(leafItem);
                     }
@@ -209,11 +210,13 @@ namespace VSFindTool
                     Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + content.Substring(0, Math.Min(resultItem.lineContent.Trim().Length - 1, 300)),
                     FontWeight = FontWeights.Normal
                 };
+
+                resultItem.belongsToLastResults = true;
                 leafItem.MouseDoubleClick += OpenResultDocLine;
                 leafItem.MouseUp += PreviewResultDoc;
                 leafItem.MouseRightButtonUp += ShowResultTreeContextMenu;
                 this.Focusable = false;
-                dictResultLines.Add(leafItem, resultItem);
+                dictResultItems.Add(leafItem, resultItem);
                 dictSearchSettings.Add(leafItem, lastSearchSettings);
                 treeItem.Items.Add(leafItem);
             }
@@ -224,7 +227,7 @@ namespace VSFindTool
         {
             foreach (TreeViewItem item in items)
             {
-                tviList.Add(dictResultLines[item].linePath, item);
+                tviList.Add(dictResultItems[item].linePath, item);
                 FillTVIList(tviList, item.Items);
             }
         }
@@ -328,14 +331,13 @@ namespace VSFindTool
         }
 
 
-        public void OpenResultDocLine(object src, EventArgs args)
+        internal TextSelection OpenDocGetSelection(ResultItem resultLine, FindSettings settings, EventArgs args, bool focus = true)
         {
-            ResultItem resultLine = dictResultLines[(TreeViewItem)src];
-            FindSettings settings = dictSearchSettings[(TreeViewItem)src];
+            TextSelection selection = null;
             if (Dte != null)
             {
                 EnvDTE.Window docWindow = Dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
-                TextSelection selection = GetSelection(Dte.ActiveDocument);
+                selection = GetSelection(Dte.ActiveDocument);
                 if (selection != null)
                 {
                     selection.SelectAll();
@@ -351,42 +353,98 @@ namespace VSFindTool
                     else
                     {
                         selection.MoveToLineAndOffset(resultLine.lineNumber.Value + 1, resultLine.resultOffset + 1, false);
-                        selection.MoveToLineAndOffset(resultLine.lineNumber.Value + 1, resultLine.resultOffset + settings.tbPhrase.Length + 1, true);
+                        selection.MoveToLineAndOffset(resultLine.lineNumber.Value + 1, resultLine.resultOffset + resultLine.resultLength + 1, true);
                     }
                     //Add action to set focus no doc window after finishing all action in queue (currenty there should be only double click event) 
-                    Action showAction = () => docWindow.Activate();
-                    this.Dispatcher.BeginInvoke(showAction);
+                    if (focus)
+                    {
+                        Action showAction = () => docWindow.Activate();
+                        this.Dispatcher.BeginInvoke(showAction);
+                    }
                 }
             }
             else
                 Debug.Assert(false, "Brak DTE");
+            return selection;
+        }
+
+        internal void OpenResultDocLine(object src, EventArgs args)
+        {
+            ResultItem resultLine = dictResultItems[(TreeViewItem)src];
+            FindSettings settings = dictSearchSettings[(TreeViewItem)src];
+            OpenDocGetSelection(resultLine, settings, args, true);
         }
 
         public void PreviewResultDoc(object src, EventArgs args)
         {
-            ResultItem resultLine = dictResultLines[(TreeViewItem)src];
+            ResultItem resultLine = dictResultItems[(TreeViewItem)src];
             FindSettings settings = dictSearchSettings[(TreeViewItem)src];
             TextBox tbPreview = dictTBPreview[settings];
             tbPreview.Text = "";
             int lineNumber = 0;
+
+            EnvDTE.Document document = GetDocumentByPath(resultLine.linePath);
+            if (document != null)
+            {
+                EnvDTE.TextSelection selection = GetSelection(document);
+                if (selection != null)
+                {
+                    selection.EndOfDocument();
+                    int docLength = selection.CurrentLine;
+                    selection.GotoLine(Math.Max(0, resultLine.lineNumber.Value - 1), false);
+                    selection.LineDown(true, Math.Min(5, docLength - resultLine.lineNumber.Value + 3));
+                    tbPreview.Text = selection.Text;
+                    return;
+                }
+            }
+                        
             using (var reader = new StreamReader(resultLine.linePath))
             {
                 string line;
                 while (lineNumber <= Math.Max(0, resultLine.lineNumber.Value + 2))
                 {
+                    if (reader.EndOfStream)
+                        return;
                     lineNumber++;
                     line = reader.ReadLine();
                     if (lineNumber >= Math.Max(0, resultLine.lineNumber.Value - 2) && lineNumber <= Math.Max(0, resultLine.lineNumber.Value + 2))
                         tbPreview.AppendText((tbPreview.Text != "" ? Environment.NewLine : "") + line);
                 }
-            }
+            }            
         }
 
         public void OpenInFolder(object src, EventArgs args)
         {
             string app = "explorer.exe";
-            string selectFile = "/select, \"" + dictResultLines[dictContextMenu[(MenuItem)src]].linePath + "\"";
+            string selectFile = "/select, \"" + dictResultItems[dictContextMenu[(MenuItem)src]].linePath + "\"";
             System.Diagnostics.Process.Start(app, selectFile);
+        }
+
+        public void ReplaceSpecyfic(object src, EventArgs args)
+        {
+            List<ResultItem> changedResults = new List<ResultItem>();
+            String strReplace = "ttt";
+            ResultItem resultItem = dictResultItems[dictContextMenu[(MenuItem)src]];
+            FindSettings settings = lastSearchSettings;
+            if (resultItem.replaced)
+            {
+                System.Windows.Forms.MessageBox.Show("Result has already been changed.");
+                return;
+            }            
+            TextSelection selection = OpenDocGetSelection(resultItem, settings, args, false);
+            selection.Text = strReplace;
+            foreach (KeyValuePair<TreeViewItem, ResultItem> pair in dictResultItems)
+            {
+                if (!changedResults.Contains(pair.Value) &&
+                    pair.Value.linePath == resultItem.linePath && 
+                    pair.Value.lineNumber == resultItem.lineNumber &&
+                    pair.Value.resultOffset > resultItem.resultOffset)
+                {
+                    pair.Value.resultOffset = pair.Value.resultOffset + (strReplace.Length - resultItem.resultContent.Length);
+                    changedResults.Add(pair.Value);
+                }
+            }
+            resultItem.replaced = true;
         }
 
         public void ShowResultTreeContextMenu(object src, EventArgs args)
@@ -401,6 +459,10 @@ namespace VSFindTool
 
                 mi = new MenuItem(){ Header = "Open in containing folder" };
                 mi.Click += OpenInFolder;
+                cm.Items.Add(mi);
+
+                mi = new MenuItem() { Header = "Replace" };
+                mi.Click += ReplaceSpecyfic;
                 cm.Items.Add(mi);
 
                 item.ContextMenu = cm;
