@@ -142,7 +142,6 @@ namespace VSFindTool
             }
 
             return false;
-
         }
 
         public void Finish(bool resultToTV = false)

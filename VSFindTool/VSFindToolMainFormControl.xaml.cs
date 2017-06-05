@@ -397,7 +397,7 @@ namespace VSFindTool
                     return;
                 }
             }
-                        
+            //It there is no document in VS memory        
             using (var reader = new StreamReader(resultLine.linePath))
             {
                 string line;
@@ -423,15 +423,24 @@ namespace VSFindTool
         public void ReplaceSpecyfic(object src, EventArgs args)
         {
             List<ResultItem> changedResults = new List<ResultItem>();
-            String strReplace = "ttt";
             ResultItem resultItem = dictResultItems[dictContextMenu[(MenuItem)src]];
             FindSettings settings = lastSearchSettings;
+
             if (resultItem.replaced)
             {
                 System.Windows.Forms.MessageBox.Show("Result has already been changed.");
                 return;
-            }            
+            }
+
+            strReplacestrReplacestrReplace
+
             TextSelection selection = OpenDocGetSelection(resultItem, settings, args, false);
+
+            if (GetMatchesInline(selection.Text, settings).Count != 1)
+            {
+                System.Windows.Forms.MessageBox.Show(String.Format("Source doasn't match the phrase. Phrase '{0}', found '{1}'.", settings.tbPhrase, selection.Text));
+                return;
+            }
             selection.Text = strReplace;
             foreach (KeyValuePair<TreeViewItem, ResultItem> pair in dictResultItems)
             {
@@ -598,6 +607,7 @@ namespace VSFindTool
             if (cancellationToken.IsCancellationRequested)
                 System.Windows.Forms.MessageBox.Show("Search aborted."); 
         }
+
 
 
         /*Events*/
