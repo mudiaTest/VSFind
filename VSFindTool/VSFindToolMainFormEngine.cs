@@ -131,7 +131,7 @@ namespace VSFindTool
 
 
 
-        private bool ReplaceInDocument(Document document, FindSettings settings, ResultItem result)
+        /*private bool ReplaceInSource(Document document, FindSettings settings, ResultItem result)
         {
             TextSelection selection = GetSelection(document);
             selection.MoveToLineAndOffset(result.resultOffset, result.resultOffset);
@@ -142,7 +142,7 @@ namespace VSFindTool
             }
 
             return false;
-        }
+        }*/
 
         public void Finish(bool resultToTV = false)
         {
@@ -864,7 +864,7 @@ namespace VSFindTool
             }
         }
 
-        //Get selection of documen
+        //Get selection of document
         private EnvDTE.TextSelection GetSelection(Document document)
         {
             if (document.Selection != null)
@@ -875,6 +875,20 @@ namespace VSFindTool
             {
                 return null;
             }
+        }
+
+        //Open document and get selection
+        internal TextSelection GetDocumentSelection(ResultItem resultLine)
+        {
+            TextSelection selection = null;
+            if (Dte != null)
+            {
+                EnvDTE.Window docWindow = Dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
+                selection = GetSelection(Dte.ActiveDocument);
+            }
+            else
+                Debug.Assert(false, "Brak DTE");
+            return selection;
         }
 
         //Get selection of document of window

@@ -7,6 +7,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.TextManager.Interop;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -29,7 +30,6 @@ namespace VSFindTool
         /// </summary>
         public VSFindToolMainForm parentToolWindow;
         public EnvDTE.Window LastDocWindow;
-        //internal string OuterSelectedText;
         EnvDTE80.DTE2 Dte
         {
             get
@@ -80,6 +80,7 @@ namespace VSFindTool
 
 
 
+
         /*Shortcut actions*/
         internal void DoFocus()
         {
@@ -99,6 +100,7 @@ namespace VSFindTool
         {
             tbiLastResult.IsSelected = true;
         }
+
 
 
 
@@ -158,7 +160,7 @@ namespace VSFindTool
                             FontWeight = FontWeights.Normal
                         };
                         resultItem.belongsToLastResults = true;
-                        leafItem.MouseDoubleClick += OpenResultDocLine;
+                        leafItem.MouseDoubleClick += OpenResultShowPreview;
                         leafItem.MouseUp += PreviewResultDoc;
                         leafItem.MouseRightButtonUp += ShowResultTreeContextMenu;
                         //leafItem.ContextMenu = (ContextMenu)this.Resources["TVContextMenu"];
@@ -212,7 +214,7 @@ namespace VSFindTool
                 };
 
                 resultItem.belongsToLastResults = true;
-                leafItem.MouseDoubleClick += OpenResultDocLine;
+                leafItem.MouseDoubleClick += OpenResultShowPreview;
                 leafItem.MouseUp += PreviewResultDoc;
                 leafItem.MouseRightButtonUp += ShowResultTreeContextMenu;
                 this.Focusable = false;
@@ -250,8 +252,6 @@ namespace VSFindTool
             tvResultFlatTree.Items.Clear();
             tvResultTree.Items.Clear();
         }
-
-
 
         internal void SetExpandAllInLvl(ItemCollection treeItemColleaction, bool value)
         {
@@ -331,7 +331,10 @@ namespace VSFindTool
         }
 
 
-        internal TextSelection OpenDocGetSelection(ResultItem resultLine, FindSettings settings, EventArgs args, bool focus = true)
+
+
+        //Preview
+        internal TextSelection OpenDocShowPreview(ResultItem resultLine, FindSettings settings, bool focus = true)
         {
             TextSelection selection = null;
             if (Dte != null)
@@ -368,12 +371,12 @@ namespace VSFindTool
             return selection;
         }
 
-        internal void OpenResultDocLine(object src, EventArgs args)
+        internal void OpenResultShowPreview(object src, EventArgs args)
         {
             ResultItem resultLine = dictResultItems[(TreeViewItem)src];
             FindSettings settings = dictSearchSettings[(TreeViewItem)src];
-            OpenDocGetSelection(resultLine, settings, args, true);
-        }
+            OpenDocShowPreview(resultLine, settings, true);
+        }        
 
         public void PreviewResultDoc(object src, EventArgs args)
         {
@@ -413,49 +416,10 @@ namespace VSFindTool
             }            
         }
 
-        public void OpenInFolder(object src, EventArgs args)
-        {
-            string app = "explorer.exe";
-            string selectFile = "/select, \"" + dictResultItems[dictContextMenu[(MenuItem)src]].linePath + "\"";
-            System.Diagnostics.Process.Start(app, selectFile);
-        }
 
-        public void ReplaceSpecyfic(object src, EventArgs args)
-        {
-            List<ResultItem> changedResults = new List<ResultItem>();
-            ResultItem resultItem = dictResultItems[dictContextMenu[(MenuItem)src]];
-            FindSettings settings = lastSearchSettings;
 
-            if (resultItem.replaced)
-            {
-                System.Windows.Forms.MessageBox.Show("Result has already been changed.");
-                return;
-            }
 
-            strReplacestrReplacestrReplace
-
-            TextSelection selection = OpenDocGetSelection(resultItem, settings, args, false);
-
-            if (GetMatchesInline(selection.Text, settings).Count != 1)
-            {
-                System.Windows.Forms.MessageBox.Show(String.Format("Source doasn't match the phrase. Phrase '{0}', found '{1}'.", settings.tbPhrase, selection.Text));
-                return;
-            }
-            selection.Text = strReplace;
-            foreach (KeyValuePair<TreeViewItem, ResultItem> pair in dictResultItems)
-            {
-                if (!changedResults.Contains(pair.Value) &&
-                    pair.Value.linePath == resultItem.linePath && 
-                    pair.Value.lineNumber == resultItem.lineNumber &&
-                    pair.Value.resultOffset > resultItem.resultOffset)
-                {
-                    pair.Value.resultOffset = pair.Value.resultOffset + (strReplace.Length - resultItem.resultContent.Length);
-                    changedResults.Add(pair.Value);
-                }
-            }
-            resultItem.replaced = true;
-        }
-
+        //Context menu
         public void ShowResultTreeContextMenu(object src, EventArgs args)
         {
             ContextMenu cm;
@@ -471,7 +435,7 @@ namespace VSFindTool
                 cm.Items.Add(mi);
 
                 mi = new MenuItem() { Header = "Replace" };
-                mi.Click += ReplaceSpecyfic;
+                mi.Click += ReplaceForContextMenu;
                 cm.Items.Add(mi);
 
                 item.ContextMenu = cm;
@@ -482,6 +446,164 @@ namespace VSFindTool
             cm = item.ContextMenu;
             cm.IsOpen = true;
         }
+
+        public void OpenInFolder(object src, EventArgs args)
+        {
+            string app = "explorer.exe";
+            string selectFile = "/select, \"" + dictResultItems[dictContextMenu[(MenuItem)src]].linePath + "\"";
+            System.Diagnostics.Process.Start(app, selectFile);
+        }
+
+        internal void ReplaceForContextMenu(object src, EventArgs args)
+        {
+            string strToReplace;
+            ResultItem resultItem = dictResultItems[dictContextMenu[(MenuItem)src]];
+            if (resultItem.replaced)
+            {
+                System.Windows.Forms.MessageBox.Show("Result has already been changed.");
+                return;
+            }
+            if (!GetStrReplaceForm(out strToReplace))
+                return;
+            ReplaceInSource(strToReplace, resultItem);
+        }
+
+
+
+
+        //Replace
+        internal bool GetStrReplaceForm(out string strReplace)
+        {
+            ReplaceForm replaceForm = new ReplaceForm();
+            bool? doReplace = replaceForm.ShowDialog();
+            strReplace = replaceForm.tbStrReplace.Text;
+            return doReplace.Value;
+        }
+
+        internal void ReplaceInSource(string strToReplace, ResultItem resultItem)
+        {
+            //list of ALL LastResults
+            List<ResultItem> resultList = dictResultItems.Select(c => c.Value).ToList<ResultItem>();
+
+            if (GetDocumentByPath(resultItem.linePath) != null)
+            {
+                RaplaceInDocument(strToReplace, resultItem, resultList);
+            }
+            else
+            {
+                ReplaceInFile(resultItem.linePath, resultItem.linePath + "__", resultItem, GetPathRelatesResults(resultList, resultItem.linePath), strToReplace);
+            }
+        }
+
+        internal void RaplaceInDocument(string strToReplace, ResultItem resultItem, List<ResultItem> resultList/*, FindSettings settings*/)
+        {
+            TextSelection selection = GetDocumentSelection(resultItem);
+            //if (GetMatchesInline(selection.Text, settings).Count != 1)           
+            if (selection.Text.Substring(resultItem.resultOffset, resultItem.resultContent.Length) != resultItem.resultContent)
+            {
+                System.Windows.Forms.MessageBox.Show(String.Format("Source doesn't match the phrase. Phrase '{0}', found '{1}'.", resultItem.resultContent, selection.Text));
+                return;
+            }
+            //update selected text in docyment
+            selection.Text = strToReplace;
+            //update offset in related results
+            UpdateResults(resultItem, strToReplace, resultList);
+        }
+
+        internal void ReplaceInFiles(string strToReplace, List<ResultItem> resultItemList)
+        {
+            List<ResultItem> list;
+            List<string> paths = new List<string>();
+            foreach (ResultItem item in resultItemList)
+                if (!paths.Contains(item.linePath))
+                    paths.Add(item.linePath);
+            foreach (string path in paths)
+            {
+                list = GetPathRelatesResults(resultItemList, path);
+                ReplaceInFile(path, path + "__", list, list, strToReplace);
+            }
+        }
+
+        internal void UpdateResults(ResultItem resultItem, string strToReplace, List<ResultItem> resultItemList)
+        {
+            List<ResultItem> changedResults = new List<ResultItem>();
+            //update offset in all related (by path and line number) results
+            foreach (ResultItem item in resultItemList)
+            {
+                if (!changedResults.Contains(item) &&
+                    item.linePath == resultItem.linePath &&
+                    item.lineNumber == resultItem.lineNumber &&
+                    item.resultOffset > resultItem.resultOffset)
+                {
+                    item.resultOffset = item.resultOffset + (strToReplace.Length - resultItem.resultContent.Length);
+                    changedResults.Add(item);
+                }
+            }
+            //set result as updated
+            resultItem.replaced = true;
+        }
+
+        internal List<ResultItem> GetPathRelatesResults(List<ResultItem> resultItemList, string path)
+        {
+            return resultItemList.Where(i => i.linePath.ToLower() == path.ToLower()).ToList<ResultItem>();
+        }
+
+        internal void ReplaceInFile(string path, string newPath, ResultItem resultToChange, List<ResultItem> allResultsForFile, string strToReplace)
+        {
+            List<ResultItem> list = new List<ResultItem>();
+            list.Add(resultToChange);
+            ReplaceInFile(path, newPath, list, allResultsForFile, strToReplace);
+        }
+
+        internal void ReplaceInFile(string path, string newPath, List<ResultItem> resultsToChangeForFile, List<ResultItem> allResultsForFile, string strToReplace)
+        {
+            //create temporary file
+            using (StreamReader reader = new StreamReader(path))
+            {
+                using (StreamWriter writer = new StreamWriter(newPath))
+                {
+                    int lineNumber = 0;
+                    while (!reader.EndOfStream)
+                    {
+                        string line = reader.ReadLine();
+                        foreach (ResultItem item in resultsToChangeForFile)
+                        {
+                            if (!item.replaced && item.lineNumber == lineNumber)
+                            {
+                                line = line.Substring(0, item.resultOffset) + strToReplace + line.Substring(item.resultOffset + item.resultLength);
+                                UpdateResults(item, strToReplace, allResultsForFile);
+                            }
+                        }
+                        writer.WriteLine(line);
+                        lineNumber++;
+                    }
+                    writer.Close();
+                }
+                reader.Close();
+            }
+
+            //copy temporary f
+            using (StreamReader reader = new StreamReader(newPath))
+            {
+                using (StreamWriter writer = new StreamWriter(path))
+                {
+                    int lineNumber = 0;
+                    while (!reader.EndOfStream)
+                    {
+                        lineNumber++;
+                        string line = reader.ReadLine();
+                        writer.WriteLine(line);
+                    }
+                    writer.Close();
+                }
+                reader.Close();
+            }
+
+            //replace old file with the new one
+            File.Delete(path);
+            File.Move(newPath, path);
+        }
+
 
 
 
@@ -786,6 +908,15 @@ namespace VSFindTool
             //if (candidate.filePath != "")
             text = text + "\n" + "filePath: " + candidate.filePath;
             return text + "\n\n";
+        }
+
+        private void btnReplaceAll_Click(object sender, RoutedEventArgs e)
+        {
+            string strToReplace;
+            if (!GetStrReplaceForm(out strToReplace))
+                return;
+            foreach (ResultItem resultItem in lastResultList)
+                ReplaceInSource(strToReplace, resultItem);
         }
     }
 }

@@ -18,7 +18,7 @@ namespace VSFindTool
                 //only leafs
                 if (item.Items.Count == 0)
                 {
-                    newItem.MouseDoubleClick += OpenResultDocLine;
+                    newItem.MouseDoubleClick += OpenResultShowPreview;
                     newItem.MouseUp += PreviewResultDoc;
                     newItem.MouseRightButtonUp += ShowResultTreeContextMenu;
                     dictResultItems.Add(newItem, dictResultItems[item].GetCopy());

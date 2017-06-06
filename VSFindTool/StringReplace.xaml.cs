@@ -10,30 +10,19 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace VSFindTool
 {
     /// <summary>
-    /// Interaction logic for ReplaceForm.xaml
+    /// Interaction logic for StringReplace.xaml
     /// </summary>
-    public partial class ReplaceForm : Window
+    public partial class StringReplace : UserControl
     {
-        public ReplaceForm()
+        public StringReplace()
         {
             InitializeComponent();
-            tbStrReplace.Focus();
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-        }
-
-        private void tbStrReplace_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-                DialogResult = true;
         }
     }
 }
