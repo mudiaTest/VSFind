@@ -924,5 +924,10 @@ namespace VSFindTool
             foreach (ResultItem resultItem in lastResultList)
                 ReplaceInSource(strToReplace, resultItem);
         }
+
+        private void CbFileMask_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            cbFileMask.IsDropDownOpen = true;
+        }
     }
 }

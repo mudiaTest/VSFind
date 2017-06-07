@@ -80,7 +80,7 @@
                                         <ColumnDefinition Width="28"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <ComboBox Grid.Column="0" Name="cbFileMask" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEditable="True" Height="18" Margin="0" Padding="0" IsEnabled="False"/>
+                                    <ComboBox Grid.Column="0" Name="cbFileMask" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEditable="True" Height="18" Margin="0" Padding="0" IsEnabled="False" MouseUp="CbFileMask_MouseUp"/>
                                     <Button Grid.Column="1" Name="btnAddFileMasks" Content="+" Margin="4,2,2,2" Width="24" HorizontalAlignment="Center" Padding="1,-2,1,1" Height="18" Click="BtnAddFileMasks_Click" IsEnabled="False"/>
                                     <Button Grid.Column="2" Name="btnDelFileMasks" Content="-" Margin="2" Width="24" HorizontalAlignment="Center" Padding="1,-2,1,1" Height="18" Click="BtnDelFileMasks_Click" IsEnabled="False"/>
                                 </Grid>
