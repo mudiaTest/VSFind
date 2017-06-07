@@ -36,13 +36,6 @@ namespace VSFindTool
                 return ((VSFindToolPackage)parentToolWindow.Package).dte2;
             }
         }
-        /*IComponentModel componentModel
-        {
-            get
-            {
-                return ((IComponentModel)parentToolWindow.Package).componentModel;
-            }
-        }*/
 
         Dictionary<string, FindSettings> findSettings = new Dictionary<string, FindSettings>();
 
@@ -90,7 +83,7 @@ namespace VSFindTool
                 if (selection != null && selection.Text != "")
                     tbPhrase.Text = selection.Text;
             }
-            tbiSearch.IsSelected = true; //use instwad of "tbcMain.SelectedIndex = 0;"
+            tbiSearch.IsSelected = true; //use instead of "tbcMain.SelectedIndex = 0;"
             System.Windows.Input.FocusManager.SetFocusedElement(tbiSearch, tbPhrase); //use instead of "tbPhrase.Focus();"
 
         }
@@ -231,9 +224,9 @@ namespace VSFindTool
             }
         }
 
-        internal void RebuildTVTreeList(TreeView tvResultTree)
+        /*internal void RebuildTVTreeList(TreeView tvResultTree)
         {
-           /* Dictionary<string, TreeViewItem> tviList = new Dictionary<string, TreeViewItem>();
+            Dictionary<string, TreeViewItem> tviList = new Dictionary<string, TreeViewItem>();
             ItemCollection items = tvResultTree.Items;
             TreeViewItem treeItem;
             FillTVIList(tviList, tvResultTree.Items);
@@ -241,8 +234,8 @@ namespace VSFindTool
             foreach (KeyValuePair<string, TreeViewItem> pair in tviList)
             {
                 if ()
-            }*/
-        }
+            }
+        }*/
 
         internal void ClearTV(TreeView tvResultFlatTree, TreeView tvResultTree)
         {
@@ -508,10 +501,9 @@ namespace VSFindTool
             }
         }
 
-        internal void RaplaceInDocument(string strToReplace, ResultItem resultItem, List<ResultItem> resultList/*, FindSettings settings*/)
+        internal void RaplaceInDocument(string strToReplace, ResultItem resultItem, List<ResultItem> resultList)
         {
-            TextSelection selection = GetDocumentSelectionAndGoToLine(resultItem);
-            //if (GetMatchesInline(selection.Text, settings).Count != 1)           
+            TextSelection selection = GetDocumentSelectionAndGoToLine(resultItem);   
             if (selection.Text.Substring(resultItem.resultOffset, resultItem.resultContent.Length) != resultItem.resultContent)
             {
                 System.Windows.Forms.MessageBox.Show(String.Format("Source doesn't match the phrase. Phrase '{0}', found '{1}'.", resultItem.resultContent, selection.Text));

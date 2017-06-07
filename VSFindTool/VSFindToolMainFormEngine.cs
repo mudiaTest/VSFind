@@ -103,12 +103,6 @@ namespace VSFindTool
             dictTVData.Remove(last_tvResultTree);
         }
 
-        /* public void HideFindResult2Window()
-         {
-             var findWindow = Dte.Windows.Item(EnvDTE.Constants.vsWindowKindFindResults2);
-             findWindow.Visible = false;
-         }*/
-
 
 
         private ResultSummary GetResultSummary(FindSettings settings)
@@ -131,19 +125,6 @@ namespace VSFindTool
 
 
 
-        /*private bool ReplaceInSource(Document document, FindSettings settings, ResultItem result)
-        {
-            TextSelection selection = GetSelection(document);
-            selection.MoveToLineAndOffset(result.resultOffset, result.resultOffset);
-            selection.SelectLine();
-            if (selection.Text != result.lineContent)
-            {
-                Debug.Assert(false, "The line has changed: {1} in '{0}': '{2}'", result.linePath, result.resultOffset, result.lineContent);
-            }
-
-            return false;
-        }*/
-
         public void Finish(bool resultToTV = false)
         {
             lock (threadLock)
@@ -153,7 +134,7 @@ namespace VSFindTool
                 {
                     MoveResultToTreeList(last_tvResultTree, lastSearchSettings, last_TBPreview, lastResultList, false);
                     MoveResultToFlatTreeList(last_tvResultFlatTree, lastSearchSettings, last_TBPreview, lastResultList, false);
-                    RebuildTVTreeList(last_tvResultTree);
+                    //RebuildTVTreeList(last_tvResultTree);
                 }
                 JoinNodesWOLeafs(last_tvResultTree);
                 //SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, last_shortDir.IsChecked.Value);
@@ -177,7 +158,7 @@ namespace VSFindTool
             {
                 MoveResultToTreeList(last_tvResultTree, lastSearchSettings, last_TBPreview, list);
                 MoveResultToFlatTreeList(last_tvResultFlatTree, lastSearchSettings, last_TBPreview, list);
-                RebuildTVTreeList(last_tvResultTree);
+                //RebuildTVTreeList(last_tvResultTree);
                 foreach (ResultItem item in list)
                     lastResultList.Add(item);
                 list.Clear();
@@ -289,7 +270,7 @@ namespace VSFindTool
         
 
         //Find in group of sources
-        private async void FindInCurrentDocumentAsync(IProgress<string> progressInfo, IProgress<List<ResultItem>> progressResult, List<Candidate> candidates/*, List<ResultItem> resultList*/)
+        private async void FindInCurrentDocumentAsync(IProgress<string> progressInfo, IProgress<List<ResultItem>> progressResult, List<Candidate> candidates)
         {
             List<ResultItem> tmpResultList;
             Candidate candidate = GetCandidate(candidates, LastDocWindow.ProjectItem);
@@ -297,13 +278,13 @@ namespace VSFindTool
             await Task.Factory.StartNew(() =>
             {
                 tmpResultList = new List<ResultItem>();
-                FindInCandidate(candidate, GetSolutionName(), tmpResultList/*resultList, null*/);
+                FindInCandidate(candidate, GetSolutionName(), tmpResultList);
 
 
                 //search in form/recource/oteher files
                 if (lastSearchSettings.chkForm)
                     foreach (Candidate subCandidate in candidate.subItems)
-                        FindInCandidate(subCandidate, GetSolutionName(), tmpResultList/*resultList, null*/);
+                        FindInCandidate(subCandidate, GetSolutionName(), tmpResultList);
                 //For test purpose only
                 //Task.Delay(500).Wait();
                 if (progressInfo != null)
@@ -313,7 +294,7 @@ namespace VSFindTool
             }).ContinueWith(task => { GetResultSummary(lastSearchSettings).searchedFiles = 1; Finish(); }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
-        private async void FindInProjectsAsync(IProgress<string> progressInfo, IProgress<List<ResultItem>> progressResult, FindSettings settings, /*List<ResultItem> resultList,*/ string solutionDir)
+        private async void FindInProjectsAsync(IProgress<string> progressInfo, IProgress<List<ResultItem>> progressResult, FindSettings settings, string solutionDir)
         {
             string projectInfo;
             int loop = 0;
@@ -327,12 +308,12 @@ namespace VSFindTool
                         return;
                     loop++;
                     projectInfo = String.Format(" project: {0}/{1}", loop, Dte.Solution.Projects.Count);
-                    count = FindInProject(progressInfo, progressResult,  project, lastSearchSettings, /*resultList,*/ solutionDir, projectInfo);
+                    count = FindInProject(progressInfo, progressResult,  project, lastSearchSettings, solutionDir, projectInfo);
                 }
             }).ContinueWith(task => { GetResultSummary(settings).searchedFiles += count; Finish(); }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
-        private async void FindInLastResultsAsync(Progress<string> progressInfo, IProgress<List<ResultItem>> progressResult, List<Candidate> lastResultCandidates, FindSettings settings/*, List<ResultItem> resultList*/)
+        private async void FindInLastResultsAsync(Progress<string> progressInfo, IProgress<List<ResultItem>> progressResult, List<Candidate> lastResultCandidates, FindSettings settings)
         {
             int loop = 0;
             List<ResultItem> tmpResultList;
@@ -343,7 +324,7 @@ namespace VSFindTool
                     if (cancellationToken.IsCancellationRequested)
                         return;
                     tmpResultList = new List<ResultItem>();
-                    FindInCandidate(candidate, GetSolutionName(), /*resultList,*/ tmpResultList);
+                    FindInCandidate(candidate, GetSolutionName(),  tmpResultList);
                     //For test purpose only
                     //Task.Delay(500).Wait();
                     loop++;
@@ -355,18 +336,18 @@ namespace VSFindTool
             }).ContinueWith(task => { GetResultSummary(settings).searchedFiles = loop; Finish(); }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
-        private async void FindInProjectAsync(IProgress<string> progressInfo, IProgress<List<ResultItem>> progressResult, Project project, FindSettings settings, /*List<ResultItem> resultList,*/ string solutionDir, string projectInfo = "")
+        private async void FindInProjectAsync(IProgress<string> progressInfo, IProgress<List<ResultItem>> progressResult, Project project, FindSettings settings, string solutionDir, string projectInfo = "")
         {
             GetResultSummary(settings).searchedFiles = 0;
             int count = 0;
             await Task.Run(() =>
             {
-                count = FindInProject(progressInfo, progressResult, project, settings, /*resultList,*/ solutionDir, projectInfo);
+                count = FindInProject(progressInfo, progressResult, project, settings,  solutionDir, projectInfo);
             }).ContinueWith(task => { GetResultSummary(settings).searchedFiles += count; Finish(); }, TaskScheduler.FromCurrentSynchronizationContext());
             return; //Task as resutl and return null is ok. If We 
         }
 
-        private async void FindInLocationAsync(IProgress<string> progressInfo, IProgress<List<ResultItem>> progressResult, FindSettings settings, /*List<ResultItem> resultList,*/ string solutionDir)
+        private async void FindInLocationAsync(IProgress<string> progressInfo, IProgress<List<ResultItem>> progressResult, FindSettings settings, string solutionDir)
         {
             int loop = 0;
             List<ResultItem> tmpResultList;
@@ -391,7 +372,7 @@ namespace VSFindTool
                     if (cancellationToken.IsCancellationRequested)
                         return;
                     tmpResultList = new List<ResultItem>();
-                    FindInFile(candidate.filePath, lastSearchSettings, /*resultList,*/ tmpResultList, solutionDir);
+                    FindInFile(candidate.filePath, lastSearchSettings, tmpResultList, solutionDir);
                     //For test purpose only
                     //Task.Delay(500).Wait();
                     loop++;
@@ -403,7 +384,7 @@ namespace VSFindTool
             }, TaskCreationOptions.LongRunning).ContinueWith(task => { GetResultSummary(settings).searchedFiles = loop; Finish(); }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
-        private async void FindInOpenedDocumentsAsync(Progress<string> progressInfo, IProgress<List<ResultItem>> progressResult, List<Candidate> candidates, FindSettings settings/*, List<ResultItem> resultList*/)
+        private async void FindInOpenedDocumentsAsync(Progress<string> progressInfo, IProgress<List<ResultItem>> progressResult, List<Candidate> candidates, FindSettings settings)
         {
             int loop = 0;
             List<ResultItem> tmpResultList;
@@ -420,13 +401,13 @@ namespace VSFindTool
                         Candidate candidate = GetCandidate(candidates, window.ProjectItem);
                         Debug.Assert(candidate != null, String.Format("There is no candiodate for window {0}: '{1}'", window.Caption, window.ProjectItem.Document.FullName));
 
-                        FindInCandidate(candidate, GetSolutionName(), /*resultList,*/ tmpResultList);
+                        FindInCandidate(candidate, GetSolutionName(), tmpResultList);
 
-                        FindInProjectItem(window.ProjectItem, lastSearchSettings, /*resultList,*/ tmpResultList, errList, GetSolutionName(), candidate.filePath);
+                        FindInProjectItem(window.ProjectItem, lastSearchSettings, tmpResultList, errList, GetSolutionName(), candidate.filePath);
                         //search in form/recource/oteher files
                         if (lastSearchSettings.chkForm)
                             foreach (Candidate subCandidate in candidate.subItems)
-                                FindInCandidate(subCandidate, GetSolutionName(), /*resultList,*/ tmpResultList);
+                                FindInCandidate(subCandidate, GetSolutionName(), tmpResultList);
                     }
                     else
                     {
@@ -443,7 +424,7 @@ namespace VSFindTool
             }).ContinueWith(task => { GetResultSummary(settings).searchedFiles = loop; Finish(); }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
-        private int FindInProject(IProgress<string> progressInfo, IProgress<List<ResultItem>> progressResult, Project project, FindSettings settings, /*List<ResultItem> resultList,*/ string solutionDir, string projectInfo = "")
+        private int FindInProject(IProgress<string> progressInfo, IProgress<List<ResultItem>> progressResult, Project project, FindSettings settings, string solutionDir, string projectInfo = "")
         {            
             int loop = 0;
             List<ResultItem> tmpResultList;
@@ -452,12 +433,12 @@ namespace VSFindTool
             foreach (Candidate candidate in candidates)
             {
                 tmpResultList = new List<ResultItem>();
-                FindInCandidate(candidate, solutionDir, /*resultList,*/ tmpResultList);
+                FindInCandidate(candidate, solutionDir, tmpResultList);
                 Debug.Assert(candidate.item != null || candidate.filePath != "", "Wrong candidate 'candidate.item != null || candidate.filePath != '''");
                 //search in form/recource/oteher files
                 if (lastSearchSettings.chkForm)
                     foreach (Candidate subCandidate in candidate.subItems)
-                        FindInCandidate(subCandidate, solutionDir, /*resultList,*/ tmpResultList);
+                        FindInCandidate(subCandidate, solutionDir, tmpResultList);
                 //For test purpose only
                 //Task.Delay(500).Wait();
                 loop++;
@@ -472,66 +453,62 @@ namespace VSFindTool
 
 
         //Find the phrase in one source
-        private void FindInCandidate(Candidate candidate, string solutionDir, List<ResultItem> resultList/*, List<ResultItem> tmpResultList*/)
+        private void FindInCandidate(Candidate candidate, string solutionDir, List<ResultItem> resultList)
         {
             if (!searchedCandidates.Exists(e => e.filePath == candidate.filePath))
             {
                 if (candidate.item != null)
-                    FindInProjectItem(candidate.item, lastSearchSettings, resultList, /*tmpResultList,*/ errList, solutionDir, candidate.filePath);
+                    FindInProjectItem(candidate.item, lastSearchSettings, resultList, errList, solutionDir, candidate.filePath);
                 else if (candidate.filePath != "")
-                    FindInFile(candidate.filePath, lastSearchSettings, resultList, /*tmpResultList,*/ solutionDir);
+                    FindInFile(candidate.filePath, lastSearchSettings, resultList, solutionDir);
                 searchedCandidates.Add(candidate);
             }
         }
 
-        private void FindInDocument(Document document, FindSettings settings, List<ResultItem> resultList, /*List<ResultItem> tmpResultList,*/ List<ErrData> errList, string solutionDir, string bulkPath)
+        private void FindInDocument(Document document, FindSettings settings, List<ResultItem> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
         {
             if (!searchedCandidates.Exists(e => e.filePath.ToLower() == bulkPath.ToLower()))
             {
                 int lineIndex = 1;
-                //GetResultSummary(settings).searchedFiles++;
                 List<string> resList = GetDocumentContent(document, errList).Replace("\n\r", "\n").Split('\n').ToList<string>();
                 foreach (string line in resList)
                 {
-                    LineToResultList(line, settings, resultList, /*tmpResultList,*/ solutionDir, bulkPath, lineIndex);
+                    LineToResultList(line, settings, resultList, solutionDir, bulkPath, lineIndex);
                     lineIndex++;
                 }
             }
         }
 
-        private void FindInProjectItem(ProjectItem item, FindSettings settings, List<ResultItem> resultList, /*List<ResultItem> tmpResultList,*/ List<ErrData> errList, string solutionDir, string bulkPath)
+        private void FindInProjectItem(ProjectItem item, FindSettings settings, List<ResultItem> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
         {
             if (!searchedCandidates.Exists(e => e.filePath.ToLower() == bulkPath.ToLower()))
             {
                 int lineIndex = 1;
-                //GetResultSummary(settings).searchedFiles++;
                 List<string> resList = GetItemContent(item, errList).Replace("\n\r", "\n").Split('\n').ToList<string>();
                 foreach (string line in resList)
                 {
-                    LineToResultList(line, settings, resultList, /*tmpResultList,*/ solutionDir, bulkPath, lineIndex);
+                    LineToResultList(line, settings, resultList, solutionDir, bulkPath, lineIndex);
                     lineIndex++;
                 }
             }
         }
 
-        private void FindInSelection(string selection, FindSettings settings, List<ResultItem> resultList, /*List<ResultItem> tmpResultList,*/ List<ErrData> errList, string solutionDir, string bulkPath)
+        private void FindInSelection(string selection, FindSettings settings, List<ResultItem> resultList, List<ErrData> errList, string solutionDir, string bulkPath)
         {
             if (!searchedCandidates.Exists(e => e.filePath.ToLower() == bulkPath.ToLower()))
             {
                 int lineIndex = 1;
-                //GetResultSummary(settings).searchedFiles++;
-
                 List<string> resList = selection.Replace("\r\n", "\n").Split('\n').ToList();
 
                 foreach (string line in resList)
                 {
-                    LineToResultList(line, settings, resultList, /*tmpResultList,*/ solutionDir, bulkPath, lineIndex);
+                    LineToResultList(line, settings, resultList, solutionDir, bulkPath, lineIndex);
                     lineIndex++;
                 }
             }
         }
 
-        private void FindInFile(string path, FindSettings settings, List<ResultItem> resultList, /*List<ResultItem> tmpResultList,*/ string solutionDir)
+        private void FindInFile(string path, FindSettings settings, List<ResultItem> resultList, string solutionDir)
         {
             if (!searchedCandidates.Exists(e => e.filePath.ToLower() == path.ToLower()))
             {
@@ -543,7 +520,7 @@ namespace VSFindTool
                     while (!reader.EndOfStream)
                     {
                         line = reader.ReadLine();
-                        LineToResultList(line, settings, resultList, /*tmpResultList,*/ solutionDir, path, lineIndex);
+                        LineToResultList(line, settings, resultList, solutionDir, path, lineIndex);
                         lineIndex++;
                     }
                 }
@@ -570,7 +547,7 @@ namespace VSFindTool
                 return Regex.Matches(line, prefix + phrase + sufix, RegexOptions.IgnoreCase);
         }
 
-        private void LineToResultList(string line, FindSettings settings, List<ResultItem> resultList, /*List<ResultItem> tmpResultList,*/ string solutionDir, string path, int lineIndex)
+        private void LineToResultList(string line, FindSettings settings, List<ResultItem> resultList, string solutionDir, string path, int lineIndex)
         {
             ResultItem resultItem;
             int indexInLine = 0;
@@ -591,8 +568,6 @@ namespace VSFindTool
                 lock (threadLock)
                 {
                     resultList.Add(resultItem);
-                    /*if (tmpResultList != null)
-                        tmpResultList.Add(resultItem);*/
                     GetResultSummary(settings).foundResults++;
                 }
                 indexInLine++;
@@ -736,15 +711,9 @@ namespace VSFindTool
                     candidate.document = doc;
                 }
 
-                //if candidate have docyment or filePath
+                //if candidate have document or filePath
                 if (candidate.filePath != "" || candidate.item != null)
                 {
-
-                    /*existingCandidate = result.FirstOrDefault(e => (
-                                                                        (e.filePath == candidate.filePath && candidate.filePath != "") ||
-                                                                        (e.DocumentPath == candidate.DocumentPath && candidate.DocumentPath != "")
-                                                                    )
-                                                              );*/
                     if (existingCandidate == null)
                         result.Add(candidate);
                     else
@@ -816,7 +785,7 @@ namespace VSFindTool
                 {
                     foreach (Candidate subCandidate in tmpCandidate.subItems)
                     {
-                        if (subCandidate.item == item /*subCandidate.filePath.ToLower() == window.ProjectItem.Document.FullName.ToLower()*/)
+                        if (subCandidate.item == item)
                         {
                             candidate = subCandidate;
                             break;

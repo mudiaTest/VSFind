@@ -30,8 +30,6 @@ namespace VSFindTool
 
         private void FillSnapshotFromLast(string snapshotTag, TreeView flattv, TreeView treetv, FindSettings findSettings, TextBox tbPreview)
         {
-            //TreeView flattv = (TreeView)this.FindName(snapshotTag + "_tvResultFlatTree");
-            //TreeView treetv = (TreeView)this.FindName(snapshotTag + "_tvResultFlatTree");
             dictTBPreview.Add(findSettings, tbPreview);
 
             CopyItems(last_tvResultFlatTree.Items, flattv.Items, findSettings, tbPreview);

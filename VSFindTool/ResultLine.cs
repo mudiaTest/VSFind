@@ -33,7 +33,7 @@ namespace VSFindTool
         {
             get{
                 if (_pathPartsList == null)
-                    _pathPartsList = linePath.Split('\\').ToList<string>();//Path.GetDirectoryName(linePath).Split('\\').ToList<string>();
+                    _pathPartsList = linePath.Split('\\').ToList<string>();
                 return _pathPartsList;
             }
         }
