@@ -12,15 +12,23 @@ namespace VSFindTool
         //May not correspon to actual file when the document is dirty!
         internal string linePath; //path to file with the line
         internal string lineContent; //complete line with found result, not trimmed.
-        internal int? lineNumber; //number of line with result in file/document.  
+        internal int? lineNumber; //number of line with result in file/document. First line IS 1 NOT 0
         internal int resultIndex; //index of result in line: 0, 1, 2...
-        internal int resultOffset; //offset of result in line;
-        internal int resultLength; //length of found result
-        internal string resultContent; //value of found result
+        internal int resultOffset; //number of first sing of resylt in line, where first sign in line is on position 0. Selection Move...Offset moves to BEFOTE this number, so it must be osed with "resultOffset+1"
+        internal string resultContent; 
         internal bool replaced = false; //if found result has been replaced
         internal bool belongsToLastResults = false; //does result belog to Last...TreeView
 
         private List<string> _pathPartsList = null;
+
+        internal int ResultLength //value of found result
+        {
+            get
+            {
+                return resultContent.Length;
+            }
+        }
+
         internal List<string> PathPartsList
         {
             get{
@@ -38,7 +46,6 @@ namespace VSFindTool
                 lineContent = lineContent,
                 lineNumber = lineNumber,
                 resultOffset = resultOffset,
-                resultLength = resultLength,
                 resultContent = resultContent,
                 replaced = replaced
             };

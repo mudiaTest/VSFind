@@ -29,7 +29,7 @@ namespace VSFindTool
 
         internal string GetPrefix()
         {
-            if (chkWholeWord && tbPhrase.StartsWith(@"\b"))
+            if (chkWholeWord && !tbPhrase.StartsWith(@"\b"))
                 return  @"\b"; // prefix = "(^|[\\s,\\.,\\,])";
             else
                 return "";
@@ -37,7 +37,7 @@ namespace VSFindTool
 
         internal string GetSufix()
         {
-            if (chkWholeWord && tbPhrase.EndsWith(@"\b"))
+            if (chkWholeWord && !tbPhrase.EndsWith(@"\b"))
                 return @"\b"; // prefix = "(^|[\\s,\\.,\\,])";
             else
                 return "";

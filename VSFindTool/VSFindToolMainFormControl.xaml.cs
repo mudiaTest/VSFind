@@ -12,7 +12,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Windows.Media;
-
 namespace VSFindTool
 {
     using System.Diagnostics.CodeAnalysis;
@@ -121,7 +120,7 @@ namespace VSFindTool
 
             dictTVData[tvResultTree] = new TVData()
             {
-                longDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName)
+                longDir = GetSolutionFullName()
             };
 
             if (!partialMode)
@@ -156,15 +155,13 @@ namespace VSFindTool
                         content = resultItem.lineContent.Trim();
                         leafItem = new TreeViewItem()
                         {                          
-                            Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + content.Substring(0, Math.Min(resultItem.lineContent.Trim().Length - 1, 300)),
+                            Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + content.Substring(0, Math.Min(resultItem.lineContent.Trim().Length, 300)),
                             FontWeight = FontWeights.Normal
                         };
                         resultItem.belongsToLastResults = true;
                         leafItem.MouseDoubleClick += OpenResultShowPreview;
                         leafItem.MouseUp += PreviewResultDoc;
                         leafItem.MouseRightButtonUp += ShowResultTreeContextMenu;
-                        //leafItem.ContextMenu = (ContextMenu)this.Resources["TVContextMenu"];
-                       // leafItem.ContextMenu = new ContextMenu();
                         dictResultItems.Add(leafItem, resultItem);
                         dictSearchSettings.Add(leafItem, last_searchSettings);                        
                         treeItemColleaction.Add(leafItem);
@@ -189,10 +186,10 @@ namespace VSFindTool
 
             TreeViewItem treeItem;
             TreeViewItem leafItem;
-            
+
             dictTVData[tvResultFlatTree] = new TVData()
             {
-                longDir = System.IO.Path.GetDirectoryName(Dte.Solution.FullName)
+                longDir = GetSolutionFullName()
             };
 
             if (!partialMode)
@@ -209,7 +206,7 @@ namespace VSFindTool
                 }
                 leafItem = new TreeViewItem()
                 {
-                    Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + content.Substring(0, Math.Min(resultItem.lineContent.Trim().Length - 1, 300)),
+                    Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + content.Substring(0, Math.Min(resultItem.lineContent.Trim().Length, 300)),
                     FontWeight = FontWeights.Normal
                 };
 
@@ -345,18 +342,14 @@ namespace VSFindTool
                 {
                     selection.SelectAll();
                     int lastLine = selection.CurrentLine;
-                    selection.MoveToLineAndOffset(Math.Max(1, resultLine.lineNumber.Value - 2), 1, false);
-                    selection.MoveToLineAndOffset(Math.Min(lastLine, resultLine.lineNumber.Value + 4), 1, true);
-                    selection.EndOfLine(true);
-                    dictTBPreview[settings].Text = selection.Text;
+                    dictTBPreview[settings].Text = GetPreviewFromDocument(Dte.ActiveDocument, resultLine);
 
-                    selection.GotoLine(resultLine.lineNumber.Value, false);
                     if (settings.chkRegExp == true)
                         Debug.Assert(false, "Brak obsługi RegExp");
                     else
                     {
-                        selection.MoveToLineAndOffset(resultLine.lineNumber.Value + 1, resultLine.resultOffset + 1, false);
-                        selection.MoveToLineAndOffset(resultLine.lineNumber.Value + 1, resultLine.resultOffset + resultLine.resultLength + 1, true);
+                        selection.MoveToLineAndOffset(resultLine.lineNumber.Value, resultLine.resultOffset + 1, false);
+                        selection.MoveToLineAndOffset(resultLine.lineNumber.Value, resultLine.resultOffset + 1 + resultLine.ResultLength, true);
                     }
                     //Add action to set focus no doc window after finishing all action in queue (currenty there should be only double click event) 
                     if (focus)
@@ -384,36 +377,57 @@ namespace VSFindTool
             FindSettings settings = dictSearchSettings[(TreeViewItem)src];
             TextBox tbPreview = dictTBPreview[settings];
             tbPreview.Text = "";
-            int lineNumber = 0;
+            int lineNumber = 1;
 
             EnvDTE.Document document = GetDocumentByPath(resultLine.linePath);
             if (document != null)
             {
-                EnvDTE.TextSelection selection = GetSelection(document);
-                if (selection != null)
-                {
-                    selection.EndOfDocument();
-                    int docLength = selection.CurrentLine;
-                    selection.GotoLine(Math.Max(0, resultLine.lineNumber.Value - 1), false);
-                    selection.LineDown(true, Math.Min(5, docLength - resultLine.lineNumber.Value + 3));
-                    tbPreview.Text = selection.Text;
-                    return;
-                }
+                tbPreview.Text = GetPreviewFromDocument(document, resultLine);
             }
             //It there is no document in VS memory        
             using (var reader = new StreamReader(resultLine.linePath))
             {
-                string line;
-                while (lineNumber <= Math.Max(0, resultLine.lineNumber.Value + 2))
+                try
                 {
-                    if (reader.EndOfStream)
-                        return;
-                    lineNumber++;
-                    line = reader.ReadLine();
-                    if (lineNumber >= Math.Max(0, resultLine.lineNumber.Value - 2) && lineNumber <= Math.Max(0, resultLine.lineNumber.Value + 2))
-                        tbPreview.AppendText((tbPreview.Text != "" ? Environment.NewLine : "") + line);
+                    string line;
+                    for (int i = resultLine.lineNumber.Value - 2; i < 0; i++)
+                        tbPreview.AppendText("\n");
+                    while (lineNumber <= Math.Max(1, resultLine.lineNumber.Value + 2))
+                    {
+                        if (reader.EndOfStream)
+                            return;
+                        line = reader.ReadLine();
+                        if (lineNumber >= Math.Max(1, resultLine.lineNumber.Value - 2) && lineNumber <= Math.Max(1, resultLine.lineNumber.Value + 2))
+                            tbPreview.AppendText((tbPreview.Text != "" ? Environment.NewLine : "") + line);
+                        lineNumber++;
+                    }
+                }
+                finally
+                {
+                    reader.Close();
                 }
             }            
+        }
+
+        internal string GetPreviewFromDocument(EnvDTE.Document document, ResultItem resultLine)
+        {
+            string result = "";
+            EnvDTE.TextSelection selection = GetSelection(document);
+            if (selection != null)
+            {
+                selection.EndOfDocument();
+                int docLength = selection.CurrentLine;
+                int countEmpty = 0;
+                for (int i = resultLine.lineNumber.Value - 2; i < 1; i++)
+                {
+                    result += "\n";
+                    countEmpty++;
+                }
+                selection.GotoLine(Math.Max(1, resultLine.lineNumber.Value - 2), false);
+                selection.LineDown(true, Math.Min(5 - countEmpty, docLength - resultLine.lineNumber.Value + 2));
+                result += selection.Text;
+            }
+            return result;
         }
 
 
@@ -496,7 +510,7 @@ namespace VSFindTool
 
         internal void RaplaceInDocument(string strToReplace, ResultItem resultItem, List<ResultItem> resultList/*, FindSettings settings*/)
         {
-            TextSelection selection = GetDocumentSelection(resultItem);
+            TextSelection selection = GetDocumentSelectionAndGoToLine(resultItem);
             //if (GetMatchesInline(selection.Text, settings).Count != 1)           
             if (selection.Text.Substring(resultItem.resultOffset, resultItem.resultContent.Length) != resultItem.resultContent)
             {
@@ -558,43 +572,46 @@ namespace VSFindTool
             //create temporary file
             using (StreamReader reader = new StreamReader(path))
             {
-                using (StreamWriter writer = new StreamWriter(newPath))
+                try
                 {
-                    int lineNumber = 0;
-                    while (!reader.EndOfStream)
+                    using (StreamWriter writer = new StreamWriter(newPath))
                     {
-                        string line = reader.ReadLine();
-                        foreach (ResultItem item in resultsToChangeForFile)
+                        try
                         {
-                            if (!item.replaced && item.lineNumber == lineNumber)
+                            int lineNumber = 1;
+                            while (!reader.EndOfStream)
                             {
-                                line = line.Substring(0, item.resultOffset) + strToReplace + line.Substring(item.resultOffset + item.resultLength);
-                                UpdateResults(item, strToReplace, allResultsForFile);
+                                string line = reader.ReadLine();
+                                foreach (ResultItem item in resultsToChangeForFile)
+                                {
+                                    if (!item.replaced && item.lineNumber == lineNumber)
+                                    {
+                                        line = line.Substring(0, item.resultOffset) + strToReplace + line.Substring(item.resultOffset + item.ResultLength);
+                                        UpdateResults(item, strToReplace, allResultsForFile);
+                                    }
+                                }
+                                writer.WriteLine(line);
+                                lineNumber++;
                             }
                         }
-                        writer.WriteLine(line);
-                        lineNumber++;
+                        catch
+                        {
+                            Console.WriteLine(String.Format("Couldn't write '{0}'", newPath));
+                        }
+                        finally
+                        {
+                            writer.Close();
+                        }
                     }
-                    writer.Close();
                 }
-                reader.Close();
-            }
-
-            //copy temporary f
-            using (StreamReader reader = new StreamReader(newPath))
-            {
-                using (StreamWriter writer = new StreamWriter(path))
+                catch
                 {
-                    int lineNumber = 0;
-                    while (!reader.EndOfStream)
-                    {
-                        lineNumber++;
-                        string line = reader.ReadLine();
-                        writer.WriteLine(line);
-                    }
-                    writer.Close();
+                    Console.WriteLine(String.Format("Couldn't read '{0}'", path));
                 }
-                reader.Close();
+                finally
+                {
+                    reader.Close();
+                }
             }
 
             //replace old file with the new one

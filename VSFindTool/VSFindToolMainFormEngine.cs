@@ -488,7 +488,7 @@ namespace VSFindTool
         {
             if (!searchedCandidates.Exists(e => e.filePath.ToLower() == bulkPath.ToLower()))
             {
-                int lineIndex = 0;
+                int lineIndex = 1;
                 //GetResultSummary(settings).searchedFiles++;
                 List<string> resList = GetDocumentContent(document, errList).Replace("\n\r", "\n").Split('\n').ToList<string>();
                 foreach (string line in resList)
@@ -503,7 +503,7 @@ namespace VSFindTool
         {
             if (!searchedCandidates.Exists(e => e.filePath.ToLower() == bulkPath.ToLower()))
             {
-                int lineIndex = 0;
+                int lineIndex = 1;
                 //GetResultSummary(settings).searchedFiles++;
                 List<string> resList = GetItemContent(item, errList).Replace("\n\r", "\n").Split('\n').ToList<string>();
                 foreach (string line in resList)
@@ -518,7 +518,7 @@ namespace VSFindTool
         {
             if (!searchedCandidates.Exists(e => e.filePath.ToLower() == bulkPath.ToLower()))
             {
-                int lineIndex = 0;
+                int lineIndex = 1;
                 //GetResultSummary(settings).searchedFiles++;
 
                 List<string> resList = selection.Replace("\r\n", "\n").Split('\n').ToList();
@@ -535,14 +535,21 @@ namespace VSFindTool
         {
             if (!searchedCandidates.Exists(e => e.filePath.ToLower() == path.ToLower()))
             {
-                StreamReader stream = new StreamReader(path, Encoding.Default);
-                string line = stream.ReadLine();
-                int lineIndex = 0;
-                while (!stream.EndOfStream)
+                StreamReader reader = new StreamReader(path, Encoding.Default);
+                try
                 {
-                    LineToResultList(line, settings, resultList, /*tmpResultList,*/ solutionDir, path, lineIndex);
-                    line = stream.ReadLine();
-                    lineIndex++;
+                    string line = "";
+                    int lineIndex = 1;
+                    while (!reader.EndOfStream)
+                    {
+                        line = reader.ReadLine();
+                        LineToResultList(line, settings, resultList, /*tmpResultList,*/ solutionDir, path, lineIndex);
+                        lineIndex++;
+                    }
+                }
+                finally
+                {
+                    reader.Close();
                 }
             }
         }
@@ -579,7 +586,6 @@ namespace VSFindTool
                     lineNumber = lineIndex,
                     resultIndex = indexInLine,
                     resultOffset = match.Index,
-                    resultLength = match.Length,
                     resultContent = match.Value
                 };
                 lock (threadLock)
@@ -641,6 +647,13 @@ namespace VSFindTool
             return Dte.Solution != null ? System.IO.Path.GetDirectoryName(Dte.Solution.FullName) : "";
         }
 
+        private string GetSolutionFullName()
+        {
+            if (Dte.Solution.FullName != "")
+                return System.IO.Path.GetDirectoryName(Dte.Solution.FullName);
+            else
+                return "";
+        }
 
 
 
@@ -876,6 +889,29 @@ namespace VSFindTool
             }
         }
 
+        //Get selection from document. Raise if document or selection doesn't exist
+        internal TextSelection GetDocumentSelectionExcept(string path)
+        {
+            EnvDTE.Document document = GetDocumentByPath(path);
+            if(document != null)
+            {
+                TextSelection selection = GetSelection(document);
+                if(selection != null)
+                {
+                    return selection;
+                }
+                else
+                {
+                    Debug.Assert(false, "Brak selection w otwartym dokumencie dla '{0}'" + path);
+                }
+            }
+            else
+            {
+                Debug.Assert(false, "Brak otwartego dokumentu dla '{0}'" + path);
+            }
+            return null;
+        }
+
         //Open document and get selection
         internal TextSelection GetDocumentSelection(ResultItem resultLine)
         {
@@ -887,6 +923,21 @@ namespace VSFindTool
             }
             else
                 Debug.Assert(false, "Brak DTE");
+            return selection;
+        }
+
+        internal TextSelection GetDocumentSelectionAndGoToLine(ResultItem resultLine)
+        {
+            TextSelection selection = GetDocumentSelectionExcept(resultLine.linePath);
+            selection.GotoLine(resultLine.lineNumber.Value, true);
+            return selection;
+        }
+
+        internal TextSelection GetDocumentSelectionAndSelect(ResultItem resultLine)
+        {
+            TextSelection selection = GetDocumentSelectionExcept(resultLine.linePath);
+            selection.MoveToLineAndOffset(resultLine.lineNumber.Value, resultLine.resultOffset + 1 );
+            selection.MoveToLineAndOffset(resultLine.lineNumber.Value, resultLine.resultOffset + 1 +resultLine.ResultLength, true);
             return selection;
         }
 
