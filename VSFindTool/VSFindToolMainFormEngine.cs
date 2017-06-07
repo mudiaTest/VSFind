@@ -628,8 +628,7 @@ namespace VSFindTool
             else
             {
                 currentProject = null;
-                Array activeSolutionProjects = Dte.ActiveSolutionProjects as Array;
-                if (activeSolutionProjects != null && activeSolutionProjects.Length > 0)
+                if (Dte.ActiveSolutionProjects is Array activeSolutionProjects && activeSolutionProjects.Length > 0)
                     currentProject = activeSolutionProjects.GetValue(0) as Project;
                 else
                     Debug.Assert(false, "Brak aktywnego projektu.");

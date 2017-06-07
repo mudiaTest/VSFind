@@ -456,14 +456,13 @@ namespace VSFindTool
 
         internal void ReplaceForContextMenu(object src, EventArgs args)
         {
-            string strToReplace;
             ResultItem resultItem = dictResultItems[dictContextMenu[(MenuItem)src]];
             if (resultItem.replaced)
             {
                 System.Windows.Forms.MessageBox.Show("Result has already been changed.");
                 return;
             }
-            if (!GetStrReplaceForm(out strToReplace))
+            if (!GetStrReplaceForm(out string strToReplace))
                 return;
             ReplaceInSource(strToReplace, resultItem);
         }
@@ -550,8 +549,7 @@ namespace VSFindTool
 
         internal void ReplaceInFile(string path, string newPath, ResultItem resultToChange, List<ResultItem> allResultsForFile, string strToReplace)
         {
-            List<ResultItem> list = new List<ResultItem>();
-            list.Add(resultToChange);
+            List<ResultItem> list = new List<ResultItem>() { resultToChange };
             ReplaceInFile(path, newPath, list, allResultsForFile, strToReplace);
         }
 
@@ -910,10 +908,9 @@ namespace VSFindTool
             return text + "\n\n";
         }
 
-        private void btnReplaceAll_Click(object sender, RoutedEventArgs e)
+        private void BtnReplaceAll_Click(object sender, RoutedEventArgs e)
         {
-            string strToReplace;
-            if (!GetStrReplaceForm(out strToReplace))
+            if (!GetStrReplaceForm(out string strToReplace))
                 return;
             foreach (ResultItem resultItem in lastResultList)
                 ReplaceInSource(strToReplace, resultItem);
