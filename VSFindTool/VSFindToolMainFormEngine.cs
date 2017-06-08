@@ -881,7 +881,7 @@ namespace VSFindTool
             return null;
         }
 
-        //Open document and get selection
+        //Return selection for document for result
         internal TextSelection GetDocumentSelection(ResultItem resultLine)
         {
             TextSelection selection = null;
@@ -895,6 +895,7 @@ namespace VSFindTool
             return selection;
         }
 
+        //Return selection for document and select whole line for result
         internal TextSelection GetDocumentSelectionAndGoToLine(ResultItem resultLine)
         {
             TextSelection selection = GetDocumentSelectionExcept(resultLine.linePath);
@@ -902,6 +903,7 @@ namespace VSFindTool
             return selection;
         }
 
+        //Return selection for document and select string for result
         internal TextSelection GetDocumentSelectionAndSelect(ResultItem resultLine)
         {
             TextSelection selection = GetDocumentSelectionExcept(resultLine.linePath);
@@ -946,6 +948,7 @@ namespace VSFindTool
             return result;
         }
 
+        //Get Candidate with fields filled for dodument or files
         private Candidate GetCandidateByPath(List<Candidate> candidates, string path)
         {
             Candidate result = candidates.FirstOrDefault(e => e.filePath == path);
@@ -959,12 +962,202 @@ namespace VSFindTool
             return result;
         }
 
+        //Get document if exists in VS or null
         private Document GetDocumentByPath(string path)
         {
             foreach (EnvDTE.Document document in Dte.Documents)
                 if(document.FullName.ToLower() == path.ToLower())
                     return document;
             return null;
+        }
+
+
+
+
+        //Replace
+        internal bool GetStrReplaceForm(out string strReplace)
+        {
+            ReplaceForm replaceForm = new ReplaceForm();
+            bool? doReplace = replaceForm.ShowDialog();
+            strReplace = replaceForm.tbStrReplace.Text;
+            return doReplace.Value;
+        }
+
+        internal void ReplaceInSource(string strToReplace, ResultItem resultItem)
+        {
+            //list of ALL LastResults
+            List<ResultItem> resultList = dictResultItems.Select(c => c.Value).ToList<ResultItem>();
+
+            if (GetDocumentByPath(resultItem.linePath) != null)
+            {
+                RaplaceInDocument(strToReplace, resultItem, resultList);
+            }
+            else
+            {
+                ReplaceInFile(resultItem.linePath, resultItem.linePath + "__", resultItem, GetPathRelatesResults(resultList, resultItem.linePath), strToReplace);
+            }
+        }
+
+        internal void RaplaceInDocument(string strToReplace, ResultItem resultItem, List<ResultItem> resultList)
+        {
+            TextSelection selection = GetDocumentSelectionAndGoToLine(resultItem);
+            if (selection.Text.Substring(resultItem.resultOffset, resultItem.resultContent.Length) != resultItem.resultContent)
+            {
+                System.Windows.Forms.MessageBox.Show(String.Format("Source doesn't match the phrase. Phrase '{0}', found '{1}'.", resultItem.resultContent, selection.Text));
+                return;
+            }
+            //update selected text in docyment
+            selection.Text = strToReplace;
+            //update offset in related results
+            UpdateResults(resultItem, strToReplace, resultList);
+        }
+
+        internal void ReplaceInFiles(string strToReplace, List<ResultItem> resultItemList)
+        {
+            List<ResultItem> list;
+            List<string> paths = new List<string>();
+            foreach (ResultItem item in resultItemList)
+                if (!paths.Contains(item.linePath))
+                    paths.Add(item.linePath);
+            foreach (string path in paths)
+            {
+                list = GetPathRelatesResults(resultItemList, path);
+                ReplaceInFile(path, path + "__", list, list, strToReplace);
+            }
+        }
+
+        internal void UpdateResults(ResultItem resultItem, string strToReplace, List<ResultItem> resultItemList)
+        {
+            List<ResultItem> changedResults = new List<ResultItem>();
+            //update offset in all related (by path and line number) results
+            foreach (ResultItem item in resultItemList)
+            {
+                if (!changedResults.Contains(item) &&
+                    item.linePath == resultItem.linePath &&
+                    item.lineNumber == resultItem.lineNumber &&
+                    item.resultOffset > resultItem.resultOffset)
+                {
+                    item.resultOffset = item.resultOffset + (strToReplace.Length - resultItem.resultContent.Length);
+                    changedResults.Add(item);
+                }
+            }
+            //set result as updated
+            resultItem.replaced = true;
+        }
+
+        internal List<ResultItem> GetPathRelatesResults(List<ResultItem> resultItemList, string path)
+        {
+            return resultItemList.Where(i => i.linePath.ToLower() == path.ToLower()).ToList<ResultItem>();
+        }
+
+        internal void ReplaceInFile(string path, string newPath, ResultItem resultToChange, List<ResultItem> allResultsForFile, string strToReplace)
+        {
+            List<ResultItem> list = new List<ResultItem>() { resultToChange };
+            ReplaceInFile(path, newPath, list, allResultsForFile, strToReplace);
+        }
+
+        internal void ReplaceInFile(string path, string newPath, List<ResultItem> resultsToChangeForFile, List<ResultItem> allResultsForFile, string strToReplace)
+        {
+            //create temporary file
+            using (StreamReader reader = new StreamReader(path))
+            {
+                try
+                {
+                    using (StreamWriter writer = new StreamWriter(newPath))
+                    {
+                        try
+                        {
+                            int lineNumber = 1;
+                            while (!reader.EndOfStream)
+                            {
+                                string line = reader.ReadLine();
+                                foreach (ResultItem item in resultsToChangeForFile)
+                                {
+                                    if (!item.replaced && item.lineNumber == lineNumber)
+                                    {
+                                        line = line.Substring(0, item.resultOffset) + strToReplace + line.Substring(item.resultOffset + item.ResultLength);
+                                        UpdateResults(item, strToReplace, allResultsForFile);
+                                    }
+                                }
+                                writer.WriteLine(line);
+                                lineNumber++;
+                            }
+                        }
+                        catch
+                        {
+                            Console.WriteLine(String.Format("Couldn't write '{0}'", newPath));
+                        }
+                        finally
+                        {
+                            writer.Close();
+                        }
+                    }
+                }
+                catch
+                {
+                    Console.WriteLine(String.Format("Couldn't read '{0}'", path));
+                }
+                finally
+                {
+                    reader.Close();
+                }
+            }
+
+            //replace old file with the new one
+            File.Delete(path);
+            File.Move(newPath, path);
+        }
+
+
+
+
+        //Save results to file
+        internal void SaveResultsToFile(Button botton)
+        {
+            List<string> lines = new List<string>();
+            TreeView tv = saveDict[botton];
+            foreach (TreeViewItem item in tv.Items)
+            {
+                SaveResultsToFile(lines, item, 0);
+            }
+
+            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog()
+            {
+                FileName = "Result", // Default file name
+                DefaultExt = ".txt", // Default file extension
+                Filter = "Text documents (.txt)|*.txt", // Filter files by extension
+                                                        // Show save file dialog box
+            };
+            Nullable<bool> result = dlg.ShowDialog();
+            // Process save file dialog box results
+            if (result == true)
+            {
+                string filename = dlg.FileName;
+                StreamWriter sw = new StreamWriter(filename);
+                foreach (string line in lines)
+                    sw.WriteLine(line);
+                sw.Close();
+            }
+        }
+
+        internal void SaveResultsToFile(List<string> lines, TreeViewItem item, int level)
+        {
+            string line = "";
+            for (int i = 0; i < level; i++)
+                line += "\t";
+
+            if (dictResultItems.ContainsKey(item))
+            {
+                ResultItem result = dictResultItems[item];
+                line += String.Format("{0}/{1} '{2}': \"{3}\"", result.lineNumber, result.resultOffset, result.resultContent, result.lineContent.Trim());
+            }
+            else
+                line += item.Header;
+            lines.Add(line);
+            foreach (TreeViewItem subItem in item.Items)
+            {
+                SaveResultsToFile(lines, subItem, level + 1);
+            }
         }
     }
 }

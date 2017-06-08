@@ -221,7 +221,6 @@ namespace VSFindTool
                 Height = 21,
                 Content = "Short"
             };
-
             upperMenuWrapPanel.Children.Add(tbShortDir);
 
             //Button Find again              
@@ -229,11 +228,22 @@ namespace VSFindTool
             {
                 Content = "Find again",
                 HorizontalAlignment = HorizontalAlignment.Center,
-                Margin = new Thickness(5, 0, 0, 0),
+                Margin = new Thickness(15, 0, 0, 0),
                 Padding = new Thickness(2, 0, 2, 0),
                 Height = 21
             };
             upperMenuWrapPanel.Children.Add(btnFindAgain);
+
+            //Button Save              
+            Button btnSave = new Button()
+            {
+                Content = "save",
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(5, 0, 0, 0),
+                Padding = new Thickness(2, 0, 2, 0),
+                Height = 21
+            };
+            upperMenuWrapPanel.Children.Add(btnSave);
 
             //Button remove snapshot              
             Button btnRemoveSnapshot = new Button()
@@ -313,6 +323,11 @@ namespace VSFindTool
                 tbiSearch.Focus();
             };
 
+            btnSave.Click += (o, e) =>
+            {
+                SaveResultsToFile((Button)o);
+            };
+
             btnRemoveSnapshot.Click += (o, e) =>
             {
                 tbcMain.Items.Remove(newTab);
@@ -321,9 +336,10 @@ namespace VSFindTool
 
             tbShortDir.Checked += (o, e) =>
             {
-                 (o as ToggleButton).Foreground = Brushes.Red;
-                 SetHeaderShortLong(flattv, flattv.Items, true);
-                 SetHeaderShortLong(treetv, treetv.Items, true);
+                (o as ToggleButton).Foreground = Brushes.Red;
+                SetHeaderShortLong(flattv, flattv.Items, true);
+                SetHeaderShortLong(treetv, treetv.Items, true);
+                saveDict[btnSave] = treetv;
             };
 
             tbShortDir.Unchecked += (o, e) =>
@@ -331,6 +347,7 @@ namespace VSFindTool
                 (o as ToggleButton).ClearValue(ToggleButton.ForegroundProperty);
                 SetHeaderShortLong(flattv, flattv.Items, false);
                 SetHeaderShortLong(treetv, treetv.Items, false);
+                saveDict[btnSave] = flattv;
             };
 
 
@@ -357,6 +374,9 @@ namespace VSFindTool
 
             //Snapshot views are filled from last views, so it's important to set short/long button also.
             tbShortDir.IsChecked = last_shortDir.IsChecked;
+
+            //Connect "Save" button with TV
+            saveDict[btnSave] = flattv;
         }
 
         private string GetSnapshotTag(int number)

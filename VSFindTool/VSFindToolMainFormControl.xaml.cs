@@ -39,6 +39,8 @@ namespace VSFindTool
 
         Dictionary<string, FindSettings> findSettings = new Dictionary<string, FindSettings>();
 
+        Dictionary<Button, TreeView> saveDict = new Dictionary<Button, TreeView>();
+
         IVsTextManager TextManager
         {
             get
@@ -60,6 +62,7 @@ namespace VSFindTool
             FileMask.FillCB(cbFileMask);
             cbFileMask.SelectedIndex = 0;
             dictTBPreview.Add(lastSearchSettings, last_TBPreview);
+            saveDict[btnSave] = last_tvResultTree;
         }
 
         /// <summary>
@@ -477,143 +480,6 @@ namespace VSFindTool
 
 
 
-        //Replace
-        internal bool GetStrReplaceForm(out string strReplace)
-        {
-            ReplaceForm replaceForm = new ReplaceForm();
-            bool? doReplace = replaceForm.ShowDialog();
-            strReplace = replaceForm.tbStrReplace.Text;
-            return doReplace.Value;
-        }
-
-        internal void ReplaceInSource(string strToReplace, ResultItem resultItem)
-        {
-            //list of ALL LastResults
-            List<ResultItem> resultList = dictResultItems.Select(c => c.Value).ToList<ResultItem>();
-
-            if (GetDocumentByPath(resultItem.linePath) != null)
-            {
-                RaplaceInDocument(strToReplace, resultItem, resultList);
-            }
-            else
-            {
-                ReplaceInFile(resultItem.linePath, resultItem.linePath + "__", resultItem, GetPathRelatesResults(resultList, resultItem.linePath), strToReplace);
-            }
-        }
-
-        internal void RaplaceInDocument(string strToReplace, ResultItem resultItem, List<ResultItem> resultList)
-        {
-            TextSelection selection = GetDocumentSelectionAndGoToLine(resultItem);   
-            if (selection.Text.Substring(resultItem.resultOffset, resultItem.resultContent.Length) != resultItem.resultContent)
-            {
-                System.Windows.Forms.MessageBox.Show(String.Format("Source doesn't match the phrase. Phrase '{0}', found '{1}'.", resultItem.resultContent, selection.Text));
-                return;
-            }
-            //update selected text in docyment
-            selection.Text = strToReplace;
-            //update offset in related results
-            UpdateResults(resultItem, strToReplace, resultList);
-        }
-
-        internal void ReplaceInFiles(string strToReplace, List<ResultItem> resultItemList)
-        {
-            List<ResultItem> list;
-            List<string> paths = new List<string>();
-            foreach (ResultItem item in resultItemList)
-                if (!paths.Contains(item.linePath))
-                    paths.Add(item.linePath);
-            foreach (string path in paths)
-            {
-                list = GetPathRelatesResults(resultItemList, path);
-                ReplaceInFile(path, path + "__", list, list, strToReplace);
-            }
-        }
-
-        internal void UpdateResults(ResultItem resultItem, string strToReplace, List<ResultItem> resultItemList)
-        {
-            List<ResultItem> changedResults = new List<ResultItem>();
-            //update offset in all related (by path and line number) results
-            foreach (ResultItem item in resultItemList)
-            {
-                if (!changedResults.Contains(item) &&
-                    item.linePath == resultItem.linePath &&
-                    item.lineNumber == resultItem.lineNumber &&
-                    item.resultOffset > resultItem.resultOffset)
-                {
-                    item.resultOffset = item.resultOffset + (strToReplace.Length - resultItem.resultContent.Length);
-                    changedResults.Add(item);
-                }
-            }
-            //set result as updated
-            resultItem.replaced = true;
-        }
-
-        internal List<ResultItem> GetPathRelatesResults(List<ResultItem> resultItemList, string path)
-        {
-            return resultItemList.Where(i => i.linePath.ToLower() == path.ToLower()).ToList<ResultItem>();
-        }
-
-        internal void ReplaceInFile(string path, string newPath, ResultItem resultToChange, List<ResultItem> allResultsForFile, string strToReplace)
-        {
-            List<ResultItem> list = new List<ResultItem>() { resultToChange };
-            ReplaceInFile(path, newPath, list, allResultsForFile, strToReplace);
-        }
-
-        internal void ReplaceInFile(string path, string newPath, List<ResultItem> resultsToChangeForFile, List<ResultItem> allResultsForFile, string strToReplace)
-        {
-            //create temporary file
-            using (StreamReader reader = new StreamReader(path))
-            {
-                try
-                {
-                    using (StreamWriter writer = new StreamWriter(newPath))
-                    {
-                        try
-                        {
-                            int lineNumber = 1;
-                            while (!reader.EndOfStream)
-                            {
-                                string line = reader.ReadLine();
-                                foreach (ResultItem item in resultsToChangeForFile)
-                                {
-                                    if (!item.replaced && item.lineNumber == lineNumber)
-                                    {
-                                        line = line.Substring(0, item.resultOffset) + strToReplace + line.Substring(item.resultOffset + item.ResultLength);
-                                        UpdateResults(item, strToReplace, allResultsForFile);
-                                    }
-                                }
-                                writer.WriteLine(line);
-                                lineNumber++;
-                            }
-                        }
-                        catch
-                        {
-                            Console.WriteLine(String.Format("Couldn't write '{0}'", newPath));
-                        }
-                        finally
-                        {
-                            writer.Close();
-                        }
-                    }
-                }
-                catch
-                {
-                    Console.WriteLine(String.Format("Couldn't read '{0}'", path));
-                }
-                finally
-                {
-                    reader.Close();
-                }
-            }
-
-            //replace old file with the new one
-            File.Delete(path);
-            File.Move(newPath, path);
-        }
-
-
-
-
         /*Fill settings and summary*/
         internal void FillResultSummary(Label lbl, ResultSummary resultSummary)
         {
@@ -745,6 +611,7 @@ namespace VSFindTool
             last_rowTree.Height = new GridLength(1, GridUnitType.Star);
             last_rowFlat.Height = new GridLength(0);
             last_tbFlatTree.Foreground = Brushes.Red;
+            saveDict[btnSave] = last_tvResultTree;
         }
 
         private void Tb_Unchecked(object sender, RoutedEventArgs e)
@@ -752,6 +619,7 @@ namespace VSFindTool
             last_rowTree.Height = new GridLength(0);
             last_rowFlat.Height = new GridLength(1, GridUnitType.Star);
             last_tbFlatTree.ClearValue(ToggleButton.ForegroundProperty);
+            saveDict[btnSave] = last_tvResultFlatTree;
         }
 
         private void BtnAddSnapshot_Click(object sender, RoutedEventArgs e)
@@ -928,6 +796,11 @@ namespace VSFindTool
         private void CbFileMask_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             cbFileMask.IsDropDownOpen = true;
+        }
+
+        private void BtnSave_Click(object sender, RoutedEventArgs e)
+        {
+            SaveResultsToFile((Button)sender);
         }
     }
 }
