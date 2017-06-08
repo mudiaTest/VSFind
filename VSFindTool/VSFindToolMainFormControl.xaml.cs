@@ -443,17 +443,19 @@ namespace VSFindTool
                 mi = new MenuItem(){ Header = "Open in containing folder" };
                 mi.Click += OpenInFolder;
                 cm.Items.Add(mi);
+                item.ContextMenu = cm;
+                dictContextMenu.Add(mi, item);
 
                 mi = new MenuItem() { Header = "Replace" };
                 mi.Click += ReplaceForContextMenu;
                 cm.Items.Add(mi);
-
                 item.ContextMenu = cm;
-                cm.PlacementTarget = item;
-
                 dictContextMenu.Add(mi, item);
+
+                cm.PlacementTarget = item;
             }
             cm = item.ContextMenu;
+
             cm.IsOpen = true;
         }
 
