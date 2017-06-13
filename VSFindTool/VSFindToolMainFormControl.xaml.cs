@@ -119,24 +119,10 @@ namespace VSFindTool
             leafTextBlock.Inlines.Add(run);
             //add part before result
             leafTextBlock.Inlines.Add(" : ");
-
             (string pre, string res, string post) = resultItem.GetSplitLine(content, false);
             leafTextBlock.Inlines.Add(new Run(pre));
             leafTextBlock.Inlines.Add(new Run(res) { Foreground = Brushes.Red });
             leafTextBlock.Inlines.Add(new Run(post));
-
-
-            /*
-            leafTextBlock.Inlines.Add(content.Substring(0, resultItem.resultOffset).TrimStart());
-            //add result in Red
-            run = new Run(content.Substring(resultItem.resultOffset, resultItem.ResultLength));
-            run.Foreground = Brushes.Red;
-            leafTextBlock.Inlines.Add(run);
-            //add part after result
-            int offset2 = resultItem.resultOffset + resultItem.ResultLength;
-            leafTextBlock.Inlines.Add(content.Substring(offset2, Math.Min(resultItem.lineContent.Length - offset2, 300)).TrimEnd());*/
-
-
             //add text block to header
             leafItem.Header = leafTextBlock;
 
@@ -710,6 +696,8 @@ namespace VSFindTool
         {
             tbLocation.IsEnabled = rbLocation.IsChecked == true;
             btnGetLocation.IsEnabled = rbLocation.IsChecked == true;
+            btnAktProject.IsEnabled = rbLocation.IsChecked == true;
+            btnAktSolution.IsEnabled = rbLocation.IsChecked == true;
         }
 
         private void BtnGetLocation_Click(object sender, RoutedEventArgs e)
@@ -725,6 +713,8 @@ namespace VSFindTool
         {
             tbLocation.IsEnabled = true;
             btnGetLocation.IsEnabled = true;
+            btnAktProject.IsEnabled = true;
+            btnAktSolution.IsEnabled = true;
             cbFileMask.IsEnabled = true;
             btnAddFileMasks.IsEnabled = true;
             btnDelFileMasks.IsEnabled = true;
@@ -736,6 +726,8 @@ namespace VSFindTool
         {
             tbLocation.IsEnabled = false;
             btnGetLocation.IsEnabled = false;
+            btnAktProject.IsEnabled = false;
+            btnAktSolution.IsEnabled = false;
             cbFileMask.IsEnabled = false;
             btnAddFileMasks.IsEnabled = false;
             btnDelFileMasks.IsEnabled = false;
@@ -866,6 +858,33 @@ namespace VSFindTool
             tokenSource = new CancellationTokenSource();
             cancellationToken = tokenSource.Token;
             StartSearch(false);
+        }
+
+        private void btnAktProject_Click(object sender, RoutedEventArgs e)
+        {
+            int count = 0;
+            if (Dte.Solution != null)
+            {
+                if (Dte.ActiveSolutionProjects is Array activeSolutionProjects && activeSolutionProjects.Length > 0)
+                {
+                    foreach(Project project in activeSolutionProjects)
+                    {
+                        if (project.FullName != "")
+                        {
+                            count++;
+                            tbLocation.Text = Path.GetDirectoryName(project.FullName);
+                        }
+                    }
+                }                
+            }
+            if (count != 1)
+                tbLocation.Text = "";
+        }
+
+        private void btnAktSolution_Click(object sender, RoutedEventArgs e)
+        {
+            if (Dte.Solution != null)
+                tbLocation.Text = Path.GetDirectoryName(Dte.Solution.FullName);
         }
     }
 }

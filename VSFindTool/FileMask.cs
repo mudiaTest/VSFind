@@ -31,7 +31,7 @@ namespace VSFindTool
 
         static public void AddToRegistry(string mask)
         {
-            if (mask == "" || mask == "*.*")
+            if (mask == "" || mask == "*.cs")
                 return;
             RegistryKey myKey = GetFileMasksKey();
             if (myKey != null)
@@ -52,7 +52,7 @@ namespace VSFindTool
         static public void FillCB(ComboBox cb)
         {
             cb.Items.Clear();
-            cb.Items.Add(new FileMaskItem() { Key = "", Value = "*.*"});
+            cb.Items.Add(new FileMaskItem() { Key = "", Value = "*.cs"});
             RegistryKey myKey = GetFileMasksKey();
             foreach (string key in myKey.GetValueNames())
             {
