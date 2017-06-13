@@ -8,7 +8,7 @@ namespace VSFindTool
 
     public partial class VSFindToolMainFormControl : UserControl
     {
-        private void CopyItems(ItemCollection src, ItemCollection dst, FindSettings findSettings, TextBox tbPreview)
+        private void CopyItems(ItemCollection src, ItemCollection dst, FindSettings findSettings, RichTextBox tbPreview)
         {
             foreach (TreeViewItem item in src)
             {
@@ -28,7 +28,7 @@ namespace VSFindTool
             }
         }
 
-        private void FillSnapshotFromLast(string snapshotTag, TreeView flattv, TreeView treetv, FindSettings findSettings, TextBox tbPreview)
+        private void FillSnapshotFromLast(string snapshotTag, TreeView flattv, TreeView treetv, FindSettings findSettings, RichTextBox tbPreview)
         {
             dictTBPreview.Add(findSettings, tbPreview);
 
@@ -282,7 +282,7 @@ namespace VSFindTool
             Grid.SetColumnSpan(treetv, 2);
 
             //add preview
-            TextBox tbPreview = new TextBox()
+            RichTextBox tbPreview = new RichTextBox()
             {
                 Name = snapshotTag + "_TBPreview",
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Auto

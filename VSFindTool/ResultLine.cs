@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
 
 namespace VSFindTool
 {
@@ -49,6 +46,19 @@ namespace VSFindTool
                 resultContent = resultContent,
                 replaced = replaced
             };
+        }
+
+        internal (string, string, string) GetSplitLine(string line, bool trimStart)
+        {
+            line = line.TrimEnd();
+            string pre = line.Substring(0, resultOffset);
+            string res = line.Substring(resultOffset, ResultLength);            
+            int offset2 = resultOffset + ResultLength;
+            string post = line.Substring(offset2, Math.Min(line.Length - offset2, 300));
+            if (trimStart)
+                return (pre.TrimStart(), res, post);
+            else
+                return (pre, res, post);
         }
     }
 

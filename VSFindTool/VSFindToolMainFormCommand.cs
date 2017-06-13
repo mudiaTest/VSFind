@@ -46,25 +46,22 @@ namespace VSFindTool
         private VSFindToolMainFormCommand(Package package)
         {
             this.package = package ?? throw new ArgumentNullException("package");
-
-            OleMenuCommandService commandService = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            if (commandService != null)
+            
+            if (this.ServiceProvider.GetService(typeof(IMenuCommandService)) is OleMenuCommandService commandService)
             {
                 var menuCommandID = new CommandID(CommandSet, CommandId);
                 var menuItem = new MenuCommand(this.ShowToolWindow, menuCommandID);
                 commandService.AddCommand(menuItem);
             }
-
-            OleMenuCommandService commandServiceFocus = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            if (commandServiceFocus != null)
+            
+            if (this.ServiceProvider.GetService(typeof(IMenuCommandService)) is OleMenuCommandService commandServiceFocus)
             {
                 var menuCommandID = new CommandID(CommandSet, VSFindToolGetFocus);
                 var menuItem = new MenuCommand(this.FocusToolWindow, menuCommandID);
                 commandServiceFocus.AddCommand(menuItem);
             }
-
-            OleMenuCommandService commandServiceResults = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
-            if (commandServiceResults != null)
+            
+            if (this.ServiceProvider.GetService(typeof(IMenuCommandService)) is OleMenuCommandService commandServiceResults)
             {
                 var menuCommandID = new CommandID(CommandSet, VSFindToolShowResults);
                 var menuItem = new MenuCommand(this.ResultToolWindow, menuCommandID);

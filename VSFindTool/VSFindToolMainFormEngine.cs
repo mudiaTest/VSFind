@@ -48,9 +48,9 @@ namespace VSFindTool
         
         // Settings for TVItem
         Dictionary<TreeViewItem, FindSettings> dictSearchSettings = new Dictionary<TreeViewItem, FindSettings>();
-            
-        // Preview TextBox for Settings
-        Dictionary<FindSettings, TextBox> dictTBPreview = new Dictionary<FindSettings, TextBox>();
+
+        // Preview RichTextBox for Settings
+        Dictionary<FindSettings, RichTextBox> dictTBPreview = new Dictionary<FindSettings, RichTextBox>();
             
         // Result summary for Settings
         Dictionary<FindSettings, ResultSummary> dictResultSummary = new Dictionary<FindSettings, ResultSummary>();
@@ -134,11 +134,10 @@ namespace VSFindTool
                 {
                     MoveResultToTreeList(last_tvResultTree, lastSearchSettings, last_TBPreview, lastResultList, false);
                     MoveResultToFlatTreeList(last_tvResultFlatTree, lastSearchSettings, last_TBPreview, lastResultList, false);
-                    //RebuildTVTreeList(last_tvResultTree);
                 }
                 JoinNodesWOLeafs(last_tvResultTree);
-                //SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, last_shortDir.IsChecked.Value);
-                //SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, last_shortDir.IsChecked.Value);
+                SetHeaderShortLong(last_tvResultFlatTree, last_tvResultFlatTree.Items, last_shortDir.IsChecked.Value);
+                SetHeaderShortLong(last_tvResultTree, last_tvResultTree.Items, last_shortDir.IsChecked.Value);
                 searchedCandidates.Clear();
                 UnlockSearching();
             }
@@ -158,7 +157,6 @@ namespace VSFindTool
             {
                 MoveResultToTreeList(last_tvResultTree, lastSearchSettings, last_TBPreview, list);
                 MoveResultToFlatTreeList(last_tvResultFlatTree, lastSearchSettings, last_TBPreview, list);
-                //RebuildTVTreeList(last_tvResultTree);
                 foreach (ResultItem item in list)
                     lastResultList.Add(item);
                 list.Clear();
@@ -859,12 +857,12 @@ namespace VSFindTool
         }
 
         //Get selection from document. Raise if document or selection doesn't exist
-        internal TextSelection GetDocumentSelectionExcept(string path)
+        internal EnvDTE.TextSelection GetDocumentSelectionExcept(string path)
         {
             EnvDTE.Document document = GetDocumentByPath(path);
             if(document != null)
             {
-                TextSelection selection = GetSelection(document);
+                EnvDTE.TextSelection selection = GetSelection(document);
                 if(selection != null)
                 {
                     return selection;
@@ -882,9 +880,9 @@ namespace VSFindTool
         }
 
         //Return selection for document for result
-        internal TextSelection GetDocumentSelection(ResultItem resultLine)
+        internal EnvDTE.TextSelection GetDocumentSelection(ResultItem resultLine)
         {
-            TextSelection selection = null;
+            EnvDTE.TextSelection selection = null;
             if (Dte != null)
             {
                 EnvDTE.Window docWindow = Dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
@@ -896,24 +894,36 @@ namespace VSFindTool
         }
 
         //Return selection for document and select whole line for result
-        internal TextSelection GetDocumentSelectionAndGoToLine(ResultItem resultLine)
+        internal EnvDTE.TextSelection GetDocumentSelectionAndSelectLine(ResultItem resultLine)
         {
-            TextSelection selection = GetDocumentSelectionExcept(resultLine.linePath);
-            selection.GotoLine(resultLine.lineNumber.Value, true);
+            EnvDTE.TextSelection selection = GetDocumentSelectionExcept(resultLine.linePath);
+            SelectLine(selection, resultLine);            
             return selection;
         }
 
         //Return selection for document and select string for result
-        internal TextSelection GetDocumentSelectionAndSelect(ResultItem resultLine)
+        internal EnvDTE.TextSelection GetDocumentSelectionAndSelectOffsetLength(ResultItem resultLine)
         {
-            TextSelection selection = GetDocumentSelectionExcept(resultLine.linePath);
-            selection.MoveToLineAndOffset(resultLine.lineNumber.Value, resultLine.resultOffset + 1 );
-            selection.MoveToLineAndOffset(resultLine.lineNumber.Value, resultLine.resultOffset + 1 +resultLine.ResultLength, true);
+            EnvDTE.TextSelection selection = GetDocumentSelectionExcept(resultLine.linePath);
+            SelectOffsetLength(selection, resultLine);
             return selection;
         }
 
+        //Select whole line according to resultLine.lineNumber
+        internal void SelectLine(EnvDTE.TextSelection selection, ResultItem resultLine)
+        {
+            selection.GotoLine(resultLine.lineNumber.Value, true);
+        }
+
+        //Select substring according to resultLine.lineNumber, resultOffset, ResultLength
+        internal void SelectOffsetLength(EnvDTE.TextSelection selection, ResultItem resultLine)
+        {
+            selection.MoveToLineAndOffset(resultLine.lineNumber.Value, resultLine.resultOffset + 1);
+            selection.MoveToLineAndOffset(resultLine.lineNumber.Value, resultLine.resultOffset + 1 + resultLine.ResultLength, true);
+        }
+
         //Get selection of document of window
-        private EnvDTE.TextSelection GetSelection(EnvDTE.Window window)
+        private TextSelection GetSelection(EnvDTE.Window window)
         {
             if (window.Selection != null)
             {
@@ -1000,12 +1010,14 @@ namespace VSFindTool
 
         internal void RaplaceInDocument(string strToReplace, ResultItem resultItem, List<ResultItem> resultList)
         {
-            TextSelection selection = GetDocumentSelectionAndGoToLine(resultItem);
+            EnvDTE.TextSelection selection = GetDocumentSelection(resultItem);
+            SelectLine(selection, resultItem);
             if (selection.Text.Substring(resultItem.resultOffset, resultItem.resultContent.Length) != resultItem.resultContent)
             {
                 System.Windows.Forms.MessageBox.Show(String.Format("Source doesn't match the phrase. Phrase '{0}', found '{1}'.", resultItem.resultContent, selection.Text));
                 return;
             }
+            SelectOffsetLength(selection, resultItem);
             //update selected text in docyment
             selection.Text = strToReplace;
             //update offset in related results

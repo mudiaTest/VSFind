@@ -38,6 +38,9 @@ namespace VSFindTool
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(VSFindToolMainForm))]
+    // Necesary for working with global key bindings AFTER opening solution.
+    // Allows creating invisible buttons on VS start. Without this step keybindings won't work, cause won't be objects to show
+    // https://msdn.microsoft.com/en-us/library/bb166762.aspx
     [ProvideAutoLoad(UIContextGuids80.SolutionExists)]
     public sealed class VSFindToolPackage : Package
     {

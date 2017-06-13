@@ -128,7 +128,7 @@
 
                     <TreeView Grid.Row="2" Grid.ColumnSpan="2" x:Name="last_tvResultFlatTree" HorizontalContentAlignment="Stretch" MouseRightButtonUp="Last_tvResultFlatTree_MouseRightButtonUp"/>
                     <TreeView Grid.Row="3" Grid.ColumnSpan="2" x:Name="last_tvResultTree" HorizontalContentAlignment="Stretch"/>
-                    <TextBox Grid.Row="4" Grid.ColumnSpan="2" Name="last_TBPreview" HorizontalScrollBarVisibility="Auto"/>
+                    <RichTextBox Grid.Row="4" Grid.ColumnSpan="2" Name="last_TBPreview" HorizontalScrollBarVisibility="Auto"/>
                     <Label Grid.Row="5" Grid.ColumnSpan="2" x:Name="last_LabelInfo" Padding="5,2,5,5" Content="www"/>
                 </Grid>
             </TabItem>

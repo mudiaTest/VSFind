@@ -18,6 +18,7 @@ namespace VSFindTool
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Controls.Primitives;
+    using System.Windows.Documents;
 
     /// <summary>
     /// Interaction logic for VSFindToolMainFormControl.
@@ -100,7 +101,53 @@ namespace VSFindTool
 
 
         /*Filling and actions of result TreeViews*/
-        internal void MoveResultToTreeList(TreeView tvResultTree, FindSettings last_searchSettings, TextBox tbPreview, List<ResultItem> resultList, bool partialMode = true)
+        internal TreeViewItem AddLeafItem(ResultItem resultItem)
+        {
+            string content = resultItem.lineContent;
+            TreeViewItem leafItem = new TreeViewItem()
+            {
+                //Header added below
+                FontWeight = FontWeights.Normal
+            };
+
+            TextBlock leafTextBlock = new TextBlock();
+            //add prefix (lune number etc.)
+            Run run = new Run("(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ")");
+            run.FontWeight = FontWeights.Bold;
+            leafTextBlock.Inlines.Add(run);
+            //add part before result
+            leafTextBlock.Inlines.Add(" : ");
+
+            (string pre, string res, string post) = resultItem.GetSplitLine(content, false);
+            leafTextBlock.Inlines.Add(new Run(pre));
+            leafTextBlock.Inlines.Add(new Run(res) { Foreground = Brushes.Red });
+            leafTextBlock.Inlines.Add(new Run(post));
+
+
+            /*
+            leafTextBlock.Inlines.Add(content.Substring(0, resultItem.resultOffset).TrimStart());
+            //add result in Red
+            run = new Run(content.Substring(resultItem.resultOffset, resultItem.ResultLength));
+            run.Foreground = Brushes.Red;
+            leafTextBlock.Inlines.Add(run);
+            //add part after result
+            int offset2 = resultItem.resultOffset + resultItem.ResultLength;
+            leafTextBlock.Inlines.Add(content.Substring(offset2, Math.Min(resultItem.lineContent.Length - offset2, 300)).TrimEnd());*/
+
+
+            //add text block to header
+            leafItem.Header = leafTextBlock;
+
+            resultItem.belongsToLastResults = true;
+            leafItem.MouseDoubleClick += OpenResultShowPreview;
+            leafItem.MouseUp += PreviewResultDoc;
+            leafItem.MouseRightButtonUp += ShowResultTreeContextMenu;
+            dictResultItems.Add(leafItem, resultItem);
+            dictSearchSettings.Add(leafItem, lastSearchSettings);
+            return leafItem;
+        }
+
+        internal void MoveResultToTreeList(TreeView tvResultTree, FindSettings last_searchSettings, RichTextBox tbPreview, List<ResultItem> resultList, bool partialMode = true)
         {
             List<ResultItem> tmp = new List<ResultItem>();
             foreach (ResultItem resultItem in resultList)
@@ -110,9 +157,7 @@ namespace VSFindTool
 
             ItemCollection treeItemColleaction;
             string pathAgg;
-            string content = "";
             TreeViewItem treeItem;
-            TreeViewItem leafItem;
 
             dictTVData[tvResultTree] = new TVData()
             {
@@ -147,20 +192,8 @@ namespace VSFindTool
                         treeItemColleaction = treeItem.Items;
                     }
                     if (i == resultItem.PathPartsList.Count - 1)
-                    {
-                        content = resultItem.lineContent.Trim();
-                        leafItem = new TreeViewItem()
-                        {                          
-                            Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + content.Substring(0, Math.Min(resultItem.lineContent.Trim().Length, 300)),
-                            FontWeight = FontWeights.Normal
-                        };
-                        resultItem.belongsToLastResults = true;
-                        leafItem.MouseDoubleClick += OpenResultShowPreview;
-                        leafItem.MouseUp += PreviewResultDoc;
-                        leafItem.MouseRightButtonUp += ShowResultTreeContextMenu;
-                        dictResultItems.Add(leafItem, resultItem);
-                        dictSearchSettings.Add(leafItem, last_searchSettings);                        
-                        treeItemColleaction.Add(leafItem);
+                    {                                              
+                        treeItemColleaction.Add(AddLeafItem(resultItem));
                     }
                 }
             }
@@ -170,8 +203,8 @@ namespace VSFindTool
                     JoinNodesWOLeafs(tmpItem);
             SetExpandAllInLvl(tvResultTree.Items, true);
         }
-
-        internal void MoveResultToFlatTreeList(TreeView tvResultFlatTree, FindSettings last_searchSetting, TextBox tbPreview, List<ResultItem> resultList, bool partialMode = true)
+     
+        internal void MoveResultToFlatTreeList(TreeView tvResultFlatTree, FindSettings last_searchSetting, RichTextBox tbPreview, List<ResultItem> resultList, bool partialMode = true)
         {
             List<ResultItem> tmp = new List<ResultItem>();
             string content = "";
@@ -181,7 +214,6 @@ namespace VSFindTool
             }
 
             TreeViewItem treeItem;
-            TreeViewItem leafItem;
 
             dictTVData[tvResultFlatTree] = new TVData()
             {
@@ -199,23 +231,11 @@ namespace VSFindTool
                 {
                     treeItem = new TreeViewItem() { Header = resultItem.linePath, FontWeight = FontWeights.Bold };
                     tvResultFlatTree.Items.Add(treeItem);
-                }
-                leafItem = new TreeViewItem()
-                {
-                    Header = "(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ") : " + content.Substring(0, Math.Min(resultItem.lineContent.Trim().Length, 300)),
-                    FontWeight = FontWeights.Normal
-                };
-
-                resultItem.belongsToLastResults = true;
-                leafItem.MouseDoubleClick += OpenResultShowPreview;
-                leafItem.MouseUp += PreviewResultDoc;
-                leafItem.MouseRightButtonUp += ShowResultTreeContextMenu;
-                this.Focusable = false;
-                dictResultItems.Add(leafItem, resultItem);
-                dictSearchSettings.Add(leafItem, lastSearchSettings);
-                treeItem.Items.Add(leafItem);
+                }                
+                treeItem.Items.Add(AddLeafItem(resultItem));
             }
             SetExpandAllInLvl(tvResultFlatTree.Items, true);
+            this.Focusable = false;
         }
 
         internal void FillTVIList(Dictionary<string, TreeViewItem> tviList, ItemCollection items)
@@ -226,19 +246,6 @@ namespace VSFindTool
                 FillTVIList(tviList, item.Items);
             }
         }
-
-        /*internal void RebuildTVTreeList(TreeView tvResultTree)
-        {
-            Dictionary<string, TreeViewItem> tviList = new Dictionary<string, TreeViewItem>();
-            ItemCollection items = tvResultTree.Items;
-            TreeViewItem treeItem;
-            FillTVIList(tviList, tvResultTree.Items);
-            items.Clear();
-            foreach (KeyValuePair<string, TreeViewItem> pair in tviList)
-            {
-                if ()
-            }
-        }*/
 
         internal void ClearTV(TreeView tvResultFlatTree, TreeView tvResultTree)
         {
@@ -327,9 +334,9 @@ namespace VSFindTool
 
 
         //Preview
-        internal TextSelection OpenDocShowPreview(ResultItem resultLine, FindSettings settings, bool focus = true)
+        internal EnvDTE.TextSelection OpenDocShowPreview(ResultItem resultLine, FindSettings settings, bool focus = true)
         {
-            TextSelection selection = null;
+            EnvDTE.TextSelection selection = null;
             if (Dte != null)
             {
                 EnvDTE.Window docWindow = Dte.ItemOperations.OpenFile(resultLine.linePath, Constants.vsViewKindTextView);
@@ -338,15 +345,16 @@ namespace VSFindTool
                 {
                     selection.SelectAll();
                     int lastLine = selection.CurrentLine;
-                    dictTBPreview[settings].Text = GetPreviewFromDocument(Dte.ActiveDocument, resultLine);
+                    FillPreviewFromDocument(dictTBPreview[settings].Document.Blocks, selection, resultLine);
 
-                    if (settings.chkRegExp == true)
+                    SelectOffsetLength(selection, resultLine);
+                   /* if (settings.chkRegExp == true)
                         Debug.Assert(false, "Brak obsługi RegExp");
                     else
                     {
                         selection.MoveToLineAndOffset(resultLine.lineNumber.Value, resultLine.resultOffset + 1, false);
                         selection.MoveToLineAndOffset(resultLine.lineNumber.Value, resultLine.resultOffset + 1 + resultLine.ResultLength, true);
-                    }
+                    }*/
                     //Add action to set focus no doc window after finishing all action in queue (currenty there should be only double click event) 
                     if (focus)
                     {
@@ -359,71 +367,117 @@ namespace VSFindTool
                 Debug.Assert(false, "Brak DTE");
             return selection;
         }
-
+          //double click
         internal void OpenResultShowPreview(object src, EventArgs args)
         {
             ResultItem resultLine = dictResultItems[(TreeViewItem)src];
             FindSettings settings = dictSearchSettings[(TreeViewItem)src];
             OpenDocShowPreview(resultLine, settings, true);
         }        
-
+          //preview on MouseUp
         public void PreviewResultDoc(object src, EventArgs args)
         {
             ResultItem resultLine = dictResultItems[(TreeViewItem)src];
             FindSettings settings = dictSearchSettings[(TreeViewItem)src];
-            TextBox tbPreview = dictTBPreview[settings];
-            tbPreview.Text = "";
-            int lineNumber = 1;
+            RichTextBox tbPreview = dictTBPreview[settings];
+            tbPreview.Document.Blocks.Clear();
 
             EnvDTE.Document document = GetDocumentByPath(resultLine.linePath);
+            //It document exists in VS memory  
             if (document != null)
             {
-                tbPreview.Text = GetPreviewFromDocument(document, resultLine);
+                EnvDTE.TextSelection selection = GetSelection(document);
+                FillPreviewFromDocument(tbPreview.Document.Blocks, selection, resultLine);
+                SelectOffsetLength(selection, resultLine);
             }
-            //It there is no document in VS memory        
+            else
+            {
+                FillPreviewFromFile(tbPreview.Document.Blocks, resultLine);
+            }       
+        }
+
+        internal void FillPreviewFromFile(BlockCollection blocks, ResultItem resultLine)
+        {
             using (var reader = new StreamReader(resultLine.linePath))
             {
                 try
                 {
                     string line;
-                    for (int i = resultLine.lineNumber.Value - 2; i < 0; i++)
-                        tbPreview.AppendText("\n");
+                    int lineNumber = 0;
+                    int countEmpty = 0;
+                    Paragraph paragraph = new Paragraph();
+                    blocks.Add(paragraph);
+                    //Pre
+                    for (int i = resultLine.lineNumber.Value - 2; i < 1; i++)
+                    {
+                        paragraph.Inlines.Add(new Run("\n"));
+                        countEmpty++;
+                    }
                     while (lineNumber <= Math.Max(1, resultLine.lineNumber.Value + 2))
                     {
-                        if (reader.EndOfStream)
-                            return;
                         line = reader.ReadLine();
-                        if (lineNumber >= Math.Max(1, resultLine.lineNumber.Value - 2) && lineNumber <= Math.Max(1, resultLine.lineNumber.Value + 2))
-                            tbPreview.AppendText((tbPreview.Text != "" ? Environment.NewLine : "") + line);
                         lineNumber++;
+                        //Pre
+                        if (lineNumber >= resultLine.lineNumber.Value - 2 && lineNumber < resultLine.lineNumber.Value)
+                            paragraph.Inlines.Add(new Run(line + "\n"));
+                        //Res
+                        else if (lineNumber == resultLine.lineNumber.Value)
+                        {
+                            (string pre, string res, string post) = resultLine.GetSplitLine(line, false);
+                            paragraph.Inlines.Add(new Run(pre));
+                            paragraph.Inlines.Add(new Run(res) { Foreground = Brushes.Red });
+                            paragraph.Inlines.Add(new Run(post + "\n"));
+                        }
+                        //Post
+                        else if (lineNumber > resultLine.lineNumber.Value && lineNumber <= resultLine.lineNumber.Value + 2)
+                        {
+                            paragraph.Inlines.Add(new Run(line + "\n"));
+                        }
                     }
                 }
                 finally
                 {
                     reader.Close();
                 }
-            }            
+            }
         }
 
-        internal string GetPreviewFromDocument(EnvDTE.Document document, ResultItem resultLine)
+        internal void FillPreviewFromDocument(BlockCollection blocks, EnvDTE.TextSelection selection, ResultItem resultLine)
         {
-            string result = "";
-            EnvDTE.TextSelection selection = GetSelection(document);
             if (selection != null)
             {
                 selection.EndOfDocument();
                 int docLength = selection.CurrentLine;
                 int countEmpty = 0;
+
+                Paragraph paragraph = new Paragraph();
+                blocks.Add(paragraph);
+
+                //Pre
                 for (int i = resultLine.lineNumber.Value - 2; i < 1; i++)
                 {
-                    result += "\n";
+                    paragraph.Inlines.Add(new Run("\n"));
                     countEmpty++;
                 }
-                selection.GotoLine(Math.Max(1, resultLine.lineNumber.Value - 2), false);
-                selection.LineDown(true, Math.Min(5 - countEmpty, docLength - resultLine.lineNumber.Value + 2));
-                result += selection.Text;
+                for (int i = Math.Max(1, resultLine.lineNumber.Value - 2); i < resultLine.lineNumber.Value; i++)
+                {
+                    selection.GotoLine(i, true);
+                    paragraph.Inlines.Add(new Run(selection.Text + "\n"));
+                }
+                //Res
+                selection.GotoLine(resultLine.lineNumber.Value, true);
+                (string pre, string res, string post) = resultLine.GetSplitLine(selection.Text, false);
+                paragraph.Inlines.Add(new Run(pre));
+                paragraph.Inlines.Add(new Run(res) { Foreground = Brushes.Red });
+                paragraph.Inlines.Add(new Run(post + "\n"));
+                //Post
+                for (int i = 1; i <= Math.Min(2, docLength - resultLine.lineNumber.Value); i++)
+                {
+                    selection.GotoLine(resultLine.lineNumber.Value + i, true);
+                    paragraph.Inlines.Add(new Run(selection.Text + "\n") );
+                }
             }
-            return result;
+            return;
         }
 
 
@@ -744,6 +798,11 @@ namespace VSFindTool
             tokenSource.Cancel();
         }
 
+        private void CbFileMask_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            cbFileMask.IsDropDownOpen = true;
+        }
+
 
         /*Show debug info*/
         private void ShowCandidates(List<Candidate> candidates)
@@ -793,11 +852,6 @@ namespace VSFindTool
                 return;
             foreach (ResultItem resultItem in lastResultList)
                 ReplaceInSource(strToReplace, resultItem);
-        }
-
-        private void CbFileMask_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            cbFileMask.IsDropDownOpen = true;
         }
 
         private void BtnSave_Click(object sender, RoutedEventArgs e)
