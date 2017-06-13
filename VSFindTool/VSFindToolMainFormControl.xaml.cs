@@ -112,8 +112,10 @@ namespace VSFindTool
 
             TextBlock leafTextBlock = new TextBlock();
             //add prefix (lune number etc.)
-            Run run = new Run("(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ")");
-            run.FontWeight = FontWeights.Bold;
+            Run run = new Run("(" + resultItem.lineNumber.ToString() + @"/" + resultItem.resultOffset.ToString() + ")")
+            {
+                FontWeight = FontWeights.Bold
+            };
             leafTextBlock.Inlines.Add(run);
             //add part before result
             leafTextBlock.Inlines.Add(" : ");
@@ -859,7 +861,7 @@ namespace VSFindTool
             SaveResultsToFile((Button)sender);
         }
 
-        private void btnFindAgain_Click(object sender, RoutedEventArgs e)
+        private void BtnFindAgain_Click(object sender, RoutedEventArgs e)
         {
             tokenSource = new CancellationTokenSource();
             cancellationToken = tokenSource.Token;
