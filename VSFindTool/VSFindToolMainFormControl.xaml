@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"            
              mc:Ignorable="d" d:DesignWidth="400"
-             Name="MyToolWindow" MinHeight="550">
+             Name="MyToolWindow" MinHeight="550" MinWidth="420">
     <UserControl.Resources>
         <ContextMenu x:Key="TVContextMenu">
             <MenuItem Header="Send" />
@@ -115,6 +115,7 @@
                             <ColumnDefinition Width="72"/>
                         </Grid.ColumnDefinitions>
                         <WrapPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0">
+                            <Button x:Name="btnFindAgain" Width="21" Content="«" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-4,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="0.5,0.5" VerticalAlignment="Center" HorizontalAlignment="Center" Click="btnFindAgain_Click" />
                             <ToggleButton x:Name="last_tbFlatTree" Content = "Tree" HorizontalAlignment = "Center" Padding="3,1" Width="34" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" Checked="Tb_Checked" Unchecked="Tb_Unchecked" Margin="5,0,0,0" Height="21" VerticalAlignment="Center" />
                             <Button x:Name="btnExpAll" Width="21" Content="+" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-4,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="0.5,0.5" Click="BtnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />
                             <Button x:Name="btnUnExpAll" Width="21" Content="-" Margin="5,0,0,0" FontWeight="Bold" FontSize="18" Padding="0,-4,0,0" VerticalContentAlignment="Center" Height="21" HorizontalContentAlignment="Center" UseLayoutRounding="True" RenderTransformOrigin="1,1" Click="BtnUnExpAll_Click" VerticalAlignment="Center" HorizontalAlignment="Center" />

@@ -227,7 +227,7 @@ namespace VSFindTool
             }
         }
 
-        private void StartSearch()
+        private void StartSearch(bool readSettingsFromFrame = true)
         {
             LockSearching();
             try

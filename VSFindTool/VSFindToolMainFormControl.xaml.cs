@@ -858,5 +858,12 @@ namespace VSFindTool
         {
             SaveResultsToFile((Button)sender);
         }
+
+        private void btnFindAgain_Click(object sender, RoutedEventArgs e)
+        {
+            tokenSource = new CancellationTokenSource();
+            cancellationToken = tokenSource.Token;
+            StartSearch(false);
+        }
     }
 }
