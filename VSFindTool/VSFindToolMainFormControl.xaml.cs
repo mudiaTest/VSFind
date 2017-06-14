@@ -763,9 +763,12 @@ namespace VSFindTool
         }
 
         private void BtnDelFileMasks_Click(object sender, RoutedEventArgs e)
-        { 
-            FileMask.DelFromRegistry( ((FileMaskItem)cbFileMask.SelectedItem).Key );
-            FileMask.FillCB(cbFileMask);
+        {
+            if (cbFileMask.SelectedItem is FileMaskItem fileMaskItem)
+            {
+                FileMask.DelFromRegistry((fileMaskItem).Key);
+                FileMask.FillCB(cbFileMask);
+            }
         }
 
         private void Last_tvResultFlatTree_MouseRightButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)

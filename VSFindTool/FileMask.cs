@@ -29,14 +29,25 @@ namespace VSFindTool
             return myKey;
         }
 
+        static private int GetNextValueNumber(RegistryKey key)
+        {
+            int number = -1;
+            foreach(string valName in key.GetValueNames())
+            {
+                if (number < int.Parse(valName.Substring(3)))
+                    number = int.Parse(valName.Substring(3));
+            }
+            return number+1;
+        }
+
         static public void AddToRegistry(string mask)
         {
             if (mask == "" || mask == "*.cs")
                 return;
             RegistryKey myKey = GetFileMasksKey();
             if (myKey != null)
-            {
-                 myKey.SetValue("key" + myKey.ValueCount, mask, RegistryValueKind.String);
+            {                
+                myKey.SetValue("key" + GetNextValueNumber(myKey), mask, RegistryValueKind.String);
                 myKey.Close();
             }
         }
