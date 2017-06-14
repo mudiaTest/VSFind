@@ -74,8 +74,8 @@
                                     
 
                                     <WrapPanel Grid.Column="1" x:Name="locationWraper" Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left">
-                                        <Button Name="btnAktProject" Content="P" Margin="4,2,2,2" Width="20" HorizontalAlignment="Left" Height="18" IsEnabled="False" Padding="1,0,1,1" Click="btnAktProject_Click"/>
-                                        <Button Name="btnAktSolution" Content="S" Margin="4,2,2,2" Width="20" HorizontalAlignment="Left" Height="18" IsEnabled="False" Padding="1,0,1,1" Click="btnAktSolution_Click"/>
+                                        <Button Name="btnAktProject" Content="P" Margin="4,2,2,2" Width="20" HorizontalAlignment="Left" Height="18" IsEnabled="False" Padding="1,0,1,1" Click="BtnAktProject_Click"/>
+                                        <Button Name="btnAktSolution" Content="S" Margin="4,2,2,2" Width="20" HorizontalAlignment="Left" Height="18" IsEnabled="False" Padding="1,0,1,1" Click="BtnAktSolution_Click"/>
                                         <Button Name="btnGetLocation" Content=". . ." Grid.Column="1" Margin="4,2,2,2" Width="24" HorizontalAlignment="Left" Click="BtnGetLocation_Click" Height="18" IsEnabled="False" Padding="1,0,1,1"/>
                                     </WrapPanel>
 

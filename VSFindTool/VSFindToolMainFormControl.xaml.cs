@@ -863,7 +863,7 @@ namespace VSFindTool
             StartSearch(false);
         }
 
-        private void btnAktProject_Click(object sender, RoutedEventArgs e)
+        private void BtnAktProject_Click(object sender, RoutedEventArgs e)
         {
             int count = 0;
             if (Dte.Solution != null)
@@ -884,7 +884,7 @@ namespace VSFindTool
                 tbLocation.Text = "";
         }
 
-        private void btnAktSolution_Click(object sender, RoutedEventArgs e)
+        private void BtnAktSolution_Click(object sender, RoutedEventArgs e)
         {
             if (Dte.Solution != null)
                 tbLocation.Text = Path.GetDirectoryName(Dte.Solution.FullName);
